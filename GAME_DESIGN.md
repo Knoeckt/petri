@@ -183,10 +183,12 @@ costs you the rest of the dish if you ignore it.
 
 **Counterplay is a tap.** Tap the strain and it is quarantined: a dashed ring, a frown, and
 it stops. Free, instant, but you have to be looking. The status line under the dish turns
-red while something is eating. **Antibiotic wash** research quarantines every dangerous
-strain on arrival, online and offline, and until you have it the welcome-back sheet reports
-how many colonies were eaten while you were away. That research is the first thing most
-players will want, which is fine: it is timed, and the timer has an ad.
+red while something is eating. **Antibiotic wash** is a repeatable research: each rank adds
+a 5% chance a dangerous strain is quarantined the moment it arrives, online and offline,
+and twenty ranks make it certain. A seeded Sentinel adds 40% on top. Until the chance is
+100% the welcome-back sheet reports how many colonies were eaten while you were away. Buying
+the ranks one at a time keeps the biters a live threat for most of a chapter while giving
+the player a lever they can feel move.
 
 The rule of thumb: danger is a rarity-gated attention tax, never a punishment for being
 away. Level 1 exists so the player meets the mechanic around dish level 8 with something
@@ -452,7 +454,7 @@ drawn on a little pedestal, and gives a perk while seeded. One seed slot.
 | Blobbly | Blubb + Wiggly | +1 colony per cycle |
 | Dizzy Dots | Dotto + Spirally | −15% cycle time |
 | Polish | Moldy Pete + Mirror Mike | +50% duplicate value |
-| Sentinel | Nibbler + Glowbert | biters are quarantined on arrival; bites the bloom |
+| Sentinel | Nibbler + Glowbert | +40% chance biters are quarantined on arrival; bites the bloom |
 
 Five is the whole tree for tier 1. It is deliberately small: the Clinic is the spine and the
 splicer is a tool the story hands you, not a second grind.
@@ -533,7 +535,7 @@ Timed, one at a time, costs currency, skippable by ad. Research persists across 
 |---|---:|---|
 | Selective medium / Spectral filter | 10 min | the luck upgrade |
 | Auto-harvest / Auto-catalog | 20 min | cycles collect themselves online |
-| Antibiotic wash / Debris shield | 30 min | dangerous strains are quarantined on arrival, even offline |
+| Antibiotic wash / Debris shield (repeatable, 20 ranks) | 10 min, +3 min per rank | each rank adds a 5% chance a biter is quarantined on arrival, online and offline; cost ×1.3 per rank |
 | Second dish / Second field | 45 min | a second dish |
 | Cold storage / Deep storage | 1 h | offline cap 4 h → 8 h |
 | Fast incubator / Fast scanner | 2 h | −25% base cycle time |

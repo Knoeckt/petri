@@ -226,6 +226,12 @@
   /* decor slots */
   .slots{display:grid; grid-template-columns:repeat(3, 1fr); gap:8px} .slot{border:3px dashed var(--ink); border-radius:16px; padding:8px 6px; text-align:center; background:var(--raised) var(--paper); min-height:96px; display:flex; flex-direction:column; align-items:center; gap:3px} .slot.full{border-style:solid; box-shadow:0 3px 0 var(--ink)} .slot .e{font-size:30px; line-height:1} .slot .nm{font:700 12px var(--display)} .slot .pd{font-size:10.5px; color:var(--muted); font-weight:700} .slot .btn{flex:none; padding:4px 8px; font-size:11px; margin-top:auto}
   .artrow{display:flex; align-items:center; gap:10px} .artrow .e{font-size:26px; width:40px; text-align:center}
+  /* ingredient tiles in the apothecary */
+  .ings{display:flex; gap:6px; flex-wrap:wrap; margin:4px 0}
+  .ing{display:flex; flex-direction:column; align-items:center; gap:0; padding:4px 6px 5px; border:2px solid var(--ink); border-radius:12px; background:var(--raised) var(--paper); min-width:68px; font:700 10.5px var(--display); text-align:center; color:var(--text); box-shadow:0 2px 0 var(--ink)}
+  .ing canvas{width:40px; height:40px; display:block} .ing.big canvas{width:56px; height:56px}
+  .ing small{font:700 9.5px var(--display); color:var(--muted)} .ing.ok{border-color:#1a9c7f} .ing.ok small{color:#1a9c7f} .ing.short{border-color:var(--bad); background:#ffe3e3} .ing.short small{color:var(--bad)}
+  .ing .plus{align-self:center; font:700 16px var(--display); color:var(--muted); padding:0 2px}
   .kv{display:flex; justify-content:space-between; padding:6px 0; border-bottom:2px dashed var(--line); font-size:13px; gap:10px; font-weight:700} .kv:last-of-type{border:0} .kv span:last-child{font-family:var(--display); color:var(--muted); text-align:right} .kv .good{color:#1a9c7f} .kv .warn{color:var(--warn)}
   .ladder{display:flex; flex-direction:column; gap:3px; font-size:12.5px; font-weight:700} .ladder div{padding:5px 8px; border-radius:8px; color:var(--muted)} .ladder div.cur{background:var(--teal-soft); color:var(--text)} .ladder div.done{color:var(--text)}
 
@@ -348,7 +354,7 @@
     <div class="stat" id="devStat"></div>
     <ul>
       <li><b>Strains are characters.</b> Every catalog entry has a look and a temperament. Most are fuzzy guys. Some bite.</li>
-      <li><b>Dangerous strains</b> (⚠ in the catalog) eat neighbouring colonies while the cycle runs. <b>Tap one to quarantine it.</b> Nibbler eats once; Gulp eats one every five seconds; The Wipe eats one every 2.5 s until the dish is empty. Antibiotic wash research contains them automatically, which is what protects you offline.</li>
+      <li><b>Dangerous strains</b> (⚠ in the catalog) eat neighbouring colonies while the cycle runs. <b>Tap one to quarantine it.</b> Nibbler eats once; Gulp eats one every five seconds; The Wipe eats one every 2.5 s until the dish is empty. Each rank of Antibiotic wash research adds a 5% chance a biter is quarantined the moment it arrives, online and offline; twenty ranks is certainty. A seeded Sentinel adds 40%.</li>
       <li><b>Rarity</b> comes from the dish level only (plus luck). Level 1 is all common; level 10 is 85 / 12 / 3; level 20 adds epics; 35 adds legendaries.</li>
       <li><b>Long timers have an ad.</b> Finish research, a brew or a splice; warp an hour; boost; double what came in while you were away. The dish itself has no skip: the ring shows the cycle and a Harvest button appears when it is done.</li>
       <li><b>Side buttons.</b> Quests holds the odd jobs (the Clinic is story only now, with a "coming up" list so you can hunt ahead). Tickets is the pipette mini-game: three a day, stop the drop near the middle for a rarer artifact. Decor places up to three artifacts in the enclosure; only placed ones count. Shop sells a ticket, a mystery pebble and a paid boost.</li>
@@ -362,7 +368,7 @@
 <script>
 'use strict';
 // ---------- constants ----------
-const VERSION = '0.4.1';
+const VERSION = '0.5.0';
 const RAR = [
   {k:'c', n:'Common',    col:'#d6c59a'},
   {k:'u', n:'Uncommon',  col:'#4ade80'},
@@ -387,7 +393,7 @@ const THEMES = {
   bio: {
     name:'Petri', skin:'bio', cur:'Biomass', ic:'🧫', dish:'dish', drop:'colony', drops:'colonies', cycling:'Incubating', collect:'Harvest', ascend:'Scale up', contain:'Quarantined',
     up:{ lv:['Dish level','Shifts the rarity table'], yield:['Nutrient agar','+1 colony per cycle'], speed:['Incubator heat','−6% cycle time'], luck:['Selective medium','+1.5 effective levels for rarity'], gen:['Culture vats','Biomass per second'] },
-    res:{ luck:['Selective media','Unlocks the luck upgrade'], auto:['Auto-harvest','Cycles collect themselves'], wash:['Antibiotic wash','Dangerous strains are quarantined on arrival, even offline'], dish2:['Second dish','A second dish runs in parallel'], storage:['Cold storage','Offline cap 4 h → 8 h'], fast:['Fast incubator','−25% base cycle time'], dish3:['Third dish','A third dish'], batch2:['Bigger cauldron','Brew 3 medicines at once'], fastbrew:['Hot cauldron','Medicines brew in half the time'], batch3:['Vat cauldron','Brew 6 medicines at once'] },
+    res:{ luck:['Selective media','Unlocks the luck upgrade'], auto:['Auto-harvest','Cycles collect themselves'], wash:['Antibiotic wash','+5% chance a dangerous strain is quarantined on arrival, online and offline. Stacks to 100%.'], dish2:['Second dish','A second dish runs in parallel'], storage:['Cold storage','Offline cap 4 h → 8 h'], fast:['Fast incubator','−25% base cycle time'], dish3:['Third dish','A third dish'], batch2:['Bigger cauldron','Brew 3 medicines at once'], fastbrew:['Hot cauldron','Medicines brew in half the time'], batch3:['Vat cauldron','Brew 6 medicines at once'] },
     tiers:[
       {n:'Petri dish', items:[
         [ sp('Blubb', 'Sleeps through most cycles. Harmless and a little damp.', {shape:'blob', col:'#5aa9ff', col2:'#cfe6ff', eyes:2}),
@@ -441,7 +447,7 @@ const THEMES = {
   space: {
     name:'Orbit', skin:'space', cur:'Matter', ic:'✨', dish:'field', drop:'find', drops:'finds', cycling:'Scanning', collect:'Catalog', ascend:'Zoom out', contain:'Shielded',
     up:{ lv:['Field level','Shifts the rarity table'], yield:['Wider aperture','+1 find per scan'], speed:['Scan rate','−6% scan time'], luck:['Spectral filter','+1.5 effective levels for rarity'], gen:['Mining drones','Matter per second'] },
-    res:{ luck:['Spectral filters','Unlocks the luck upgrade'], auto:['Auto-catalog','Scans catalog themselves'], wash:['Debris shield','Hazards are shielded on arrival, even offline'], dish2:['Second field','A second field scans in parallel'], storage:['Deep storage','Offline cap 4 h → 8 h'], fast:['Fast scanner','−25% base scan time'], dish3:['Third field','A third field'], batch2:['Bigger refinery','Refine 3 compounds at once'], fastbrew:['Hot refinery','Compounds refine in half the time'], batch3:['Vat refinery','Refine 6 compounds at once'] },
+    res:{ luck:['Spectral filters','Unlocks the luck upgrade'], auto:['Auto-catalog','Scans catalog themselves'], wash:['Debris shield','+5% chance a hazard is shielded on arrival, online and offline. Stacks to 100%.'], dish2:['Second field','A second field scans in parallel'], storage:['Deep storage','Offline cap 4 h → 8 h'], fast:['Fast scanner','−25% base scan time'], dish3:['Third field','A third field'], batch2:['Bigger refinery','Refine 3 compounds at once'], fastbrew:['Hot refinery','Compounds refine in half the time'], batch3:['Vat refinery','Refine 6 compounds at once'] },
     tiers:[
       {n:'Gravel bed', items:[
         [ sp('Flint chip','Sharp. Older than the tray.',{col:'#9aa5b1'}), sp('Quartz grain','Catches the light and keeps it.',{col:'#e8e8ff'}), sp('Basalt pebble','Was lava once. Over it now.',{col:'#5c6370'}), sp('River stone','Smooth from a long trip.',{col:'#b8a58a'}), sp('Iron flake','Rusts if you look at it.',{col:'#c9743d'}) ],
@@ -475,7 +481,7 @@ const THEMES = {
 const RES_DEF = [
   {id:'luck',    cost:80,   time:45,  req:null},
   {id:'auto',    cost:150,  time:60,  req:null},
-  {id:'wash',    cost:250,  time:90,  req:null},
+  {id:'wash',    cost:60,   time:30,  req:null, max:20, step:.05},
   {id:'dish2',   cost:400,  time:120, req:'auto'},
   {id:'storage', cost:600,  time:150, req:null},
   {id:'fast',    cost:1200, time:200, req:'auto'},
@@ -527,7 +533,7 @@ const HYBRIDS = [
   { id:'blobbly', n:'Blobbly', d:'A blob that finally has somewhere to be.', par:[[0,0],[0,3]], look:{shape:'blob', col:'#9bb8ff', col2:'#ffd1e8', eyes:2, tail:1}, perk:'drop', pd:'+1 colony per cycle while seeded' },
   { id:'dizzy', n:'Dizzy Dots', d:'Three of them, all spinning.', par:[[0,2],[1,1]], look:{shape:'dots', col:'#c9a3ff', col2:'#ffe0b3', eyes:2}, perk:'speed', pd:'−15% cycle time while seeded' },
   { id:'polish', n:'Polish', d:'Mold with a mirror finish. Very proud.', par:[[0,4],[2,0]], look:{shape:'ring', col:'#dfe6ee', col2:'#ffffff', eyes:2, spots:1}, perk:'value', pd:'+50% duplicate value while seeded' },
-  { id:'sentinel', n:'Sentinel', d:'Nibbler taught to bite the right things.', par:[[1,2],[1,0]], look:{shape:'amoeba', col:'#37d3a8', col2:'#fff6a8', eyes:1, teeth:1, glow:1}, perk:'guard', pd:'Biters quarantined on arrival while seeded. Bites the bloom.' },
+  { id:'sentinel', n:'Sentinel', d:'Nibbler taught to bite the right things.', par:[[1,2],[1,0]], look:{shape:'amoeba', col:'#37d3a8', col2:'#fff6a8', eyes:1, teeth:1, glow:1}, perk:'guard', pd:'+40% chance biters are quarantined on arrival while seeded. Bites the bloom.' },
 ];
 const HYB = Object.fromEntries(HYBRIDS.map(h => [h.id, h]));
 const SPLICE_COST = 120, SPLICE_TIME = 60, BREW_TIME = 45, OB_HP = 30, OB_TIME = 25;
@@ -587,7 +593,7 @@ const UPT = [
 ];
 const UPI = Object.fromEntries(UPT.flatMap(t => t.items).map(u => [u.id, u]));
 function fresh(){ return { theme:'bio', cur:0, tier:0, lv:1, ups:{}, res:{}, active:null, cat:{}, dishes:[newDish()], boost:0, adCd:0, ads:0, adUse:{}, recent:[], shelf:[], cycles:0, eaten:0, hasSplicer:false, hyb:{}, seed:null, splice:null, sp:[null,null], spOut:null, story:{}, side:[], ob:null, tickets:TICKETS_PER_DAY, tDay:'', shopT:0, arts:{}, placed:[null,null,null], meds:{}, brew:null, last:Date.now() }; }
-function load(){ try{ const s = JSON.parse(localStorage.getItem(SAVE)); if (!s || !s.dishes) return null; s.dishes.forEach(d => d.drops.forEach(g => { g.atk = null; g.meet = null; g.frozen = false; })); s.hyb = s.hyb || {}; s.story = s.story || {}; s.side = s.side || []; s.ob = null; if (s.seed === undefined) s.seed = null; if (s.splice === undefined) s.splice = null; s.hasSplicer = !!s.hasSplicer; s.sp = s.sp || [null, null]; s.spOut = s.spOut || null; if (s.splice && !s.splice.a) s.splice = null; s.ups = s.ups || {}; if (s.tickets === undefined) s.tickets = TICKETS_PER_DAY; s.tDay = s.tDay || ''; s.shopT = s.shopT || 0; s.arts = s.arts || {}; s.placed = s.placed || [null, null, null]; s.meds = s.meds || {}; s.brew = s.brew && s.brew.id ? s.brew : null; for (const t in s.story){ s.story[t].brewing = null; } return s; }catch(e){ return null; } }
+function load(){ try{ const s = JSON.parse(localStorage.getItem(SAVE)); if (!s || !s.dishes) return null; s.dishes.forEach(d => d.drops.forEach(g => { g.atk = null; g.meet = null; g.frozen = false; })); s.hyb = s.hyb || {}; s.story = s.story || {}; s.side = s.side || []; s.ob = null; if (s.seed === undefined) s.seed = null; if (s.splice === undefined) s.splice = null; s.hasSplicer = !!s.hasSplicer; s.sp = s.sp || [null, null]; s.spOut = s.spOut || null; if (s.splice && !s.splice.a) s.splice = null; s.ups = s.ups || {}; if (s.tickets === undefined) s.tickets = TICKETS_PER_DAY; s.tDay = s.tDay || ''; s.shopT = s.shopT || 0; s.arts = s.arts || {}; s.placed = s.placed || [null, null, null]; s.meds = s.meds || {}; s.brew = s.brew && s.brew.id ? s.brew : null; if (s.res && s.res.wash === true) s.res.wash = 20; for (const t in s.story){ s.story[t].brewing = null; } return s; }catch(e){ return null; } }
 function save(){ S.last = Date.now(); try{ localStorage.setItem(SAVE, JSON.stringify(S)); }catch(e){} }
 
 // ---------- derived ----------
@@ -654,7 +660,7 @@ function rollDrops(){
     const r = rollRarity(); const i = Math.floor(Math.random()*COUNTS[r]); const it = item(S.tier, r, i);
     const [px, py] = randPos();
     let t0 = Math.random()*.55; if (it.danger) t0 = Math.min(t0, .3);
-    out.push({ r, i, x:px, y:py, t0, s: .75 + Math.random()*.5, seed: Math.random(), dead:false, contained: !!(it.danger && (S.res.wash || perk('guard'))), eatT:0, ate:0 });
+    out.push({ r, i, x:px, y:py, t0, s: .75 + Math.random()*.5, seed: Math.random(), dead:false, contained: !!(it.danger && Math.random() < guardChance()), eatT:0, ate:0 });
   }
   return out;
 }
@@ -681,10 +687,15 @@ function resolve(drops, summary){
   S.cur += gained; summary.cur += gained; summary.cycles++; S.cycles++;
 }
 // instant version of the eating rule for big time steps
+function guardChance(){ return Math.min(1, resLv('wash') * .05 + (perk('guard') ? .4 : 0)); }
+function resLv(id){ const v = S.res[id]; return typeof v === 'number' ? v : (v ? 1 : 0); }
+function resCost(r){ return Math.round(r.cost * Math.pow(1.3, r.max ? resLv(r.id) : 0)); }
+function resTime(r){ return r.time + (r.max ? resLv(r.id) * 8 : 0); }
+function resDone(r){ return r.max ? resLv(r.id) >= r.max : !!S.res[r.id]; }
 function dangerInstant(drops, ct, summary){
-  if (S.res.wash || perk('guard')) return;
   for (const g of drops){
-    const dn = item(S.tier, g.r, g.i).danger; if (!dn || g.dead) continue;
+    const dn = item(S.tier, g.r, g.i).danger; if (!dn || g.dead || g.contained) continue;
+    if (Math.random() < guardChance()){ g.contained = true; continue; }
     const window = ct * (1 - g.t0) - EAT_FIRST[dn];
     let kills = dn === 1 ? 1 : dn === 3 ? 99 : Math.max(1, 1 + Math.floor(window / EAT_EVERY[dn]));
     for (const v of drops){ if (kills <= 0) break; if (v === g || v.dead || item(S.tier, v.r, v.i).danger) continue; v.dead = true; kills--; summary.eaten++; S.eaten++; }
@@ -699,7 +710,7 @@ function collect(i, summary){
   return summary;
 }
 function blankSummary(){ return { cur:0, drops:0, cycles:0, finds:[], secs:0, eaten:0 }; }
-function completeResearch(){ if (!S.active) return; S.res[S.active.id] = true; const id = S.active.id; S.active = null; if (id === 'dish2' || id === 'dish3') S.dishes.push(newDish()); if (id === 'wash') S.dishes.forEach(d => d.drops.forEach(g => { if (item(S.tier, g.r, g.i).danger) g.contained = true; })); toast(`${T.res[id][0]} complete`); markDirty(); }
+function completeResearch(){ if (!S.active) return; const id = S.active.id, def = RES_DEF.find(r => r.id === id); S.res[id] = def && def.max ? resLv(id) + 1 : true; S.active = null; if (id === 'dish2' || id === 'dish3') S.dishes.push(newDish()); if (id === 'wash') S.dishes.forEach(d => d.drops.forEach(g => { if (item(S.tier, g.r, g.i).danger && !g.contained && Math.random() < .05) g.contained = true; })); toast(def && def.max ? `${T.res[id][0]} ${resLv(id)}/${def.max} · ${Math.round(guardChance()*100)}% on arrival` : `${T.res[id][0]} complete`); markDirty(); }
 function simulate(secs){
   const sum = blankSummary(); sum.secs = secs;
   const bsec = Math.min(S.boost, secs); S.cur += genRate() * bsec; sum.cur += genRate() * bsec; S.boost -= bsec;
@@ -816,8 +827,8 @@ function buy(k){
   renderAll(); save();
 }
 function startResearch(id){
-  const def = RES_DEF.find(r => r.id === id); if (!def || S.active || S.res[id] || S.cur < def.cost || (def.req && !S.res[def.req])) return;
-  S.cur -= def.cost; S.active = { id, left: def.time, total: def.time }; renderAll(); save();
+  const def = RES_DEF.find(r => r.id === id); if (!def || S.active || resDone(def) || S.cur < resCost(def) || (def.req && !S.res[def.req])) return;
+  S.cur -= resCost(def); const t = resTime(def); S.active = { id, left: t, total: t }; renderAll(); save();
 }
 function ascend(){
   if (!canAscend()) return;
@@ -922,7 +933,7 @@ function showResults(title, subtitle, s, offerDouble){
     <div class="kv"><span>${T.cur} from duplicates</span><span class="good">+${fmt(s.cur)}</span></div>
     <div class="kv"><span>Cycles</span><span>${s.cycles}</span></div>
     <div class="kv"><span>${cap(T.drops)} collected</span><span>${s.drops}</span></div>
-    ${s.eaten ? `<div class="kv"><span>Eaten by dangerous strains</span><span class="warn">${s.eaten}${S.res.wash ? '' : ' · research ' + T.res.wash[0]}</span></div>` : ''}
+    ${s.eaten ? `<div class="kv"><span>Eaten by dangerous strains</span><span class="warn">${s.eaten}${guardChance() >= 1 ? '' : ' · research ' + T.res.wash[0]}</span></div>` : ''}
     <div class="kv"><span>New finds</span><span>${s.finds.length}</span></div>
     <div class="finds">${finds}</div>
     <div class="acts">${offerDouble ? `<button class="btn ad" id="rsDouble"><span class="ico">▶</span>Double it</button>` : ''}<button class="btn primary" id="rsOk">OK</button></div>`;
@@ -1002,7 +1013,7 @@ function updateLive(){
   });
   const warp = document.querySelector('[data-act="adWarp"]'); setHTML(warp, adLabel('Time warp +1 h')); setDis(warp, S.adCd > 0 || adBusy);
   const b = $('boostBtn'); setHTML(b, boostOn() ? `<span class="ico">✦</span>2× · ${fmtDur(S.boost)}` : adLabel('2× for 2 min')); setDis(b, boostOn() || S.adCd > 0 || adBusy);
-  $('tabs').children[1].classList.toggle('has', !S.active && RES_DEF.some(r => !S.res[r.id] && S.cur >= r.cost && (!r.req || S.res[r.req])));
+  $('tabs').children[1].classList.toggle('has', !S.active && RES_DEF.some(r => !resDone(r) && S.cur >= resCost(r) && (!r.req || S.res[r.req])));
   $('tabs').children[0].classList.toggle('has', upAvailable());
   const sc = S.hasSplicer ? (S.spOut ? 1 : 0) : 0; $('sCnt').hidden = !sc; setText($('sCnt'), '!');
   const bc = !S.brew && medsRelevant().some(m => batchesAffordable(m) >= 1); $('bCnt').hidden = !bc; setText($('bCnt'), '!');
@@ -1018,7 +1029,7 @@ function updateLive(){
     el.querySelectorAll('.r[data-k]').forEach(r => { if (r.classList.contains('locked') || r.classList.contains('done')) return; const k = r.dataset.k; const u = UPI[k]; r.classList.toggle('poor', S.cur < (k === 'lv' ? lvCost() : u ? u.cost * tierMult() : 0)); });
   } else if (tab === 'lab'){
     if (S.active){ setText(el.querySelector('[data-live="resLeft"]'), fmtDur(S.active.left)); const p = el.querySelector('[data-live="resProg"]'); if (p) p.style.width = ((1 - S.active.left/S.active.total)*100) + '%'; const ab = el.querySelector('[data-act="adResearch"]'); setHTML(ab, adLabel('Finish now')); setDis(ab, S.adCd > 0 || adBusy); }
-    el.querySelectorAll('.r[data-id]').forEach(r => { const def = RES_DEF.find(x => x.id === r.dataset.id); r.classList.toggle('poor', !!S.active || S.cur < def.cost); });
+    el.querySelectorAll('.r[data-id]').forEach(r => { const def = RES_DEF.find(x => x.id === r.dataset.id); if (def) r.classList.toggle('poor', !!S.active || S.cur < resCost(def)); });
   } else if (tab === 'clinic'){
     if (S.brew !== lastBrewSeen){ lastBrewSeen = S.brew; markDirty(); }
   } else if (tab === 'brew'){
@@ -1040,6 +1051,8 @@ function renderTab(){
   setText($('panelTitle'), {up:'Upgrades', lab:'Lab', clinic:'Clinic', cat:'Catalog', asc:T.ascend, quests:'Side quests', tickets:'Pipette drop', shop:'Shop', decor:'Decor', splicer:'Splice-o-matic', brew:'Apothecary', notes:'Notes'}[tab]);
   const medChips = list => `<div class="needs">${list.map(([id, q]) => { const h = Math.min(medHave(id), q); return `<span class="chip" style="${h >= q ? '' : 'opacity:.55'}">💊 ${id} ${h}/${q}</span>`; }).join('')}</div>`;
   const recipeChips = m => m.need.map(([r, i, q]) => `<span class="chip" style="font-size:10px;padding:1px 6px;${stock(r, i) >= q ? '' : 'opacity:.55'}"><i style="background:${RAR[r].col}"></i>${q} ${item(S.tier, r, i).n} <small style="color:var(--muted)">(${stock(r, i)})</small></span>`).join('');
+  // ingredient tiles: portrait, how many this batch needs, how many spare you have
+  const ingTiles = (m, n, big) => `<div class="ings">${m.need.map(([r, i, q], k) => { const need = q * n, have = stock(r, i), it = item(S.tier, r, i); return `${k ? '<span class="ing plus" style="border:0;background:none;box-shadow:none;min-width:0;padding:0">+</span>' : ''}<div class="ing ${have >= need ? 'ok' : 'short'} ${big ? 'big' : ''}"><canvas class="pc" width="144" height="144" data-r="${r}" data-i="${i}"></canvas><span>${need}× ${it.n}</span><small>${have >= need ? `have ${have} ✓` : `have ${have} · short ${need - have}`}</small></div>`; }).join('')}</div>`;
   const sideHtml = () => { sideRefill(); return S.side.map((x, idx) => { const q = SIDE[x.k]; const ok = medsOk(sideMeds(q)); return `<div class="card req small"><div class="who"><span class="face">${q.face}</span><div><b>${q.who}</b><div class="sub" style="margin:0">wants ${sideMeds(q)[0][1]} ${q.tonic} · pays ${fmt(q.reward*tierMult())}</div></div></div><p class="say">“${q.say}”</p>${medChips(sideMeds(q))}<div class="acts" style="display:flex;margin-top:8px"><button class="btn primary" data-act="side" data-i="${idx}" ${ok ? '' : 'disabled'}>Deliver now</button></div></div>`; }).join(''); };
   const apothecary = () => {
     if (S.brew){ const m = med(S.brew.id); return `<div class="r"><div class="rn">${S.brew.n} × ${m ? m.n : S.brew.id} <span class="tag">brewing</span></div><div class="rd">Ready soon</div><div class="rc" data-live="brLeft">${fmtDur(S.brew.left)}</div><div class="prog"><b data-live="brProg" style="width:${(1 - S.brew.left/S.brew.total)*100}%"></b></div><div class="acts"><button class="btn ad" data-act="adBrew" ${S.adCd > 0 || adBusy ? 'disabled' : ''}>${adLabel('Finish now')}</button></div></div>`; }
@@ -1090,8 +1103,10 @@ function renderTab(){
   else if (tab === 'brew'){
     const list = medsRelevant(); if (!S.brewSel || !list.find(m => m.id === S.brewSel)) S.brewSel = list.length ? list[0].id : null;
     const sel = S.brewSel && med(S.brewSel); const n = sel ? batchesAffordable(sel) : 0;
-    const rows = list.map(m => { const k = batchesAffordable(m); return `<div class="r ${m.id === S.brewSel ? '' : 'poor'}" style="cursor:pointer" data-act="brewSel" data-id="${m.id}"><div class="rn">${m.n} <span class="tag on">×${medHave(m.id)} ready</span></div><div class="rd">${recipeChips(m)}<div style="margin-top:3px">${fmtDur(brewTime(m, 1))} each · up to ${batchSize()} at once${m.id === S.brewSel ? ' · <b>selected</b>' : ''}</div></div><div class="rc"></div><div class="acts"><button class="btn primary" data-act="brew" data-id="${m.id}" ${k ? '' : 'disabled'}>Brew ×${Math.max(1, k)}</button></div></div>`; }).join('');
-    el.innerHTML = `<div id="bwrap"></div><div class="dstat" id="bstat" style="color:var(--text);text-shadow:none"></div><div class="dbtns" style="margin-top:6px"><button class="btn primary" id="bwBtn" data-act="brew" data-id="${S.brewSel || ''}" ${sel && n && !S.brew ? '' : 'disabled'}>Brew ${sel ? '×' + Math.max(1, n) + ' ' + sel.n : ''}</button><button class="btn ad" id="bwAd" data-act="adBrew"><span class="ico">▶</span>Finish now</button></div><h4 class="gh">Medicines · tap one to put it on the fire</h4>${rows || `<div class="card"><p class="sub" style="margin:0">Nothing to brew yet. The Clinic will ask for something soon.</p></div>`}`;
+    const rows = list.map(m => { const k = batchesAffordable(m); return `<div class="r ${m.id === S.brewSel ? '' : 'poor'}" style="cursor:pointer" data-act="brewSel" data-id="${m.id}"><div class="rn">${m.n} <span class="tag on">×${medHave(m.id)} ready</span>${m.id === S.brewSel ? ' <span class="tag">on the fire</span>' : ''}</div><div class="rd">Needs per batch:${ingTiles(m, 1)}${fmtDur(brewTime(m, 1))} each · up to ${batchSize()} at once</div><div class="rc"></div><div class="acts"><button class="btn primary" data-act="brew" data-id="${m.id}" ${k ? '' : 'disabled'}>Brew ×${Math.max(1, k)}</button></div></div>`; }).join('');
+    const selCard = sel ? `<div class="card"><h3 style="font-size:16px">${sel.n} · ${n ? `a batch of ${n} needs` : 'one batch needs'}</h3>${ingTiles(sel, Math.max(1, n), true)}<p class="sub" style="margin:4px 0 0">${n ? `You can brew ${n} right now${n < batchSize() ? ', limited by what you have spare' : ''}.` : 'Short on something. Harvest more, or pick another medicine.'} Spare copies are what you have beyond the one kept in the catalog.</p></div>` : '';
+    el.innerHTML = `<div id="bwrap"></div><div class="dstat" id="bstat" style="color:var(--text);text-shadow:none"></div><div class="dbtns" style="margin-top:6px"><button class="btn primary" id="bwBtn" data-act="brew" data-id="${S.brewSel || ''}" ${sel && n && !S.brew ? '' : 'disabled'}>Brew ${sel ? '×' + Math.max(1, n) + ' ' + sel.n : ''}</button><button class="btn ad" id="bwAd" data-act="adBrew"><span class="ico">▶</span>Finish now</button></div>${selCard}<h4 class="gh">Medicines · tap one to put it on the fire</h4>${rows || `<div class="card"><p class="sub" style="margin:0">Nothing to brew yet. The Clinic will ask for something soon.</p></div>`}`;
+    drawPortraits(performance.now());
     bcv.hidden = false; $('bwrap').appendChild(bcv);
   }
   else if (tab === 'notes'){
@@ -1101,12 +1116,12 @@ function renderTab(){
   else if (tab === 'lab'){
     const sp = `<h4 class="gh">Splicer</h4><div class="card"><p class="sub" style="margin:0">${S.hasSplicer ? `The Splice-o-matic has its own button beside the ${T.dish}. Any two spare strains can go in; five pairs react.` : 'Doc Ferro has an old splicer. Help the Clinic and it is yours.'}</p></div>`;
     el.innerHTML = `<h4 class="gh" style="margin-top:0">Research</h4><p class="sub">One at a time. Research survives ${T.ascend.toLowerCase()}. Every research timer can be finished with an ad.</p>` + RES_DEF.map(r => {
-      const [n, d] = T.res[r.id]; const done = S.res[r.id]; const act = S.active && S.active.id === r.id; const locked = r.req && !S.res[r.req];
-      if (done) return `<div class="r done"><div class="rn">${n} <span class="tag on">done</span></div><div class="rd">${d}</div><div class="rc">✓</div></div>`;
+      const [n, d] = T.res[r.id]; const done = resDone(r); const act = S.active && S.active.id === r.id; const locked = r.req && !S.res[r.req]; const lv = r.max ? ` <span class="tag on">${resLv(r.id)}/${r.max}${r.id === 'wash' ? ' · ' + Math.round(guardChance()*100) + '%' : ''}</span>` : '';
+      if (done) return `<div class="r done"><div class="rn">${n}${lv} <span class="tag on">done</span></div><div class="rd">${d}</div><div class="rc">✓</div></div>`;
       if (act) return `<div class="r"><div class="rn">${n} <span class="tag">researching</span></div><div class="rd">${d}</div><div class="rc" data-live="resLeft">${fmtDur(S.active.left)}</div><div class="prog"><b data-live="resProg" style="width:${(1 - S.active.left/S.active.total)*100}%"></b></div><div class="acts"><button class="btn ad" data-act="adResearch" ${S.adCd > 0 || adBusy ? 'disabled' : ''}>${adLabel('Finish now')}</button></div></div>`;
       if (locked) return `<div class="r locked"><div class="rn">${n}</div><div class="rd">Needs ${T.res[r.req][0]}</div><div class="rc">🔒</div></div>`;
-      const can = !S.active && S.cur >= r.cost;
-      return `<button class="r ${can ? '' : 'poor'}" data-act="research" data-id="${r.id}"><div class="rn">${n}</div><div class="rd">${d} · ${fmtDur(r.time)}${S.active ? ' · bench busy' : ''}</div><div class="rc">${fmt(r.cost)}</div></button>`;
+      const can = !S.active && S.cur >= resCost(r);
+      return `<button class="r ${can ? '' : 'poor'}" data-act="research" data-id="${r.id}"><div class="rn">${n}${lv}</div><div class="rd">${d} · ${fmtDur(resTime(r))}${S.active ? ' · bench busy' : ''}</div><div class="rc">${fmt(resCost(r))}</div></button>`;
     }).join('') + sp;
   }
   else if (tab === 'clinic'){
@@ -1592,7 +1607,7 @@ function frame(now){
     // draw at 30 fps (15 while a panel covers the vessel); jars and portraits at 12 fps. The sim still ticks every frame.
     const drawGap = tab ? 66 : 33;
     if (now - lastDraw >= drawGap){ lastDraw = now; draw(now); if (tab === 'splicer') drawMachine(now); if (tab === 'brew') drawBrewery(now); }
-    if (now - lastSlow >= 83){ lastSlow = now; if (tab === 'cat') drawPortraits(now); if (!tab) drawShelf(now); }
+    if (now - lastSlow >= 83){ lastSlow = now; if (tab === 'cat' || tab === 'brew') drawPortraits(now); if (!tab) drawShelf(now); }
     if (dirty) renderAll();
     uiAcc += real; if (uiAcc > .15){ uiAcc = 0; updateLive(); }
   } catch (err) { console.error(err); }
