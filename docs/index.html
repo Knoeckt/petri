@@ -129,8 +129,9 @@
     radial-gradient(ellipse 30px 16px at 30% 66%, rgba(40,18,6,.5) 30%, rgba(40,18,6,.15) 60%, transparent 75%), radial-gradient(ellipse 20px 11px at 82% 24%, rgba(40,18,6,.45) 30%, transparent 75%), radial-gradient(ellipse 14px 8px at 58% 90%, rgba(40,18,6,.4) 30%, transparent 75%),
     linear-gradient(93deg, transparent 31.5%, rgba(0,0,0,.28) 31.7%, rgba(255,255,255,.1) 32.3%, transparent 32.8%), linear-gradient(87deg, transparent 63%, rgba(0,0,0,.28) 63.2%, rgba(255,255,255,.1) 63.8%, transparent 64.3%),
     linear-gradient(180deg, var(--wood0), var(--wood1))}
-  .board::after{content:''; position:absolute; inset:-40% -60%; z-index:-1; pointer-events:none; background:linear-gradient(115deg, transparent 42%, rgba(255,236,190,.16) 50%, transparent 58%); animation:sheen 8s ease-in-out infinite}
-  @keyframes sheen{0%{transform:translateX(-35%)} 60%,100%{transform:translateX(35%)}}
+  .board::after{content:''; position:absolute; inset:-40% -60%; z-index:-1; pointer-events:none; background:linear-gradient(115deg, transparent 42%, rgba(255,236,190,.16) 50%, transparent 58%); transform:translateX(-45%); opacity:0}
+  .board.sheen::after{animation:sheen 1.8s ease-in-out 1}
+  @keyframes sheen{0%{transform:translateX(-45%); opacity:1} 100%{transform:translateX(45%); opacity:1}}
   /* specimen shelf between the board and the menu */
   /* the shelf lives inside the board's strip: the last harvests, in jars */
   .shelf{margin:0; padding:8px 0 0; position:relative; display:flex; gap:8px; justify-content:center; align-items:flex-end; min-height:0; overflow-x:auto; scrollbar-width:none}
@@ -368,7 +369,7 @@
 <script>
 'use strict';
 // ---------- constants ----------
-const VERSION = '0.5.0';
+const VERSION = '0.5.1';
 const RAR = [
   {k:'c', n:'Common',    col:'#d6c59a'},
   {k:'u', n:'Uncommon',  col:'#4ade80'},
@@ -1281,54 +1282,61 @@ function rrect(c, x, y, w, h, r){ c.beginPath(); roundRectPath(c, x, y, w, h, r)
 const CIRC = { type:'circle', r:.4, minX:.1, maxX:.9, minY:.1, maxY:.9 };
 const VESSELS = [
   { n:'Petri dish', shape:'circle', bounds:CIRC, seedY:.8, slots:[[.2,.7],[.5,.9],[.8,.7]], vars:{ bg0:'#4fc39a', bg1:'#1f8b6f', wood0:'#c88347', wood1:'#8a4f25', band:'#2f7d74' },
-    draw(c, W, H){ const R = W/2; const g = c.createRadialGradient(R*.7, R*.6, R*.1, R, R, R); g.addColorStop(0, '#ffd9c7'); g.addColorStop(1, '#f4a988'); c.fillStyle = g; c.fillRect(0, 0, W, H); c.fillStyle = 'rgba(255,255,255,.35)'; c.beginPath(); c.ellipse(R*.62, R*.5, R*.42, R*.2, -.6, 0, 7); c.fill(); c.fillStyle = 'rgba(255,255,255,.18)'; c.beginPath(); c.arc(R*1.35, R*1.4, R*.12, 0, 7); c.fill(); },
+    bg(c, W, H){ const R = W/2; const g = c.createRadialGradient(R*.7, R*.6, R*.1, R, R, R); g.addColorStop(0, '#ffd9c7'); g.addColorStop(1, '#f4a988'); c.fillStyle = g; c.fillRect(0, 0, W, H); c.fillStyle = 'rgba(255,255,255,.35)'; c.beginPath(); c.ellipse(R*.62, R*.5, R*.42, R*.2, -.6, 0, 7); c.fill(); c.fillStyle = 'rgba(255,255,255,.18)'; c.beginPath(); c.arc(R*1.35, R*1.4, R*.12, 0, 7); c.fill(); },
     frame(c, W, H){ const R = W/2; c.strokeStyle = '#7a4a12'; c.lineWidth = 11; c.beginPath(); c.arc(R, R, R-6, 0, 7); c.stroke(); c.strokeStyle = '#e0a53a'; c.lineWidth = 6; c.beginPath(); c.arc(R, R, R-6, 0, 7); c.stroke(); c.strokeStyle = 'rgba(255,240,200,.85)'; c.lineWidth = 3; c.lineCap = 'round'; c.beginPath(); c.arc(R, R, R-6, Math.PI*1.1, Math.PI*1.45); c.stroke(); } },
   { n:'Aquarium', shape:'rect', bounds:{ type:'rect', minX:.12, maxX:.88, minY:.2, maxY:.78 }, seedY:.76, slots:[[.18,.82],[.5,.86],[.84,.82]], vars:{ bg0:'#3aa0c8', bg1:'#0f4d78', wood0:'#a4794c', wood1:'#5e4224', band:'#1f5f8a' },
-    draw(c, W, H, now){ const t = now/1000; const g = c.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#c9f2ff'); g.addColorStop(.2, '#7fd3f2'); g.addColorStop(1, '#1d6fa3'); c.fillStyle = g; c.fillRect(0, 0, W, H);
+    bg(c, W, H){ const g = c.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#c9f2ff'); g.addColorStop(.2, '#7fd3f2'); g.addColorStop(1, '#1d6fa3'); c.fillStyle = g; c.fillRect(0, 0, W, H);
+      const gy = H*.85; c.fillStyle = '#d9b877'; c.beginPath(); c.moveTo(0, gy + 6); for (let x = 0; x <= W; x += 20) c.lineTo(x, gy + Math.sin(x/17)*4); c.lineTo(W, H); c.lineTo(0, H); c.closePath(); c.fill();
+      const peb = Array.from({length: 26}, (_, k) => { const r = lcg(k*7 + 1); return { x: r(), y: r(), s: 4 + r()*5, col: ['#b98c55','#e0c08a','#8d6b3f','#c4a3d1','#9fb7c9'][k%5] }; });
+      for (const p of peb){ c.fillStyle = p.col; c.strokeStyle = 'rgba(60,40,20,.5)'; c.lineWidth = 1.5; c.beginPath(); c.ellipse(p.x*W, gy + 8 + p.y*(H - gy - 10), p.s, p.s*.7, 0, 0, 7); c.fill(); c.stroke(); } },
+    draw(c, W, H, now){ const t = now/1000; const gy = H*.85;
       c.fillStyle = 'rgba(255,255,255,.1)'; for (let k = 0; k < 3; k++){ const x0 = W*(.1 + k*.28) + Math.sin(t*.5 + k)*14; c.beginPath(); c.moveTo(x0, 0); c.lineTo(x0 + 40, 0); c.lineTo(x0 + 150, H); c.lineTo(x0 + 70, H); c.closePath(); c.fill(); }
       const sy = H*.13; c.fillStyle = '#eafbff'; c.beginPath(); c.moveTo(0, 0); c.lineTo(W, 0); c.lineTo(W, sy); for (let x = W; x >= 0; x -= 12) c.lineTo(x, sy + Math.sin(x/28 + t*2)*3); c.closePath(); c.fill(); c.strokeStyle = 'rgba(255,255,255,.8)'; c.lineWidth = 2; c.beginPath(); for (let x = 0; x <= W; x += 12){ const y = sy + Math.sin(x/28 + t*2)*3; c[x ? 'lineTo' : 'moveTo'](x, y); } c.stroke();
-      const gy = H*.85; c.fillStyle = '#d9b877'; c.beginPath(); c.moveTo(0, gy + 6); for (let x = 0; x <= W; x += 20) c.lineTo(x, gy + Math.sin(x/17)*4); c.lineTo(W, H); c.lineTo(0, H); c.closePath(); c.fill();
-      this.peb = this.peb || Array.from({length: 26}, (_, k) => { const r = lcg(k*7 + 1); return { x: r(), y: r(), s: 4 + r()*5, col: ['#b98c55','#e0c08a','#8d6b3f','#c4a3d1','#9fb7c9'][k%5] }; });
-      for (const p of this.peb){ c.fillStyle = p.col; c.strokeStyle = 'rgba(60,40,20,.5)'; c.lineWidth = 1.5; c.beginPath(); c.ellipse(p.x*W, gy + 8 + p.y*(H - gy - 10), p.s, p.s*.7, 0, 0, 7); c.fill(); c.stroke(); }
       for (const [px, h, ph] of [[.2, .42, 0], [.78, .34, 2], [.3, .25, 4]]){ const bx = W*px, by = gy + 4, sw = Math.sin(t*1.2 + ph)*18; c.strokeStyle = '#2e8b57'; c.lineWidth = 7; c.lineCap = 'round'; c.beginPath(); c.moveTo(bx, by); c.bezierCurveTo(bx + sw*.3, by - H*h*.4, bx + sw, by - H*h*.7, bx + sw*1.2, by - H*h); c.stroke(); c.fillStyle = '#3fae6e'; for (let k = 1; k <= 4; k++){ const u = k/4, lx = bx + sw*u*u, ly = by - H*h*u; c.beginPath(); c.ellipse(lx + (k%2 ? 14 : -14), ly, 16, 7, (k%2 ? -.5 : .5) + sw*.01, 0, 7); c.fill(); } }
       this.bub = this.bub || Array.from({length: 10}, (_, k) => { const r = lcg(k*13 + 5); return { x: r(), s: 2 + r()*3, o: r(), v: .08 + r()*.1 }; });
       for (const b of this.bub){ const u = ((t*b.v + b.o) % 1), y = gy - u*(gy - sy - 10); c.fillStyle = 'rgba(255,255,255,.5)'; c.strokeStyle = 'rgba(255,255,255,.85)'; c.lineWidth = 1; c.beginPath(); c.arc(b.x*W + Math.sin(u*10)*4, y, b.s, 0, 7); c.fill(); c.stroke(); } },
     frame(c, W, H){ c.strokeStyle = '#1b3f4a'; c.lineWidth = 10; rrect(c, 5, 5, W-10, H-10, 26); c.stroke(); c.strokeStyle = '#e0a53a'; c.lineWidth = 3; rrect(c, 9, 9, W-18, H-18, 22); c.stroke(); c.fillStyle = '#e0a53a'; c.strokeStyle = INK; c.lineWidth = 2; for (const [x, y] of [[18,18],[W-18,18],[18,H-18],[W-18,H-18]]){ rrect(c, x-9, y-9, 18, 18, 5); c.fill(); c.stroke(); } } },
   { n:'Terrarium', shape:'rect', bounds:{ type:'rect', minX:.12, maxX:.88, minY:.16, maxY:.72 }, seedY:.7, slots:[[.22,.74],[.5,.76],[.8,.74]], vars:{ bg0:'#8fbf5a', bg1:'#3f6b2a', wood0:'#a5602c', wood1:'#5a3216', band:'#4c7a2c' },
-    draw(c, W, H, now){ const t = now/1000; const g = c.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#fbf6de'); g.addColorStop(1, '#d7e8bd'); c.fillStyle = g; c.fillRect(0, 0, W, H);
+    bg(c, W, H){ const g = c.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#fbf6de'); g.addColorStop(1, '#d7e8bd'); c.fillStyle = g; c.fillRect(0, 0, W, H);
       const sun = c.createRadialGradient(W*.8, H*.12, 4, W*.8, H*.12, W*.5); sun.addColorStop(0, 'rgba(255,240,170,.85)'); sun.addColorStop(1, 'rgba(255,240,170,0)'); c.fillStyle = sun; c.fillRect(0, 0, W, H);
       c.fillStyle = 'rgba(70,130,60,.45)'; for (const [x, y, r] of [[.15,.62,.16],[.4,.66,.14],[.7,.6,.18],[.9,.68,.12]]){ c.beginPath(); c.arc(W*x, H*y, W*r, 0, 7); c.fill(); }
       const sy = H*.78; c.fillStyle = '#5a3a1e'; c.beginPath(); c.moveTo(0, sy + 4); for (let x = 0; x <= W; x += 18) c.lineTo(x, sy + Math.sin(x/23)*4); c.lineTo(W, H); c.lineTo(0, H); c.closePath(); c.fill(); c.strokeStyle = '#8a5a2a'; c.lineWidth = 4; c.beginPath(); for (let x = 0; x <= W; x += 18){ const y = sy + Math.sin(x/23)*4; c[x ? 'lineTo' : 'moveTo'](x, y); } c.stroke();
       c.strokeStyle = 'rgba(40,20,5,.5)'; c.lineWidth = 2; for (const rx of [.22, .55, .8]){ c.beginPath(); c.moveTo(W*rx, sy + 10); c.quadraticCurveTo(W*rx - 10, sy + 40, W*rx + 8, sy + 70); c.stroke(); }
       for (const [x, s] of [[.35, 10], [.62, 7], [.12, 8]]){ c.fillStyle = '#9c9a92'; c.strokeStyle = '#5c5a52'; c.lineWidth = 1.5; c.beginPath(); c.ellipse(W*x, sy + 2, s, s*.6, 0, 0, 7); c.fill(); c.stroke(); }
-      for (const [x, w] of [[.08, .14], [.45, .12], [.72, .16], [.92, .1]]){ c.fillStyle = '#6fbf5a'; c.strokeStyle = '#3f7d2a'; c.lineWidth = 2; c.beginPath(); c.ellipse(W*x, sy + 2, W*w/2, 10, 0, Math.PI, 0); c.fill(); c.stroke(); }
+      for (const [x, w] of [[.08, .14], [.45, .12], [.72, .16], [.92, .1]]){ c.fillStyle = '#6fbf5a'; c.strokeStyle = '#3f7d2a'; c.lineWidth = 2; c.beginPath(); c.ellipse(W*x, sy + 2, W*w/2, 10, 0, Math.PI, 0); c.fill(); c.stroke(); } },
+    draw(c, W, H, now){ const t = now/1000, sy = H*.78;
       const fx = W*.2, fy = sy, sw = Math.sin(t*1.1)*6; c.strokeStyle = '#3f8f3a'; c.lineWidth = 4; c.lineCap = 'round'; c.beginPath(); c.moveTo(fx, fy); c.quadraticCurveTo(fx + sw, fy - H*.2, fx + sw*2, fy - H*.42); c.stroke(); c.fillStyle = '#55b04a'; for (let k = 1; k <= 6; k++){ const u = k/6, lx = fx + sw*2*u*u, ly = fy - H*.42*u; for (const s of [-1, 1]){ c.beginPath(); c.ellipse(lx + s*12*(1 - u*.5), ly, 14*(1 - u*.4), 5, s*.6, 0, 7); c.fill(); } }
       this.pol = this.pol || Array.from({length: 14}, (_, k) => { const r = lcg(k*3 + 9); return { x: r(), y: r(), v: r()*.02 + .01, ph: r()*7 }; });
       for (const p of this.pol){ const x = ((p.x + t*p.v) % 1)*W, y = (p.y*.7 + .05)*H + Math.sin(t*.8 + p.ph)*8; c.fillStyle = 'rgba(255,230,120,.85)'; c.beginPath(); c.arc(x, y, 2.2, 0, 7); c.fill(); } },
     frame(c, W, H){ c.strokeStyle = 'rgba(255,255,255,.7)'; c.lineWidth = 3; rrect(c, 11, 11, W-22, H-22, 18); c.stroke(); c.strokeStyle = '#6b4a2a'; c.lineWidth = 9; rrect(c, 5, 5, W-10, H-10, 22); c.stroke(); c.fillStyle = '#8a5a2a'; c.strokeStyle = INK; c.lineWidth = 2; rrect(c, W*.3, 0, W*.4, 12, 4); c.fill(); c.stroke(); } },
   { n:'Biome dome', shape:'dome', bounds:{ type:'dome', r:.42, minX:.1, maxX:.9, minY:.1, maxY:.62 }, seedY:.66, slots:[[.22,.67],[.5,.69],[.78,.67]], vars:{ bg0:'#3b3f8a', bg1:'#141a3d', wood0:'#8d9bb5', wood1:'#4f5a70', band:'#3c4f9c' },
-    draw(c, W, H, now){ const t = now/1000; const g = c.createLinearGradient(0, 0, 0, H*.72); g.addColorStop(0, '#cdeffc'); g.addColorStop(1, '#eaf8ff'); c.fillStyle = g; c.fillRect(0, 0, W, H);
+    bg(c, W, H){ const g = c.createLinearGradient(0, 0, 0, H*.72); g.addColorStop(0, '#cdeffc'); g.addColorStop(1, '#eaf8ff'); c.fillStyle = g; c.fillRect(0, 0, W, H);
       c.strokeStyle = 'rgba(60,90,130,.18)'; c.lineWidth = 1.5; const s = 26; for (let row = 0; row < H/(s*.87) + 1; row++){ for (let col = 0; col < W/(s*1.5) + 1; col++){ const x = col*s*1.5 + (row%2 ? s*.75 : 0), y = row*s*.87; c.beginPath(); for (let k = 0; k < 6; k++){ const a = k*Math.PI/3; c[k ? 'lineTo' : 'moveTo'](x + Math.cos(a)*s*.5, y + Math.sin(a)*s*.5); } c.closePath(); c.stroke(); } }
       const gy = H*.72; c.fillStyle = '#6fbf5a'; c.fillRect(0, gy, W, H - gy); c.fillStyle = '#4f9a40'; c.fillRect(0, gy + 22, W, H); c.fillStyle = '#8fd77a'; c.beginPath(); c.moveTo(0, gy); for (let x = 0; x <= W; x += 16) c.lineTo(x, gy - 4 + Math.sin(x/19)*3); c.lineTo(W, gy + 6); c.lineTo(0, gy + 6); c.closePath(); c.fill();
-      for (const [x, h] of [[.18,.16],[.3,.11],[.72,.18],[.84,.12]]){ c.fillStyle = '#5a3a1e'; c.fillRect(W*x - 3, gy - H*h*.3, 6, H*h*.3 + 4); c.fillStyle = '#2f8f4a'; c.strokeStyle = '#1f5f30'; c.lineWidth = 2; for (let k = 0; k < 3; k++){ const yy = gy - H*h*.3 - k*H*h*.25, ww = W*.05*(1 - k*.25); c.beginPath(); c.moveTo(W*x - ww, yy); c.lineTo(W*x, yy - H*h*.35); c.lineTo(W*x + ww, yy); c.closePath(); c.fill(); c.stroke(); } }
+      for (const [x, h] of [[.18,.16],[.3,.11],[.72,.18],[.84,.12]]){ c.fillStyle = '#5a3a1e'; c.fillRect(W*x - 3, gy - H*h*.3, 6, H*h*.3 + 4); c.fillStyle = '#2f8f4a'; c.strokeStyle = '#1f5f30'; c.lineWidth = 2; for (let k = 0; k < 3; k++){ const yy = gy - H*h*.3 - k*H*h*.25, ww = W*.05*(1 - k*.25); c.beginPath(); c.moveTo(W*x - ww, yy); c.lineTo(W*x, yy - H*h*.35); c.lineTo(W*x + ww, yy); c.closePath(); c.fill(); c.stroke(); } } },
+    draw(c, W, H, now){ const t = now/1000, gy = H*.72;
       for (let k = 0; k < 3; k++){ const x = ((t*.03 + k*.33) % 1)*W*1.4 - W*.2; c.fillStyle = 'rgba(255,255,255,.35)'; c.beginPath(); c.ellipse(x, gy - 6 - k*8, 70, 9, 0, 0, 7); c.fill(); } },
     frame(c, W, H){ const R = W/2; c.strokeStyle = '#3a4a5a'; c.lineWidth = 9; c.beginPath(); c.arc(R, R, R-5, Math.PI, 0); c.stroke(); c.strokeStyle = 'rgba(255,255,255,.6)'; c.lineWidth = 3; c.lineCap = 'round'; c.beginPath(); c.arc(R, R, R-12, Math.PI*1.15, Math.PI*1.4); c.stroke(); c.fillStyle = '#3a4a5a'; c.strokeStyle = INK; c.lineWidth = 2; rrect(c, 0, H*.72 - 4, W, 14, 6); c.fill(); c.stroke(); c.fillStyle = '#8d9bb5'; rrect(c, 8, H*.72 + 10, W-16, 10, 5); c.fill(); c.stroke(); } },
   { n:'Living planet', shape:'circle', bounds:CIRC, seedY:.8, slots:[[.2,.7],[.5,.9],[.8,.7]], vars:{ bg0:'#1b2350', bg1:'#070a1c', wood0:'#7f8fb5', wood1:'#3a4466', band:'#5b3f9c' },
-    draw(c, W, H, now){ const t = now/1000, R = W/2; const g = c.createRadialGradient(R*.7, R*.6, R*.1, R, R, R); g.addColorStop(0, '#5aa7ff'); g.addColorStop(1, '#123f8a'); c.fillStyle = g; c.fillRect(0, 0, W, H);
-      this.land = this.land || Array.from({length: 6}, (_, k) => { const r = lcg(k*11 + 3); return { x: .15 + r()*.7, y: .15 + r()*.7, s: .09 + r()*.12, seed: r() }; });
-      for (const L of this.land){ c.save(); c.translate(L.x*W, L.y*H); c.fillStyle = '#e9d59a'; lobed(c, L.s*W*1.12, 6, .22, 0, L.seed*40); c.fill(); c.fillStyle = '#5cb85c'; lobed(c, L.s*W, 6, .22, 0, L.seed*40); c.fill(); c.restore(); }
+    bg(c, W, H){ const R = W/2; const g = c.createRadialGradient(R*.7, R*.6, R*.1, R, R, R); g.addColorStop(0, '#5aa7ff'); g.addColorStop(1, '#123f8a'); c.fillStyle = g; c.fillRect(0, 0, W, H);
+      const land = Array.from({length: 6}, (_, k) => { const r = lcg(k*11 + 3); return { x: .15 + r()*.7, y: .15 + r()*.7, s: .09 + r()*.12, seed: r() }; });
+      for (const L of land){ c.save(); c.translate(L.x*W, L.y*H); c.fillStyle = '#e9d59a'; lobed(c, L.s*W*1.12, 6, .22, 0, L.seed*40); c.fill(); c.fillStyle = '#5cb85c'; lobed(c, L.s*W, 6, .22, 0, L.seed*40); c.fill(); c.restore(); } },
+    draw(c, W, H, now){ const t = now/1000, R = W/2;
       this.cl = this.cl || Array.from({length: 7}, (_, k) => { const r = lcg(k*5 + 2); return { y: .1 + r()*.8, s: .05 + r()*.06, v: .01 + r()*.02, o: r(), seed: r() }; });
       c.fillStyle = 'rgba(255,255,255,.75)'; for (const cl of this.cl){ const x = ((cl.o + t*cl.v) % 1.3 - .15)*W; c.save(); c.translate(x, cl.y*H); lobed(c, cl.s*W, 4, .3, t, cl.seed*30); c.fill(); c.restore(); }
-      const a = c.createRadialGradient(R, R, R*.82, R, R, R); a.addColorStop(0, 'rgba(140,200,255,0)'); a.addColorStop(1, 'rgba(140,200,255,.75)'); c.fillStyle = a; c.fillRect(0, 0, W, H); },
+      this.atm = this.atm || (() => { const a = c.createRadialGradient(R, R, R*.82, R, R, R); a.addColorStop(0, 'rgba(140,200,255,0)'); a.addColorStop(1, 'rgba(140,200,255,.75)'); return a; })(); c.fillStyle = this.atm; c.fillRect(0, 0, W, H); },
     frame(c, W, H){ const R = W/2; c.strokeStyle = 'rgba(160,210,255,.9)'; c.lineWidth = 6; c.beginPath(); c.arc(R, R, R-4, 0, 7); c.stroke(); } },
   { n:'Cosmos', shape:'circle', bounds:CIRC, seedY:.8, slots:[[.2,.7],[.5,.9],[.8,.7]], vars:{ bg0:'#2a1140', bg1:'#06030f', wood0:'#6b5b8f', wood1:'#2e2647', band:'#7b3fd1' },
-    draw(c, W, H, now){ const t = now/1000, R = W/2; const g = c.createRadialGradient(R, R, R*.1, R, R, R); g.addColorStop(0, '#3a1f6e'); g.addColorStop(1, '#0a0618'); c.fillStyle = g; c.fillRect(0, 0, W, H);
-      for (const [x, y, col] of [[.3,.4,'rgba(255,90,160,.35)'],[.7,.6,'rgba(90,160,255,.35)'],[.5,.75,'rgba(255,200,90,.25)']]){ const n = c.createRadialGradient(x*W, y*H, 0, x*W, y*H, W*.35); n.addColorStop(0, col); n.addColorStop(1, 'rgba(0,0,0,0)'); c.fillStyle = n; c.fillRect(0, 0, W, H); }
+    bg(c, W, H){ const R = W/2; const g = c.createRadialGradient(R, R, R*.1, R, R, R); g.addColorStop(0, '#3a1f6e'); g.addColorStop(1, '#0a0618'); c.fillStyle = g; c.fillRect(0, 0, W, H);
+      for (const [x, y, col] of [[.3,.4,'rgba(255,90,160,.35)'],[.7,.6,'rgba(90,160,255,.35)'],[.5,.75,'rgba(255,200,90,.25)']]){ const n = c.createRadialGradient(x*W, y*H, 0, x*W, y*H, W*.35); n.addColorStop(0, col); n.addColorStop(1, 'rgba(0,0,0,0)'); c.fillStyle = n; c.fillRect(0, 0, W, H); } },
+    draw(c, W, H, now){ const t = now/1000, R = W/2;
       for (let arm = 0; arm < 2; arm++){ for (let k = 0; k < 70; k++){ const u = k/70, a = u*Math.PI*3 + arm*Math.PI + t*.15, r = R*.1 + u*R*.85; c.fillStyle = `rgba(255,255,255,${.25 + .6*(1 - u)})`; c.beginPath(); c.arc(R + Math.cos(a)*r, R + Math.sin(a)*r*.8, 1.2 + (1 - u)*2, 0, 7); c.fill(); } }
       c.fillStyle = 'rgba(255,255,255,.9)'; c.beginPath(); c.arc(R, R, 8, 0, 7); c.fill(); },
     frame(c, W, H){ const R = W/2; c.strokeStyle = 'rgba(200,160,255,.7)'; c.lineWidth = 5; c.beginPath(); c.arc(R, R, R-4, 0, 7); c.stroke(); } },
 ];
 function vessel(){ return VESSELS[Math.min(S.tier, VESSELS.length - 1)]; }
+// the vessel's scenery is painted once into a bitmap; only the moving parts are drawn per frame
+function vesselBg(V, W, H){ if (!V._bg || V._bg.width !== W){ const c = document.createElement('canvas'); c.width = W; c.height = H; if (V.bg) V.bg(c.getContext('2d'), W, H); V._bg = c; } return V._bg; }
 function vesselPath(c, shape, W, H){ c.beginPath(); if (shape === 'circle') c.arc(W/2, H/2, W/2 - 2, 0, 7); else if (shape === 'rect') roundRectPath(c, 6, 6, W-12, H-12, 26); else { const R = W/2; c.moveTo(2, H*.72 + 10); c.lineTo(2, R); c.arc(R, R, R-2, Math.PI, 0); c.lineTo(W-2, H*.72 + 10); c.closePath(); } }
 function bounds(){ return T.skin === 'bio' ? vessel().bounds : CIRC; }
 function randPos(){ const B = bounds(); if (B.type === 'rect') return [B.minX + Math.random()*(B.maxX - B.minX), B.minY + Math.random()*(B.maxY - B.minY)]; const a = Math.random()*Math.PI*2, d = Math.sqrt(Math.random())*B.r*.9; const x = .5 + Math.cos(a)*d; let y = .5 + Math.sin(a)*d; if (B.type === 'dome') y = Math.min(y, B.maxY); return [x, y]; }
@@ -1469,7 +1477,7 @@ function draw(now){
     for (const s of stars){ const tw = .5 + .5*Math.sin(now/600 + s.s*20); cx.fillStyle = `rgba(255,255,255,${.15 + .35*tw*s.s})`; cx.fillRect(s.x*W, s.y*H, 1.5, 1.5); }
     cx.strokeStyle = 'rgba(120,140,200,.25)'; cx.lineWidth = 1; cx.beginPath(); cx.moveTo(R, 14); cx.lineTo(R, 34); cx.moveTo(R, H-14); cx.lineTo(R, H-34); cx.moveTo(14, R); cx.lineTo(34, R); cx.moveTo(W-14, R); cx.lineTo(W-34, R); cx.stroke();
     if (!d.ready){ const a = (now/1500) % 7; cx.beginPath(); cx.moveTo(R,R); cx.arc(R, R, R-2, a-.6, a); cx.closePath(); cx.fillStyle = 'rgba(93,214,232,.08)'; cx.fill(); }
-  } else { const V = vessel(); cx.save(); vesselPath(cx, V.shape, W, H); cx.clip(); V.draw(cx, W, H, now);
+  } else { const V = vessel(); cx.save(); vesselPath(cx, V.shape, W, H); cx.clip(); cx.drawImage(vesselBg(V, W, H), 0, 0); if (V.draw) V.draw(cx, W, H, now);
     S.placed.forEach((id, k) => { const a = id && ART[id]; if (!a) return; const [px, py] = V.slots[k]; cx.fillStyle = 'rgba(0,0,0,.18)'; cx.beginPath(); cx.ellipse(px*W, py*H + 12, 16, 6, 0, 0, 7); cx.fill(); cx.font = '28px sans-serif'; cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.fillText(a.e, px*W, py*H + Math.sin(now/600 + k)*2); }); }
   if (T.skin === 'bio' && S.seed && HYB[S.seed]){ const sy = H*vessel().seedY; cx.strokeStyle = 'rgba(255,255,255,.55)'; cx.lineWidth = 3; cx.setLineDash([6,5]); cx.lineDashOffset = -now/80; cx.beginPath(); cx.arc(W*.5, sy, W*.08, 0, 7); cx.stroke(); cx.setLineDash([]); drawCritter(cx, W*.5, sy, W*.05, HYB[S.seed].look, now, { seed: 42, ready: d.ready }); }
   const order = d.drops.slice().sort((a, b) => a.y - b.y);
@@ -1605,9 +1613,9 @@ function frame(now){
   if (!adBusy) tick(real * simSpeed, now);
   try {
     // draw at 30 fps (15 while a panel covers the vessel); jars and portraits at 12 fps. The sim still ticks every frame.
-    const drawGap = tab ? 66 : 33;
+    const drawGap = tab ? 83 : 41;
     if (now - lastDraw >= drawGap){ lastDraw = now; draw(now); if (tab === 'splicer') drawMachine(now); if (tab === 'brew') drawBrewery(now); }
-    if (now - lastSlow >= 83){ lastSlow = now; if (tab === 'cat' || tab === 'brew') drawPortraits(now); if (!tab) drawShelf(now); }
+    if (now - lastSlow >= 125){ lastSlow = now; if (tab === 'cat' || tab === 'brew') drawPortraits(now); if (!tab) drawShelf(now); }
     if (dirty) renderAll();
     uiAcc += real; if (uiAcc > .15){ uiAcc = 0; updateLive(); }
   } catch (err) { console.error(err); }
@@ -1643,6 +1651,8 @@ function bakeTextures(){
   }
 }
 $('ver').textContent = 'v' + VERSION;
+// the board's sheen sweeps once every so often instead of animating forever
+setInterval(() => { if (document.hidden) return; const b = document.querySelector('.board'); b.classList.add('sheen'); setTimeout(() => b.classList.remove('sheen'), 1900); }, 24000);
 renderAll(); checkOffline(); bakeTextures(); requestAnimationFrame(frame);
 </script>
 </body>

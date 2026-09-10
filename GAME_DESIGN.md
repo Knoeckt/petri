@@ -623,6 +623,12 @@ re-blurred sixty times a second); animate only transform and opacity, never box-
 cap canvas drawing at 30 fps, 15 fps while a panel covers the vessel, and side canvases
 (jars, portraits) at 12 fps. The sim ticks every frame regardless; drawing is what costs.
 
+Second round, still warm: bake every SVG noise texture and the wood filter to PNG once at
+startup (Safari re-runs SVG filters on repaint); paint each vessel's static scenery into an
+offscreen bitmap once and draw only the moving parts over it; never leave a CSS animation
+running forever (the board's sheen sweeps once every 24 s instead); dish at 24 fps, 12 with a
+panel open, side canvases at 8.
+
 ---
 
 ## 10. Milestones
