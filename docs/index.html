@@ -185,6 +185,8 @@
   .tabs button{flex:1; background:none; border:0; color:#fff3d6; padding:2px 2px 3px; font:700 10.5px var(--display); cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:3px; position:relative; text-shadow:0 1px 0 rgba(0,0,0,.55); transition:transform .18s cubic-bezier(.34,1.56,.64,1)}
   .tabs button span.i{width:40px; height:40px; border-radius:50%; background:var(--surface) var(--paper); border:3px solid var(--ink); box-shadow:0 3px 0 var(--ink), inset 0 2px 0 rgba(255,255,255,.5); display:flex; align-items:center; justify-content:center; font-size:20px; line-height:1; filter:grayscale(.55) opacity(.9); transition:transform .18s cubic-bezier(.34,1.56,.64,1), background .18s}
   .tabs button[aria-selected="true"]{color:#fff; transform:translateY(-6px)} .tabs button[aria-selected="true"] span.i{filter:none; background:linear-gradient(180deg, var(--accent0), var(--accent1)); transform:scale(1.12)}
+  .tabs{padding-right:34px}
+  .tabs .ver{position:absolute; right:3px; bottom:calc(3px + env(safe-area-inset-bottom)); width:30px; text-align:center; font:700 8.5px var(--display); color:#fff3d6; opacity:.75; text-shadow:0 1px 0 rgba(0,0,0,.5); pointer-events:none; z-index:2}
   .tabs button .badge{position:absolute; top:-3px; left:calc(50% + 12px); width:13px; height:13px; border-radius:50%; background:var(--bad); border:2px solid var(--ink); box-shadow:0 2px 0 var(--ink); display:none; z-index:1} .tabs button.has .badge{display:block}
 
   .sub{color:var(--muted); font-size:12.5px; margin:2px 4px 10px; font-weight:700}  .r{background:var(--surface) var(--paper); border:3px solid var(--ink); border-radius:16px; padding:10px 12px; display:grid; grid-template-columns:1fr auto; gap:2px 10px; align-items:center; text-align:left; color:var(--text); cursor:pointer; width:100%; margin-bottom:8px; box-shadow:0 4px 0 var(--ink); font-family:var(--ui); transition:transform .12s cubic-bezier(.34,1.56,.64,1)}
@@ -322,6 +324,7 @@
       <button data-tab="clinic"><span class="i">💊</span>Clinic<i class="badge"></i></button>
       <button data-tab="cat"><span class="i">📖</span>Catalog<i class="badge"></i></button>
       <button data-tab="asc"><span class="i">🚀</span>Scale up<i class="badge"></i></button>
+      <b class="ver" id="ver"></b>
     </div>
 
     <div class="scrim" id="scrim"></div>
@@ -359,7 +362,7 @@
 <script>
 'use strict';
 // ---------- constants ----------
-const VERSION = '0.4.0';
+const VERSION = '0.4.1';
 const RAR = [
   {k:'c', n:'Common',    col:'#d6c59a'},
   {k:'u', n:'Uncommon',  col:'#4ade80'},
@@ -937,7 +940,7 @@ function checkOffline(){
 
 // ---------- rendering ----------
 const $ = id => document.getElementById(id);
-function fmt(n){ if (n < 1000) return n < 10 ? n.toFixed(1) : Math.floor(n).toString(); const u = ['k','M','B','T','q','Q']; let i = -1; while (n >= 1000 && i < u.length-1){ n /= 1000; i++; } return n.toFixed(n < 10 ? 2 : 1) + u[i]; }
+function fmt(n){ if (!(n > 0.05)) n = 0; if (n < 1000) return n < 10 ? n.toFixed(1) : Math.floor(n).toString(); const u = ['k','M','B','T','q','Q']; let i = -1; while (n >= 1000 && i < u.length-1){ n /= 1000; i++; } return n.toFixed(n < 10 ? 2 : 1) + u[i]; }
 function fmtDur(s){ s = Math.round(s); if (s < 60) return s + 's'; if (s < 3600) return Math.floor(s/60) + 'm ' + (s%60) + 's'; return Math.floor(s/3600) + 'h ' + Math.floor((s%3600)/60) + 'm'; }
 function cap(s){ return s[0].toUpperCase() + s.slice(1); }
 function chip(r, name, isNew){ return `<span class="chip ${isNew ? 'new' : ''}"><i style="background:${RAR[r].col}"></i>${name}</span>`; }
@@ -949,7 +952,7 @@ let dirty = true, recentKey = '', extraKey = '', shelfKey = '', rbarKey = '', la
 function markDirty(){ dirty = true; }
 
 function renderTop(){
-  setText($('tierLabel'), `Tier ${S.tier+1} · ${tierDef(S.tier).n} · v${VERSION}`);
+  setText($('tierLabel'), `Tier ${S.tier+1} · ${tierDef(S.tier).n}`);
   setText($('gameName'), T.name);
   setText($('curIc'), T.ic);
   setText($('skinPill'), S.theme === 'bio' ? 'Petri → Orbit' : 'Orbit → Petri');
@@ -1624,6 +1627,7 @@ function bakeTextures(){
     toPng('data:image/svg+xml;utf8,' + encodeURIComponent(svg), 420, 320, png => { ph.style.setProperty('--woodtex', `url("${png}")`); ph.style.setProperty('--woodf', 'none'); });
   }
 }
+$('ver').textContent = 'v' + VERSION;
 renderAll(); checkOffline(); bakeTextures(); requestAnimationFrame(frame);
 </script>
 </body>
