@@ -692,6 +692,7 @@ Permanent, bought on the Scale up tab, cost rises by one point per rank.
 | Long memory | 4 | time warp lasts 30 min longer per rank |
 | Warm bench | 1 | the first research of every tier finishes instantly |
 | Culture library | 1 | each run starts with two spares of every common seen before |
+| Night shift | 9 | offline production runs at 10% + 10% per rank, up to full speed |
 
 Resetting research at Genesis is the point: the Lab is replayable because the loop replays
 it, and the tier branches become milestones on each run rather than a one-time checklist.
@@ -720,9 +721,12 @@ corpse flower; the pebble that fell from the sky, Ceres, a blue marble.
 
 ## 8. Offline and pacing
 
-- Offline the dish cycles and sells duplicates; new finds still count. Cap 4 h, 8 h with
-  storage. Welcome-back sheet lists time away, currency, cycles, and finds by name, with
-  Double it.
+- Offline the dish cycles and sells duplicates; new finds still count, but it all runs at
+  **10% speed** (a tenth of the income and a tenth of the cycles). The Night shift Genome
+  perk adds 10% per rank up to full speed, so offline income is the thing prestige buys.
+  Time warps from ads run at full speed. Cap 4 h, 8 h with storage, more with the tier
+  branches. Welcome-back sheet lists time away, the speed it ran at, currency, cycles, and
+  finds by name, with Double it.
 - **First session:** level 1 → 10 in ten minutes; the first uncommon around level 6; the
   first research started. A decision every 30 s.
 - **Day 1–2:** rares appear, luck unlocked, second dish, first scale-up.

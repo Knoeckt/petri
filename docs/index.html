@@ -372,7 +372,7 @@
 <script>
 'use strict';
 // ---------- constants ----------
-const VERSION = '0.7.2';
+const VERSION = '0.7.3';
 const RAR = [
   {k:'c', n:'Common',    col:'#d6c59a'},
   {k:'u', n:'Uncommon',  col:'#4ade80'},
@@ -745,6 +745,7 @@ const GEN_DEF = [
   { id:'warp',    n:'Long memory',     d:'Time warp lasts 30 min longer per rank', max:4 },
   { id:'bench',   n:'Warm bench',      d:'The first research of every tier finishes instantly', max:1 },
   { id:'starter', n:'Culture library', d:'Each run starts with two spares of every common seen before', max:1 },
+  { id:'offline', n:'Night shift',      d:'Offline the dish runs at 10%; each rank adds 10%, up to full speed', max:9 },
 ];
 function genLv(id){ return ((S.gen || {}).perks || {})[id] || 0; }
 function genCost(g){ return genLv(g.id) + 1; }
@@ -804,10 +805,12 @@ function collect(i, summary){
 }
 function blankSummary(){ return { cur:0, drops:0, cycles:0, finds:[], secs:0, eaten:0 }; }
 function completeResearch(){ if (!S.active) return; const id = S.active.id; if (id === 'study'){ const key = S.active.key; S.active = null; S.studies = S.studies || {}; S.studies[key] = true; bump('res'); const [t, ri] = key.split(':'); const [r, i] = ri.split('-').map(Number); toast(`${item(+t, r, i).n} studied: ${perkText(studyPerk(+t, r, i))}`); markDirty(); return; } const def = RES_DEF.find(r => r.id === id); S.res[id] = def && def.max ? resLv(id) + 1 : true; S.active = null; bump('res'); if (/^dish\d$/.test(id)) S.dishes.push(newDish()); if (id === 'wash') S.dishes.forEach(d => d.drops.forEach(g => { if (item(S.tier, g.r, g.i).danger && !g.contained && Math.random() < .05) g.contained = true; })); toast(def && def.max ? `${resName(id)[0]} ${resLv(id)}/${def.max} · ${Math.round(guardChance()*100)}% on arrival` : `${resName(id)[0]} complete`); markDirty(); }
-function simulate(secs){
+function offlineEff(){ return Math.min(1, .1 + .1 * genLv('offline')); }
+function simulate(secs, eff){ eff = eff === undefined ? 1 : eff;
   const sum = blankSummary(); sum.secs = secs;
-  const bsec = Math.min(S.boost, secs); S.cur += genRate() * bsec; sum.cur += genRate() * bsec; S.boost -= bsec;
-  const rest = secs - bsec; S.cur += genRate() * rest; sum.cur += genRate() * rest;
+  const bsec0 = Math.min(S.boost, secs); S.boost -= bsec0; const bsec = bsec0 * eff, rest = (secs - bsec0) * eff;
+  S.cur += genRate() * bsec; sum.cur += genRate() * bsec;
+  S.cur += genRate() * rest; sum.cur += genRate() * rest;
   const ct = cycleTime();
   for (const d of S.dishes){
     if (!d.drops.length) d.drops = rollDrops();
@@ -1044,8 +1047,9 @@ function checkOffline(){
   const away = (Date.now() - S.last) / 1000;
   if (away < 20) return;
   const secs = Math.min(away, offlineCap());
-  const s = simulate(secs);
-  showResults('While you were away', away > offlineCap() ? `Capped at ${fmtDur(offlineCap())}. Storage research raises it.` : `The ${T.dish} kept going.`, s, true);
+  const s = simulate(secs, offlineEff());
+  const eff = `The ${T.dish} ran at ${Math.round(offlineEff()*100)}% while you were away${offlineEff() < 1 ? ' (Night shift in Genome raises it)' : ''}.`;
+  showResults('While you were away', (away > offlineCap() ? `Capped at ${fmtDur(offlineCap())}. Storage research raises it. ` : '') + eff, s, true);
 }
 
 // ---------- rendering ----------
