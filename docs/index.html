@@ -372,7 +372,7 @@
 <script>
 'use strict';
 // ---------- constants ----------
-const VERSION = '0.7.0';
+const VERSION = '0.7.1';
 const RAR = [
   {k:'c', n:'Common',    col:'#d6c59a'},
   {k:'u', n:'Uncommon',  col:'#4ade80'},
@@ -1718,7 +1718,7 @@ $('devCur').onclick = () => { S.cur += 1000 * tierMult(); renderAll(); };
 $('devLv').onclick = () => { S.lv += 5; renderAll(); };
 $('devTix').onclick = () => { S.tickets += 3; renderAll(); };
 $('devStock').onclick = () => { const c = S.cat[S.tier] = S.cat[S.tier] || {}; COUNTS.forEach((n, r) => { for (let i = 0; i < n; i++) c[`${r}-${i}`] = (c[`${r}-${i}`] || 0) + 4; }); markDirty(); renderAll(); };
-$('devReset').onclick = () => { if (!confirm('Reset the save?')) return; localStorage.removeItem(SAVE); S = fresh(); closePanel(); renderAll(); save(); };
+$('devReset').onclick = () => { if (!confirm('Reset the save?')) return; window.removeEventListener('beforeunload', save); localStorage.removeItem(SAVE); location.reload(); };
 function openSheet(){ $('scrim').classList.add('on'); $('sheet').classList.add('open'); }
 function closeSheet(){ $('scrim').classList.remove('on'); $('sheet').classList.remove('open'); }
 $('scrim').onclick = () => { if (!adBusy) closeSheet(); };
@@ -1752,7 +1752,7 @@ function openDev(){
   $('devClose').onclick = closeSheet; openSheet();
 }
 $('sheet').addEventListener('click', e => { const b = e.target.closest('[data-dev]'); if (!b) return; const k = b.dataset.dev;
-  if (k === 'skin') $('devSkin').click(); else if (k === 'speed') $('devSpeed').click(); else if (k === 'away'){ closeSheet(); $('devAway').click(); return; } else if (k === 'cur') $('devCur').click(); else if (k === 'lv') $('devLv').click(); else if (k === 'stock') $('devStock').click(); else if (k === 'tix') $('devTix').click(); else if (k === 'ads'){ S.adCd = 0; renderAll(); } else if (k === 'reset'){ localStorage.removeItem(SAVE); S = fresh(); closePanel(); renderAll(); save(); }
+  if (k === 'skin') $('devSkin').click(); else if (k === 'speed') $('devSpeed').click(); else if (k === 'away'){ closeSheet(); $('devAway').click(); return; } else if (k === 'cur') $('devCur').click(); else if (k === 'lv') $('devLv').click(); else if (k === 'stock') $('devStock').click(); else if (k === 'tix') $('devTix').click(); else if (k === 'ads'){ S.adCd = 0; renderAll(); } else if (k === 'reset'){ window.removeEventListener('beforeunload', save); localStorage.removeItem(SAVE); location.reload(); }
   openDev(); });
 if (!S.dishes[0].drops.length) S.dishes[0].drops = rollDrops();
 // Bake the SVG noise textures and the wood filter into PNGs once. Safari re-runs SVG filters on every
