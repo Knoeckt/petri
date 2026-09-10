@@ -298,9 +298,11 @@ Two kinds of request sit on the board:
   something: Doc Ferro opens his lab bench, then his kettle, then lends you the splicer.
   Under the chips the card says one sentence about how to get what is missing (harvest for
   spares, level the dish for rarity, brew at the Apothecary).
-- **Side requests**, two at a time, repeatable, drawn from a pool. Raw samples only, small
-  pay, delivered instantly. They keep the board alive between story beats and give commons a
-  use.
+- **Side quests**, two at a time, repeatable, drawn from a pool. They do not ask for items
+  at all: each counts something that happens in play anyway (harvests, stirs, quarantines,
+  discoveries, dish levels, upgrades bought, brews, research, pipette plays, splices, time
+  warps) from the moment the quest appears, and pays out when the bar fills. See the pool
+  below.
 
 ### Chapter 1: Something in the water
 
@@ -363,12 +365,30 @@ out it isn't a creature any more but a place, and gets the cure. The hook into a
 is the dome past the garden wall: a whole enclosed biome of it, which is exactly what the
 tier 4 dish is.
 
-### Side request pool
+### Side quest pool
 
-Farmer Tuck (the cows are humming, in key: 2 Fuzzwald), Postie Lark (love letters sticking
-together: 3 of anything), Old Bill (a fish that argues, and is winning: 2 Dotto and a Blubb),
-Nurse Ona (the waiting room smells of lemons: 1 uncommon or better), Coach Dabb (the football
-rolls uphill: 4 of anything). All raw samples, so Quests never needs the kettle.
+Each quest is a townsperson, a counter, a target and a payout. The counter is one of the
+`S.st` tallies the game keeps anyway; a quest remembers the tally when it was accepted and
+completes when the difference reaches the target, so the player never has to do anything
+unusual, only more of what they were doing. Quests whose system is not open yet stay out of
+the pool.
+
+| Who | Counts | Target | Pays | In the pool once |
+|---|---|---|---|---|
+| Farmer Tuck | harvests | 5 | 50 | always |
+| Postie Lark | stirs (taps on the dish) | 12 | 40 | always |
+| Old Bill | biters quarantined | 2 | 90 | dish level 3 |
+| Nurse Ona | new strains discovered | 2 | 80 | two or more still undiscovered |
+| Coach Dabb | dish levels bought | 2 | 70 | always |
+| Mayor Bramble | upgrades bought | 2 | 60 | always |
+| Gran Moss | time warps | 1 | 80 | always |
+| Ida the baker | medicines brewed | 3 | 120 | Apothecary |
+| Doc Ferro | research completed | 1 | 100 | Lab |
+| Pip | pipette plays | 2 | 60 | Tickets |
+| Doc Ferro | hybrids spliced | 1 | 200 | Splicer |
+
+Pay is multiplied by the tier. A finished quest shows a Collect button and a badge on the
+Quests medallion; collecting it draws a fresh one.
 
 ### The Clinic is story only
 
@@ -408,7 +428,7 @@ The story log lives at the bottom of the Clinic, so there is no separate Notes b
 
 | Button | What it is |
 |---|---|
-| **Quests** (left) | the odd jobs that used to clutter the Clinic: two at a time, small recipes, instant delivery, a fresh one when you finish one. A badge counts the ones you can deliver. |
+| **Quests** (left) | odd jobs that count things you do anyway (harvest five dishes, box up two biters, level up twice): two at a time with a progress bar, Collect when full, a fresh one after. A badge counts the ones ready to collect. |
 | **Tickets** (left) | the pipette mini-game, below. The badge is today's ticket count. |
 | **Splicer** (left) | the Splice-o-matic, its own area. Badge when a hybrid is waiting in the chamber. |
 | **Shop** (right) | paid in biomass only, nothing you can't also earn, no premium currency. Five items, shown as their systems open: **Sample crate** (three spares of commons you have already found, 40 biomass, ×1.35 per purchase, resets daily; the early-game unblocker), **Heat lamp** (2× growth and income for two minutes), **Ice pack** (+2 h offline cap, once), **Extra ticket** (once Tickets is open; price climbs, resets daily), **Mystery pebble** (once Decor is open; a random common artifact). |
