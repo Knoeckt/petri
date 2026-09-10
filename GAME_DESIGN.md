@@ -584,6 +584,15 @@ Capacitor for iOS and Android with AdMob rewarded ads. The sim is a pure `step(s
 offline catch-up and time warp are the same function with a big `dt`. Themes, tiers, items,
 upgrades and research are JSON, so Petri and Orbit are data, and a third skin costs no code.
 
+### Phone budget
+
+The first phone build ran hot within thirty seconds. Rules learned, kept for the real build:
+no animated SVG filters (an animated turbulence grain on the wood was the main cost); no CSS
+`filter` on elements whose canvas changes every frame (a drop-shadow on the dish was
+re-blurred sixty times a second); animate only transform and opacity, never box-shadow;
+cap canvas drawing at 30 fps, 15 fps while a panel covers the vessel, and side canvases
+(jars, portraits) at 12 fps. The sim ticks every frame regardless; drawing is what costs.
+
 ---
 
 ## 10. Milestones

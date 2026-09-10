@@ -78,13 +78,15 @@
   .pager{display:flex; overflow-x:auto; scroll-snap-type:x mandatory; scrollbar-width:none; overscroll-behavior-x:contain}
   .pager::-webkit-scrollbar{display:none}
   .page{flex:0 0 100%; display:flex; justify-content:center; align-items:center; min-height:270px}
-  #machine{width:100%; max-width:352px; height:auto; aspect-ratio:704/552; display:block; margin:0 auto 10px; cursor:pointer; filter:drop-shadow(0 6px 0 rgba(0,0,0,.18))}
+  #machine{width:100%; max-width:352px; height:auto; aspect-ratio:704/552; display:block; margin:0 auto 10px; cursor:pointer}
   .uptier{margin:12px 0 6px; display:flex; justify-content:space-between; align-items:center} .uptier h4{margin:0; font-family:var(--display); font-size:13px; letter-spacing:.04em; text-transform:uppercase; color:var(--text)} .uptier .lk{font:700 11px var(--display); color:var(--muted)} .uptier .lk.on{color:#1a9c7f}
   .pdots{display:flex; justify-content:center; gap:7px; margin:4px 0 0; cursor:pointer} .pdots i{width:9px; height:9px; border-radius:50%; border:2px solid var(--ink); background:transparent; display:block} .pdots i.on{background:#fff}
   .parr{position:absolute; top:50%; transform:translateY(-50%); width:34px; height:34px; border-radius:50%; border:3px solid var(--brass-edge); background:linear-gradient(180deg, var(--brass0), var(--brass1)); box-shadow:0 3px 0 var(--brass-edge), inset 0 2px 0 rgba(255,255,255,.6); font:700 18px var(--display); color:var(--brass-ink); cursor:pointer; z-index:2; display:flex; align-items:center; justify-content:center; padding:0 0 2px} .parr.left{left:8px} .parr.right{right:8px}
   .bp{display:flex; flex-direction:column; gap:8px}
   button.chip{cursor:pointer}
-  .dishwrap{position:relative; width:272px; height:272px; cursor:pointer; -webkit-tap-highlight-color:transparent; filter:drop-shadow(0 10px 0 rgba(0,0,0,.18))}
+  .dishwrap{position:relative; width:272px; height:272px; cursor:pointer; -webkit-tap-highlight-color:transparent}
+  .dishwrap::before{content:"";position:absolute; inset:6px; border-radius:50%; box-shadow:0 10px 0 rgba(0,0,0,.18); pointer-events:none}
+  .dishwrap[data-shape="rect"]::before{border-radius:34px} .dishwrap[data-shape="dome"]::before{border-radius:50% 50% 10px 10px / 50% 50% 10px 10px}
   .dishwrap canvas{position:absolute; inset:14px; width:244px; height:244px; display:block}
   .dishwrap svg{position:absolute; inset:0; width:272px; height:272px}
   .dishwrap svg path{fill:none; stroke-width:7; stroke-linecap:round; stroke-linejoin:round}
@@ -146,7 +148,7 @@
   .jarwrap.r3 .jar::after{content:''; position:absolute; left:-2px; right:-2px; top:16px; height:6px; background:#e0a53a; border-top:2px solid var(--ink); border-bottom:2px solid var(--ink); box-shadow:0 30px 0 -2px #e0a53a, 0 28px 0 0 var(--ink), 0 34px 0 0 var(--ink)}
   .jarwrap.r4 .jar{--jc:rgba(235,205,255,.6); --jc2:rgba(150,90,230,.72); border-color:#3a1c5e; box-shadow:inset 0 0 0 3px rgba(255,255,255,.35), 0 3px 0 #3a1c5e, 0 0 16px rgba(181,123,255,.75)} .jarwrap.r4 .lid{background:linear-gradient(180deg,#ffe6a3,#b57bff); border-color:#3a1c5e}
   .jarwrap.r4 .jar::after{content:''; position:absolute; inset:-40%; background:linear-gradient(115deg, transparent 40%, rgba(255,255,255,.55) 50%, transparent 60%); animation:jshimmer 2.6s ease-in-out infinite}
-  .jarwrap.r5 .jar{--jc:rgba(255,245,190,.7); --jc2:rgba(255,190,60,.8); border-color:#6b4a12; box-shadow:inset 0 0 0 3px rgba(255,255,255,.5), 0 3px 0 #6b4a12, 0 0 18px rgba(255,210,63,.9); animation:jpulse 1.6s ease-in-out infinite} .jarwrap.r5 .lid{background:linear-gradient(180deg,#fff3b0,#e0a53a); border-color:#6b4a12; width:40px}
+  .jarwrap.r5 .jar{--jc:rgba(255,245,190,.7); --jc2:rgba(255,190,60,.8); border-color:#6b4a12; box-shadow:inset 0 0 0 3px rgba(255,255,255,.5), 0 3px 0 #6b4a12, 0 0 18px rgba(255,210,63,.9)} .jarwrap.r5 .lid{background:linear-gradient(180deg,#fff3b0,#e0a53a); border-color:#6b4a12; width:40px}
   .jarwrap.r5 .lid::before{content:''; position:absolute; left:50%; top:-9px; width:10px; height:10px; margin-left:-5px; background:#ff5c7a; border:2px solid #6b4a12; transform:rotate(45deg); border-radius:2px}
   .jarwrap.r5 .jar::after{content:''; position:absolute; inset:-60%; background:conic-gradient(from 0deg, transparent 0 20%, rgba(255,255,255,.75) 24%, transparent 28%, transparent 60%, rgba(255,255,255,.55) 64%, transparent 68%); animation:jspin 5s linear infinite}
   .jarwrap.rh .jar{--jc:rgba(190,255,240,.5); --jc2:rgba(55,211,168,.6)} .jarwrap.rh .lid{background:#2a6b64}
@@ -259,7 +261,6 @@
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
   <filter id="wood" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
     <feTurbulence type="fractalNoise" baseFrequency="0.006 0.11" numOctaves="4" seed="11" result="n">
-      <animate attributeName="baseFrequency" values="0.006 0.11;0.0068 0.118;0.006 0.11" dur="14s" repeatCount="indefinite"/>
     </feTurbulence>
     <feColorMatrix in="n" type="matrix" values="0 0 0 0 0.22  0 0 0 0 0.10  0 0 0 0 0.03  0.9 0 0 0 -0.32" result="dark"/>
     <feColorMatrix in="n" type="matrix" values="0 0 0 0 1  0 0 0 0 0.9  0 0 0 0 0.7  0 0.7 0 0 -0.42" result="light"/>
@@ -1478,14 +1479,15 @@ document.addEventListener('visibilitychange', () => { if (document.hidden) save(
 window.addEventListener('beforeunload', save);
 
 // ---------- loop ----------
+let lastDraw = 0, lastSlow = 0;
 function frame(now){
   const real = Math.min(.25, (now - lastFrame)/1000); lastFrame = now;
   if (!adBusy) tick(real * simSpeed, now);
   try {
-    draw(now);
-    if (tab === 'splicer') drawMachine(now);
-    if (tab === 'cat') drawPortraits(now);
-    if (!tab) drawShelf(now);
+    // draw at 30 fps (15 while a panel covers the vessel); jars and portraits at 12 fps. The sim still ticks every frame.
+    const drawGap = tab ? 66 : 33;
+    if (now - lastDraw >= drawGap){ lastDraw = now; draw(now); if (tab === 'splicer') drawMachine(now); }
+    if (now - lastSlow >= 83){ lastSlow = now; if (tab === 'cat') drawPortraits(now); if (!tab) drawShelf(now); }
     if (dirty) renderAll();
     uiAcc += real; if (uiAcc > .15){ uiAcc = 0; updateLive(); }
   } catch (err) { console.error(err); }
