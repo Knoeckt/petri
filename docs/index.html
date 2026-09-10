@@ -214,6 +214,8 @@
   /* locked buttons: dim, padlock on the medallion, and the chapter-step that opens them */
   .sbtn.locked span, .tabs button.locked span.i{filter:grayscale(1) brightness(.72) !important; background:linear-gradient(180deg,#d8cfbd,#a89d86) !important}
   .sbtn.locked i, .tabs button.locked{opacity:.7}
+  .card.gen{background:linear-gradient(180deg,#e9fbe4,#cfeec6)} .card.gen h3{margin-top:0}
+  .r .sw{display:inline-block; width:10px; height:10px; border-radius:50%; border:2px solid var(--ink); margin-right:6px; vertical-align:-1px}
   .qprog{display:flex; align-items:center; gap:10px; margin-top:8px} .qprog .bar{flex:1; height:10px; border-radius:6px; background:rgba(0,0,0,.18); border:2px solid var(--ink); overflow:hidden} .qprog .bar i{display:block; height:100%; background:linear-gradient(180deg,#ffe066,#e6a800); transition:width .4s} .qprog b{font-size:13px; min-width:34px; text-align:right}
   .sbtn.locked span::after, .tabs button.locked span.i::after{content:'🔒'; position:absolute; right:-6px; bottom:-6px; width:20px; height:20px; border-radius:50%; background:var(--ink); border:2px solid #fff3d6; font-size:11px; display:flex; align-items:center; justify-content:center; filter:none}
   .sbtn span, .tabs button span.i{position:relative}
@@ -370,7 +372,7 @@
 <script>
 'use strict';
 // ---------- constants ----------
-const VERSION = '0.6.1';
+const VERSION = '0.7.0';
 const RAR = [
   {k:'c', n:'Common',    col:'#d6c59a'},
   {k:'u', n:'Uncommon',  col:'#4ade80'},
@@ -491,7 +493,35 @@ const RES_DEF = [
   {id:'batch2',  cost:120,  time:50,  req:null, gate:'brew'},
   {id:'fastbrew',cost:350,  time:90,  req:'batch2', gate:'brew'},
   {id:'batch3',  cost:900,  time:150, req:'batch2', gate:'brew'},
+  // tier branches: each vessel opens a few structural items. fx = [kind, amount]; kinds: cycle (×(1−v)), drop (+v), lv (+v), val (+v), off (+v seconds)
+  {id:'filter',    tier:1, cost:2000,    time:240,  req:null,      fx:['cycle', .10]},
+  {id:'aerator',   tier:1, cost:3500,    time:300,  req:null,      fx:['drop', 1]},
+  {id:'storage2',  tier:1, cost:6000,    time:400,  req:'storage', fx:['off', 4*3600]},
+  {id:'growlamp',  tier:2, cost:10000,   time:400,  req:null,      fx:['lv', 2]},
+  {id:'compost',   tier:2, cost:16000,   time:500,  req:null,      fx:['val', .25]},
+  {id:'dish4',     tier:2, cost:30000,   time:700,  req:'dish3'},
+  {id:'climate',   tier:3, cost:50000,   time:600,  req:null,      fx:['cycle', .15]},
+  {id:'seedbank',  tier:3, cost:80000,   time:800,  req:null,      fx:['drop', 1]},
+  {id:'storage3',  tier:3, cost:120000,  time:900,  req:'storage2', fx:['off', 8*3600]},
+  {id:'tides',     tier:4, cost:250000,  time:900,  req:null,      fx:['lv', 3]},
+  {id:'mantle',    tier:4, cost:400000,  time:1200, req:null,      fx:['val', .5]},
+  {id:'singular',  tier:5, cost:1200000, time:1500, req:null,      fx:['cycle', .2]},
+  {id:'nova',      tier:5, cost:2000000, time:2000, req:null,      fx:['drop', 2]},
 ];
+const RES_X = { filter:['Filter pump','−10% cycle time'], aerator:['Aerator','+1 colony per cycle'], storage2:['Chilled tanks','Offline cap +4 h'], growlamp:['Grow lamps','+2 effective levels'], compost:['Compost bin','+25% duplicate value'], dish4:['Fourth dish','A fourth dish'], climate:['Climate control','−15% cycle time'], seedbank:['Seed bank','+1 colony per cycle'], storage3:['Cryo vault','Offline cap +8 h'], tides:['Tidal rhythm','+3 effective levels'], mantle:['Mantle heat','+50% duplicate value'], singular:['Singularity','−20% cycle time'], nova:['Nova seeding','+2 colonies per cycle'] };
+function resName(id){ return T.res[id] || RES_X[id] || [id, '']; }
+function resVisible(r){ return S.tier >= (r.tier || 0) && (!r.gate || unlocked(r.gate)); }
+function resSum(k){ let v = 0; for (const r of RES_DEF) if (r.fx && r.fx[0] === k && S.res[r.id]) v += r.fx[1]; return v; }
+function resProd(k){ let v = 1; for (const r of RES_DEF) if (r.fx && r.fx[0] === k && S.res[r.id]) v *= (1 - r.fx[1]); return v; }
+
+// ---------- specimen studies: study a spare strain for a permanent perk ----------
+const STUDY_COST = [40, 120, 400, 1200, 4000, 12000], STUDY_TIME = [30, 60, 120, 240, 480, 900];
+function studyPerk(t, r, i){ const it = item(t, r, i); if (it.danger) return [['guard', .05]]; return [[['income', .03]], [['cycle', .03]], [['lv', 1]], [['income', .10], ['cycle', .05]], [['drop', 1]], [['lv', 2], ['income', .10]]][r]; }
+function perkText(list){ return list.map(([k, v]) => ({ income:`+${Math.round(v*100)}% income`, cycle:`−${Math.round(v*100)}% cycle time`, lv:`+${v} level${v > 1 ? 's' : ''}`, drop:`+${v} ${v > 1 ? T.drops : T.drop} per cycle`, guard:`+${Math.round(v*100)}% quarantine on arrival` })[k]).join(', '); }
+function studyFx(k){ let v = 0; for (const key in (S.studies || {})){ const [t, ri] = key.split(':'); const [r, i] = ri.split('-'); for (const [pk, pv] of studyPerk(+t, +r, +i)) if (pk === k) v += pv; } return v; }
+function studyCost(t, r){ return Math.round(STUDY_COST[r] * tierMult(t)); }
+function startStudy(key){ const [t, ri] = key.split(':'); const [r, i] = ri.split('-').map(Number); if (S.active || (S.studies || {})[key] || stock(r, i, +t) < 1 || S.cur < studyCost(+t, r)) return; S.cur -= studyCost(+t, r); S.cat[+t][`${r}-${i}`] -= 1; const tm = STUDY_TIME[r]; S.active = { id:'study', key, left: tm, total: tm }; renderAll(); save(); }
+
 const SHAPES = ['blob','rod','ring','dots','spiral','crystal','amoeba','star'];
 
 // ---------- the Clinic: story chapters, side requests, hybrids ----------
@@ -610,14 +640,14 @@ const UPT = [
     { id:'l_val',   n:'Museum deal',     d:'+60% duplicate value',  k:'val',   v:.6,  cost:9000 } ] },
 ];
 const UPI = Object.fromEntries(UPT.flatMap(t => t.items).map(u => [u.id, u]));
-function fresh(){ return { theme:'bio', cur:0, tier:0, lv:1, ups:{}, res:{}, active:null, cat:{}, dishes:[newDish()], boost:0, adCd:0, ads:0, adUse:{}, recent:[], shelf:[], cycles:0, eaten:0, hasSplicer:false, hyb:{}, seed:null, splice:null, sp:[null,null], spOut:null, story:{}, side:[], ob:null, tickets:TICKETS_PER_DAY, tDay:'', shopT:0, arts:{}, placed:[null,null,null], meds:{}, brew:null, storyV:2, shopC:0, icepack:false, st:{}, last:Date.now() }; }
-function load(){ try{ const s = JSON.parse(localStorage.getItem(SAVE)); if (!s || !s.dishes) return null; s.dishes.forEach(d => d.drops.forEach(g => { g.atk = null; g.meet = null; g.frozen = false; })); s.hyb = s.hyb || {}; s.story = s.story || {}; s.side = (s.side || []).filter(x => x && x.base !== undefined && SIDE[x.k]); s.st = s.st || {}; s.ob = null; if (s.seed === undefined) s.seed = null; if (s.splice === undefined) s.splice = null; s.hasSplicer = !!s.hasSplicer; s.sp = s.sp || [null, null]; s.spOut = s.spOut || null; if (s.splice && !s.splice.a) s.splice = null; s.ups = s.ups || {}; if (s.tickets === undefined) s.tickets = TICKETS_PER_DAY; s.tDay = s.tDay || ''; s.shopT = s.shopT || 0; s.arts = s.arts || {}; s.placed = s.placed || [null, null, null]; s.meds = s.meds || {}; s.brew = s.brew && s.brew.id ? s.brew : null; if (s.res && s.res.wash === true) s.res.wash = 20;
+function fresh(){ return { theme:'bio', cur:0, tier:0, lv:1, ups:{}, res:{}, active:null, cat:{}, dishes:[newDish()], boost:0, adCd:0, ads:0, adUse:{}, recent:[], shelf:[], cycles:0, eaten:0, hasSplicer:false, hyb:{}, seed:null, splice:null, sp:[null,null], spOut:null, story:{}, side:[], ob:null, tickets:TICKETS_PER_DAY, tDay:'', shopT:0, arts:{}, placed:[null,null,null], meds:{}, brew:null, storyV:2, shopC:0, icepack:false, st:{}, studies:{}, gen:{ runs:0, pts:0, perks:{}, seen:{} }, freeRes:false, last:Date.now() }; }
+function load(){ try{ const s = JSON.parse(localStorage.getItem(SAVE)); if (!s || !s.dishes) return null; s.dishes.forEach(d => d.drops.forEach(g => { g.atk = null; g.meet = null; g.frozen = false; })); s.hyb = s.hyb || {}; s.story = s.story || {}; s.side = (s.side || []).filter(x => x && x.base !== undefined && SIDE[x.k]); s.st = s.st || {}; s.studies = s.studies || {}; s.gen = s.gen || { runs:0, pts:0, perks:{}, seen:{} }; s.freeRes = !!s.freeRes; if (s.active && s.active.id === 'study' && !s.active.key) s.active = null; s.ob = null; if (s.seed === undefined) s.seed = null; if (s.splice === undefined) s.splice = null; s.hasSplicer = !!s.hasSplicer; s.sp = s.sp || [null, null]; s.spOut = s.spOut || null; if (s.splice && !s.splice.a) s.splice = null; s.ups = s.ups || {}; if (s.tickets === undefined) s.tickets = TICKETS_PER_DAY; s.tDay = s.tDay || ''; s.shopT = s.shopT || 0; s.arts = s.arts || {}; s.placed = s.placed || [null, null, null]; s.meds = s.meds || {}; s.brew = s.brew && s.brew.id ? s.brew : null; if (s.res && s.res.wash === true) s.res.wash = 20;
     // chapter 1 grew from 7 steps to 9 (four raw-sample requests, then brewing): map an old position onto the new list
     if (!s.storyV){ const st = s.story && s.story[0]; if (st){ if (st.done) st.step = STORY[0].steps.length; else if (st.step > 0) st.step = [4,5,5,6,7,7,8][Math.min(st.step, 6)]; } s.storyV = 2; } for (const t in s.story){ s.story[t].brewing = null; } return s; }catch(e){ return null; } }
 function save(){ S.last = Date.now(); try{ localStorage.setItem(SAVE, JSON.stringify(S)); }catch(e){} }
 
 // ---------- derived ----------
-const tierMult = () => Math.pow(TIER_MULT, S.tier);
+const tierMult = (t) => Math.pow(TIER_MULT, t === undefined ? S.tier : t);
 const boostOn = () => S.boost > 0;
 function catMult(){ let m = 1; for (const t in S.cat) for (const k in S.cat[t]) m += BONUS[+k[0]]; return m; }
 function artPerk(k){ let v = 0; for (const id of (S.placed || [])){ const a = id && ART[id]; if (a && a.perk[0] === k) v += a.perk[1]; } return v; }
@@ -628,12 +658,12 @@ function upBought(ti){ return UPT[ti].items.filter(u => S.ups[u.id]).length; }
 function upOpen(ti){ return ti === 0 || upBought(ti - 1) >= UPT[ti].need; }
 function upCanBuy(u, ti){ return !S.ups[u.id] && upOpen(ti) && (!u.req || S.res[u.req]) && S.cur >= u.cost * tierMult(); }
 function upAvailable(){ return UPT.some((t, ti) => t.items.some(u => upCanBuy(u, ti))); }
-function genRate(){ return 0.3 * upProd('gen') * tierMult() * catMult() * (boostOn() ? 2 : 1) * (1 + artPerk('income')); }
+function genRate(){ return 0.3 * upProd('gen') * tierMult() * catMult() * (boostOn() ? 2 : 1) * (1 + artPerk('income')) * (1 + studyFx('income')) * (1 + .1 * genLv('income')); }
 const perk = k => !!(S.seed && HYB[S.seed] && HYB[S.seed].perk === k);
-function cycleTime(){ const base = CYCLE_BASE * Math.pow(TIER_CYCLE, S.tier) * (S.res.fast ? .75 : 1); return Math.max(base * .25, base * upSpeed()) * (perk('speed') ? .85 : 1) * (1 - artPerk('speed')); }
-function dropsPer(){ return 1 + upSum('yield') + (perk('drop') ? 1 : 0) + artPerk('drop'); }
-function valMult(){ return (1 + upSum('val')) * (perk('value') ? 1.5 : 1) * (1 + artPerk('value')); }
-function effLv(){ return S.lv + upSum('lv') + (perk('luck') ? 3 : 0) + artPerk('lv'); }
+function cycleTime(){ const base = CYCLE_BASE * Math.pow(TIER_CYCLE, S.tier) * (S.res.fast ? .75 : 1); return Math.max(base * .25, base * upSpeed()) * (perk('speed') ? .85 : 1) * (1 - artPerk('speed')) * resProd('cycle') * Math.max(.4, 1 - studyFx('cycle')); }
+function dropsPer(){ return 1 + upSum('yield') + (perk('drop') ? 1 : 0) + artPerk('drop') + resSum('drop') + studyFx('drop'); }
+function valMult(){ return (1 + upSum('val')) * (perk('value') ? 1.5 : 1) * (1 + artPerk('value')) * (1 + resSum('val')); }
+function effLv(){ return S.lv + upSum('lv') + (perk('luck') ? 3 : 0) + artPerk('lv') + resSum('lv') + studyFx('lv'); }
 function bump(k, n){ S.st = S.st || {}; S.st[k] = (S.st[k] || 0) + (n === undefined ? 1 : n); if (tab === 'quests') markDirty(); }
 function stock(r, i, t){ t = t === undefined ? S.tier : t; return Math.max(0, ((S.cat[t] || {})[`${r}-${i}`] || 0) - 1); }
 function story(){ if (!S.story[S.tier]) S.story[S.tier] = { step:0, brewing:null, brewed:false, log:[], done:false }; return S.story[S.tier]; }
@@ -704,7 +734,30 @@ function rollDrops(){
   return out;
 }
 function lvCost(){ return Math.round(15 * Math.pow(1.22, S.lv-1) * tierMult()); }
-function offlineCap(){ return OFFLINE_CAP * (S.res.storage ? 2 : 1) + (S.icepack ? 2*3600 : 0); }
+function offlineCap(){ return OFFLINE_CAP * (S.res.storage ? 2 : 1) + (S.icepack ? 2*3600 : 0) + resSum('off'); }
+// ---------- Genesis: the ladder loops. Everything resets; Genome points buy permanent perks ----------
+const GEN_TIER = 2; // temporary: allowed once the Terrarium chapter is done, until chapters 4–6 exist
+const GEN_DEF = [
+  { id:'head',    n:'Head start',      d:'Each run starts +2 dish levels higher per rank', max:3 },
+  { id:'income',  n:'Old growth',      d:`+10% ${'income'} per rank, every tier`, max:10 },
+  { id:'guard',   n:'Immune memory',   d:'+5% chance biters are quarantined on arrival, per rank', max:5 },
+  { id:'warp',    n:'Long memory',     d:'Time warp lasts 30 min longer per rank', max:4 },
+  { id:'bench',   n:'Warm bench',      d:'The first research of every tier finishes instantly', max:1 },
+  { id:'starter', n:'Culture library', d:'Each run starts with two spares of every common seen before', max:1 },
+];
+function genLv(id){ return ((S.gen || {}).perks || {})[id] || 0; }
+function genCost(g){ return genLv(g.id) + 1; }
+function genPoints(){ let f = 0; for (const t in S.cat) f += found(+t); let ch = 0; for (const t in S.story) if (S.story[t].done) ch++; return (S.tier + 1) + Math.floor(f / 10) + ch; }
+function canGenesis(){ return S.tier >= GEN_TIER && !!(S.story[GEN_TIER] && S.story[GEN_TIER].done); }
+function seenBefore(t, key){ return !!(((S.gen || {}).seen || {})[t] || {})[key]; }
+function genesis(){ if (!canGenesis()) return; const g = S.gen = S.gen || { runs:0, pts:0, perks:{}, seen:{} };
+  const pts = genPoints(); g.pts += pts; g.runs++; g.seen = g.seen || {}; for (const t in S.cat){ g.seen[t] = g.seen[t] || {}; for (const k in S.cat[t]) if (S.cat[t][k] > 0) g.seen[t][k] = true; }
+  const keepHyb = S.seed, keepArt = S.placed[0];
+  Object.assign(S, { tier:0, lv:1 + 2 * genLv('head'), cur:0, ups:{}, res:{}, active:null, cat:{}, dishes:[newDish()], boost:0, recent:[], shelf:[], cycles:0, eaten:0, hasSplicer:false, hyb: keepHyb ? { [keepHyb]:1 } : {}, seed: keepHyb || null, splice:null, sp:[null,null], spOut:null, story:{}, side:[], ob:null, arts: keepArt ? { [keepArt]:1 } : {}, placed:[keepArt || null, null, null], meds:{}, brew:null, icepack:false, st:{}, studies:{}, freeRes: genLv('bench') > 0 });
+  if (genLv('starter') && g.seen[0]){ S.cat[0] = {}; for (const k in g.seen[0]) if (k[0] === '0') S.cat[0][k] = 3; }
+  S.dishes.forEach(d => d.drops = rollDrops());
+  toast(`Genesis ${g.runs}: +${pts} Genome. The dish is small again.`); closePanel(); applyVessel(); renderAll(); save(); }
+function buyGen(id){ const g = GEN_DEF.find(x => x.id === id); if (!g || genLv(id) >= g.max || (S.gen.pts || 0) < genCost(g)) return; S.gen.pts -= genCost(g); S.gen.perks[id] = genLv(id) + 1; toast(`${g.n} ${genLv(id)}/${g.max}`); renderAll(); save(); }
 function canAscend(){ if (STORY[S.tier]) return !!(S.story[S.tier] && S.story[S.tier].done) && found(S.tier) >= ASC_FOUND; return S.lv >= ASC_LV && found(S.tier) >= ASC_FOUND; }
 const spawned = (g, prog) => prog >= g.t0 + .06;
 
@@ -717,7 +770,7 @@ function resolve(drops, summary){
     const key = `${d.r}-${d.i}`;
     const isNew = !S.cat[t][key];
     S.cat[t][key] = (S.cat[t][key] || 0) + 1;
-    if (isNew){ bump('find'); summary.finds.push({ t, r:d.r, i:d.i }); S.shelf = [{ t, r:d.r, i:d.i }, ...(S.shelf || [])].slice(0, 5); }
+    if (isNew){ bump('find'); if (seenBefore(t, key)){ const bonus = VAL[d.r] * tierMult() * 10; gained += bonus; toast(`Seen before: ${item(t, d.r, d.i).n}. +${fmt(bonus)}`); } summary.finds.push({ t, r:d.r, i:d.i }); S.shelf = [{ t, r:d.r, i:d.i }, ...(S.shelf || [])].slice(0, 5); }
     else { const v = VAL[d.r] * tierMult() * valMult(); gained += v; }
     S.recent.unshift({ r:d.r, i:d.i, t, isNew });
     summary.drops++;
@@ -726,7 +779,7 @@ function resolve(drops, summary){
   S.cur += gained; summary.cur += gained; summary.cycles++; S.cycles++; bump('harvest');
 }
 // instant version of the eating rule for big time steps
-function guardChance(){ return Math.min(1, resLv('wash') * .05 + (perk('guard') ? .4 : 0)); }
+function guardChance(){ return Math.min(1, resLv('wash') * .05 + (perk('guard') ? .4 : 0) + studyFx('guard') + .05 * genLv('guard')); }
 function resLv(id){ const v = S.res[id]; return typeof v === 'number' ? v : (v ? 1 : 0); }
 function resCost(r){ return Math.round(r.cost * Math.pow(1.3, r.max ? resLv(r.id) : 0)); }
 function resTime(r){ return r.time + (r.max ? resLv(r.id) * 8 : 0); }
@@ -749,7 +802,7 @@ function collect(i, summary){
   return summary;
 }
 function blankSummary(){ return { cur:0, drops:0, cycles:0, finds:[], secs:0, eaten:0 }; }
-function completeResearch(){ if (!S.active) return; const id = S.active.id, def = RES_DEF.find(r => r.id === id); S.res[id] = def && def.max ? resLv(id) + 1 : true; S.active = null; bump('res'); if (id === 'dish2' || id === 'dish3') S.dishes.push(newDish()); if (id === 'wash') S.dishes.forEach(d => d.drops.forEach(g => { if (item(S.tier, g.r, g.i).danger && !g.contained && Math.random() < .05) g.contained = true; })); toast(def && def.max ? `${T.res[id][0]} ${resLv(id)}/${def.max} · ${Math.round(guardChance()*100)}% on arrival` : `${T.res[id][0]} complete`); markDirty(); }
+function completeResearch(){ if (!S.active) return; const id = S.active.id; if (id === 'study'){ const key = S.active.key; S.active = null; S.studies = S.studies || {}; S.studies[key] = true; bump('res'); const [t, ri] = key.split(':'); const [r, i] = ri.split('-').map(Number); toast(`${item(+t, r, i).n} studied: ${perkText(studyPerk(+t, r, i))}`); markDirty(); return; } const def = RES_DEF.find(r => r.id === id); S.res[id] = def && def.max ? resLv(id) + 1 : true; S.active = null; bump('res'); if (/^dish\d$/.test(id)) S.dishes.push(newDish()); if (id === 'wash') S.dishes.forEach(d => d.drops.forEach(g => { if (item(S.tier, g.r, g.i).danger && !g.contained && Math.random() < .05) g.contained = true; })); toast(def && def.max ? `${resName(id)[0]} ${resLv(id)}/${def.max} · ${Math.round(guardChance()*100)}% on arrival` : `${resName(id)[0]} complete`); markDirty(); }
 function simulate(secs){
   const sum = blankSummary(); sum.secs = secs;
   const bsec = Math.min(S.boost, secs); S.cur += genRate() * bsec; sum.cur += genRate() * bsec; S.boost -= bsec;
@@ -866,12 +919,12 @@ function buy(k){
   renderAll(); save();
 }
 function startResearch(id){
-  const def = RES_DEF.find(r => r.id === id); if (!def || S.active || resDone(def) || S.cur < resCost(def) || (def.req && !S.res[def.req])) return;
-  S.cur -= resCost(def); const t = resTime(def); S.active = { id, left: t, total: t }; renderAll(); save();
+  const def = RES_DEF.find(r => r.id === id); if (!def || !resVisible(def) || S.active || resDone(def) || S.cur < resCost(def) || (def.req && !S.res[def.req])) return;
+  S.cur -= resCost(def); const t = resTime(def); S.active = { id, left: t, total: t }; if (S.freeRes){ S.freeRes = false; toast('Warm bench: instant.'); completeResearch(); } renderAll(); save();
 }
 function ascend(){
   if (!canAscend()) return;
-  S.tier++; S.lv = 1; S.cur = 0; S.ups = {}; S.brew = null; S.dishes = S.dishes.map(() => newDish()); S.recent = [];
+  if (S.tier + 1 >= T.tiers.length + T.more.length) return; S.tier++; S.lv = 1 + 2 * genLv('head'); S.cur = 0; S.ups = {}; S.brew = null; S.dishes = S.dishes.map(() => newDish()); S.recent = []; if (genLv('bench')) S.freeRes = true;
   toast(`${T.ascend}: ${tierDef(S.tier).n}. Everything ×${TIER_MULT}.`); closePanel(); renderAll(); save();
 }
 function flashFinds(s){ if (s && s.finds.length) toast(`New: ${s.finds.map(f => item(f.t, f.r, f.i).n).join(', ')}`); }
@@ -887,7 +940,8 @@ function ad(placement, onClaim){
 }
 function adFinish(i){ ad('finish ' + T.dish, () => { const d = S.dishes[i]; d.p = cycleTime(); d.ready = true; if (S.res.auto) flashFinds(collect(i)); renderAll(); }); }
 function adResearch(){ if (!S.active) return; ad('finish research', () => { completeResearch(); renderAll(); }); }
-function adWarp(){ ad('time warp', () => { bump('warp'); const s = simulate(WARP); showResults('Time warp', `One hour passed on everything.`, s, false); renderAll(); }); }
+function warpLen(){ return WARP + 1800 * genLv('warp'); }
+function adWarp(){ ad('time warp', () => { bump('warp'); const s = simulate(warpLen()); showResults('Time warp', `${fmtDur(warpLen())} passed on everything.`, s, false); renderAll(); }); }
 function adBoost(){ if (boostOn()) return; ad('boost', () => { S.boost = BOOST_LEN; toast('2× for two minutes'); renderAll(); }); }
 
 // ---------- clinic, splicer, outbreak ----------
@@ -1074,6 +1128,7 @@ function updateLive(){
   } else if (tab === 'lab'){
     if (S.active){ setText(el.querySelector('[data-live="resLeft"]'), fmtDur(S.active.left)); const p = el.querySelector('[data-live="resProg"]'); if (p) p.style.width = ((1 - S.active.left/S.active.total)*100) + '%'; const ab = el.querySelector('[data-act="adResearch"]'); setHTML(ab, adLabel('Finish now')); setDis(ab, S.adCd > 0 || adBusy); }
     el.querySelectorAll('.r[data-id]').forEach(r => { const def = RES_DEF.find(x => x.id === r.dataset.id); if (def) r.classList.toggle('poor', !!S.active || S.cur < resCost(def)); });
+    el.querySelectorAll('.r[data-key]').forEach(r => { const [t, ri] = r.dataset.key.split(':'); const [rr, ii] = ri.split('-').map(Number); r.classList.toggle('poor', !!S.active || stock(rr, ii, +t) < 1 || S.cur < studyCost(+t, rr)); });
   } else if (tab === 'clinic'){
     if (S.brew !== lastBrewSeen){ lastBrewSeen = S.brew; markDirty(); }
   } else if (tab === 'brew'){
@@ -1132,7 +1187,7 @@ function renderTab(){
       const items = t.items.map(u => { const cost = u.cost * tierMult(); const done = !!S.ups[u.id]; const lockedR = u.req && !S.res[u.req];
         if (done) return `<div class="r done"><div class="rn">${u.n} <span class="tag on">owned</span></div><div class="rd">${u.d}</div><div class="rc">✓</div></div>`;
         if (!open) return `<div class="r locked"><div class="rn">${u.n}</div><div class="rd">${u.d}</div><div class="rc">🔒</div></div>`;
-        if (lockedR) return `<div class="r locked"><div class="rn">${u.n}</div><div class="rd">${u.d} · needs research: ${T.res[u.req][0]}</div><div class="rc">🔒</div></div>`;
+        if (lockedR) return `<div class="r locked"><div class="rn">${u.n}</div><div class="rd">${u.d} · needs research: ${resName(u.req)[0]}</div><div class="rc">🔒</div></div>`;
         return `<button class="r ${S.cur < cost ? 'poor' : ''}" data-act="buy" data-k="${u.id}"><div class="rn">${u.n}</div><div class="rd">${u.d} · one time</div><div class="rc">${fmt(cost)}</div></button>`; }).join('');
       return head + items; }).join('');
     el.innerHTML = `<p class="sub">Now: ${dropsPer()} ${T.drops}/cycle · ${cycleTime().toFixed(1)}s · ${fmt(genRate())}/s · value ×${valMult().toFixed(2)}. Duplicates sell for ${fmt(VAL[0]*tierMult()*valMult())} / ${fmt(VAL[1]*tierMult()*valMult())} / ${fmt(VAL[2]*tierMult()*valMult())} / ${fmt(VAL[3]*tierMult()*valMult())} / ${fmt(VAL[4]*tierMult()*valMult())}.</p>` + rows.join('') + tiers;
@@ -1158,15 +1213,23 @@ function renderTab(){
   }
   else if (tab === 'lab'){
     const sp = `<h4 class="gh">Splicer</h4><div class="card"><p class="sub" style="margin:0">${S.hasSplicer ? `The Splice-o-matic has its own button beside the ${T.dish}. Any two spare strains can go in; five pairs react.` : 'Doc Ferro has an old splicer. Help the Clinic and it is yours.'}</p></div>`;
-    const hiddenRes = RES_DEF.filter(r => r.gate && !unlocked(r.gate)).length;
-    el.innerHTML = `<h4 class="gh" style="margin-top:0">Research</h4><p class="sub">One at a time. Research survives ${T.ascend.toLowerCase()}. Every research timer can be finished with an ad.${hiddenRes ? ` ${hiddenRes} more open with the Apothecary.` : ''}</p>` + RES_DEF.filter(r => !r.gate || unlocked(r.gate)).map(r => {
-      const [n, d] = T.res[r.id]; const done = resDone(r); const act = S.active && S.active.id === r.id; const locked = r.req && !S.res[r.req]; const lv = r.max ? ` <span class="tag on">${resLv(r.id)}/${r.max}${r.id === 'wash' ? ' · ' + Math.round(guardChance()*100) + '%' : ''}</span>` : '';
+    const hiddenRes = RES_DEF.filter(r => r.gate && !unlocked(r.gate) && S.tier >= (r.tier || 0)).length;
+    const nextT = S.tier + 1, nextN = RES_DEF.filter(r => r.tier === nextT).length;
+    const studies = (() => { const t = S.tier, c = S.cat[t] || {}, def = tierDef(t); const rows = []; let done = 0, total = 0;
+      RAR.forEach((R, r) => def.items[r].forEach((it, i) => { const key = `${t}:${r}-${i}`; if (!c[`${r}-${i}`]) return; total++; const isDone = (S.studies || {})[key]; if (isDone) done++;
+        const act = S.active && S.active.id === 'study' && S.active.key === key; const pt = perkText(studyPerk(t, r, i)); const cost = studyCost(t, r), sp = stock(r, i, t);
+        if (isDone) rows.push(`<div class="r done"><div class="rn"><i class="sw" style="background:${R.col}"></i>${it.n} <span class="tag on">studied</span></div><div class="rd">${pt}</div><div class="rc">✓</div></div>`);
+        else if (act) rows.push(`<div class="r"><div class="rn"><i class="sw" style="background:${R.col}"></i>${it.n} <span class="tag">studying</span></div><div class="rd">${pt}</div><div class="rc" data-live="resLeft">${fmtDur(S.active.left)}</div><div class="prog"><b data-live="resProg" style="width:${(1 - S.active.left/S.active.total)*100}%"></b></div><div class="acts"><button class="btn ad" data-act="adResearch" ${S.adCd > 0 || adBusy ? 'disabled' : ''}>${adLabel('Finish now')}</button></div></div>`);
+        else { const can = !S.active && sp >= 1 && S.cur >= cost; rows.push(`<button class="r ${can ? '' : 'poor'}" data-act="study" data-key="${key}"><div class="rn"><i class="sw" style="background:${R.col}"></i>${it.n}${it.danger ? ' ⚠️' : ''}</div><div class="rd">${pt} · ${fmtDur(STUDY_TIME[r])} · uses 1 spare (have ${sp})${S.active ? ' · bench busy' : ''}</div><div class="rc">${fmt(cost)}</div></button>`); } }));
+      return `<h4 class="gh">Specimen studies · ${done}/${total}</h4><p class="sub">Put a spare under the microscope for a permanent perk. Rarer strains teach more; biters teach quarantine. Studies survive ${T.ascend.toLowerCase()} and reset at Genesis.</p>` + (rows.length ? rows.join('') : `<div class="card"><p class="sub" style="margin:0">Find something in the ${T.dish} first.</p></div>`); })();
+    el.innerHTML = `<h4 class="gh" style="margin-top:0">Research</h4><p class="sub">One at a time. Research survives ${T.ascend.toLowerCase()} and resets at Genesis. Every research timer can be finished with an ad.${hiddenRes ? ` ${hiddenRes} more open with the Apothecary.` : ''}${nextN ? ` ${nextN} more open at the ${tierDef(nextT).n}.` : ''}</p>` + RES_DEF.filter(resVisible).map(r => {
+      const [n, d] = resName(r.id); const done = resDone(r); const act = S.active && S.active.id === r.id; const locked = r.req && !S.res[r.req]; const lv = r.max ? ` <span class="tag on">${resLv(r.id)}/${r.max}${r.id === 'wash' ? ' · ' + Math.round(guardChance()*100) + '%' : ''}</span>` : '';
       if (done) return `<div class="r done"><div class="rn">${n}${lv} <span class="tag on">done</span></div><div class="rd">${d}</div><div class="rc">✓</div></div>`;
       if (act) return `<div class="r"><div class="rn">${n} <span class="tag">researching</span></div><div class="rd">${d}</div><div class="rc" data-live="resLeft">${fmtDur(S.active.left)}</div><div class="prog"><b data-live="resProg" style="width:${(1 - S.active.left/S.active.total)*100}%"></b></div><div class="acts"><button class="btn ad" data-act="adResearch" ${S.adCd > 0 || adBusy ? 'disabled' : ''}>${adLabel('Finish now')}</button></div></div>`;
-      if (locked) return `<div class="r locked"><div class="rn">${n}</div><div class="rd">Needs ${T.res[r.req][0]}</div><div class="rc">🔒</div></div>`;
+      if (locked) return `<div class="r locked"><div class="rn">${n}</div><div class="rd">Needs ${resName(r.req)[0]}</div><div class="rc">🔒</div></div>`;
       const can = !S.active && S.cur >= resCost(r);
       return `<button class="r ${can ? '' : 'poor'}" data-act="research" data-id="${r.id}"><div class="rn">${n}${lv}</div><div class="rd">${d} · ${fmtDur(resTime(r))}${S.active ? ' · bench busy' : ''}</div><div class="rc">${fmt(resCost(r))}</div></button>`;
-    }).join('') + sp;
+    }).join('') + studies + sp;
   }
   else if (tab === 'clinic'){
     const ch = STORY[S.tier]; sideRefill();
@@ -1183,7 +1246,7 @@ function renderTab(){
         if (s.outbreak) act = S.ob ? `<button class="btn primary" disabled>Bloom in progress</button>` : `<button class="btn primary" data-act="face">Face the bloom</button>`;
         else act = `<button class="btn primary" data-act="deliver" ${reqOk(list) ? '' : 'disabled'}>Deliver to ${s.who}</button>`;
         const hint = s.outbreak || reqOk(list) ? '' : list.some(q => q.t === 'med') ? (unlocked('brew') ? `<p class="sub" style="margin:6px 0 0">Medicines are brewed at the Apothecary from spare samples.</p>` : '') : list.some(q => q.t === 'rarity') ? `<p class="sub" style="margin:6px 0 0">Rarer strains show up as the dish levels. The odds bar under the dish shows your chances.</p>` : `<p class="sub" style="margin:6px 0 0">Spare samples are copies beyond the one the Catalog keeps. Harvest until you have enough.</p>`;
-        main = `<div class="card req"><div class="who"><span class="face">${s.face}</span><div><b>${s.who}</b><div class="sub" style="margin:0">${s.outbreak ? 'needs you at the ' + T.dish : 'wants ' + reqSummary(list)} · pays ${fmt(s.reward*tierMult())}</div></div></div><p class="say">“${s.say}”</p>${needs}${hint}<div class="acts" style="display:flex;gap:8px;align-items:center;margin-top:8px">${act}</div></div>`;
+        main = `<div class="card req"><div class="who"><span class="face">${s.face}</span><div><b>${s.who}</b><div class="sub" style="margin:0">${s.outbreak ? 'needs you at the ' + T.dish : 'wants ' + reqSummary(list)} · pays ${fmt(s.reward*tierMult())}</div></div></div><p class="say">“${(S.gen && S.gen.runs && S.tier === 0 && st.step === 0) ? 'Welcome back to Mossbrook! Have we met? You look smaller. Anyway. ' + s.say.replace('Welcome to Mossbrook! ', '') : s.say}”</p>${needs}${hint}<div class="acts" style="display:flex;gap:8px;align-items:center;margin-top:8px">${act}</div></div>`;
       }
       const log = st.log.length ? `<h4 class="gh">So far</h4><div class="card">${st.log.map(l => `<p class="sub" style="margin:0 0 6px">${l}</p>`).join('')}</div>` : `<div class="card"><p class="sub" style="margin:0">${ch.intro}</p></div>`;
       const up = st.done ? '' : (() => { const next = []; for (let k = st.step + 1; k < ch.steps.length && next.length < 2; k++) next.push(k); return next.length ? `<h4 class="gh">Coming up</h4><div class="card">${next.map(k => { const s = ch.steps[k]; return `<div class="kv"><span>${S.tier+1}-${k+1} · ${s.who}</span><span>${s.outbreak ? 'the bloom' : reqSummary(stepReqs(S.tier, k))}</span></div>`; }).join('')}</div>` : ''; })();
@@ -1195,7 +1258,7 @@ function renderTab(){
     const t = S.tier, def = tierDef(t), c = S.cat[t] || {};
     const groups = RAR.map((R, r) => `<div class="rgroup"><h4>${R.n} · ${def.items[r].filter((_, i) => c[`${r}-${i}`]).length}/${COUNTS[r]} · +${BONUS[r]*100}% each</h4><div class="items">${def.items[r].map((it, i) => c[`${r}-${i}`]
       ? `<div class="it" data-r="${r}"><span class="band" style="background:${R.col}"></span>${it.danger ? `<span class="dg" title="Dangerous">⚠️</span>` : ''}<canvas class="pc" width="144" height="144" data-r="${r}" data-i="${i}"></canvas><div class="nm">${it.n}</div><div class="ds">${it.d}</div><small>×${c[`${r}-${i}`]} · ${fmt(VAL[r]*tierMult()*valMult())} each</small></div>`
-      : `<div class="it unk"><span class="band" style="background:${R.col}"></span><canvas class="pc" width="144" height="144" data-r="${r}" data-i="${i}" data-sil="1"></canvas><div class="nm">???</div><div class="ds">${it.danger ? 'Something with teeth.' : 'Not found yet.'}</div><small>${(weights(effLv())[r]/COUNTS[r]).toFixed(1)}% per ${T.drop}</small></div>`).join('')}</div></div>`).join('');
+      : `<div class="it unk"><span class="band" style="background:${R.col}"></span><canvas class="pc" width="144" height="144" data-r="${r}" data-i="${i}" data-sil="1"></canvas><div class="nm">${seenBefore(t, `${r}-${i}`) ? it.n : '???'}</div><div class="ds">${seenBefore(t, `${r}-${i}`) ? 'Seen in an earlier life. Finding it again pays.' : it.danger ? 'Something with teeth.' : 'Not found yet.'}</div><small>${(weights(effLv())[r]/COUNTS[r]).toFixed(1)}% per ${T.drop}</small></div>`).join('')}</div></div>`).join('');
     const earlier = Object.keys(S.cat).filter(k => +k < t).map(k => `${tierDef(+k).n} ${found(+k)}/${PER}`).join(' · ');
     const hyb = T.skin === 'bio' ? `<div class="rgroup"><h4>Hybrids · ${HYBRIDS.filter(h => S.hyb[h.id]).length}/${HYBRIDS.length} · spliced, never rolled</h4><div class="items">${HYBRIDS.map(h => S.hyb[h.id]
       ? `<div class="it"><span class="band" style="background:#37d3a8"></span>${S.seed === h.id ? '<span class="dg" title="Seeded">🌱</span>' : ''}<canvas class="pc" width="144" height="144" data-h="${h.id}"></canvas><div class="nm">${h.n}</div><div class="ds">${h.d}</div><small>×${S.hyb[h.id]} · ${h.pd}</small></div>`
@@ -1204,13 +1267,21 @@ function renderTab(){
     drawPortraits(performance.now());
   }
   else if (tab === 'asc'){
-    const next = tierDef(S.tier+1); const ok = canAscend();
-    const ladder = []; const total = T.tiers.length + T.more.length; for (let i = 0; i < total; i++) ladder.push(`<div class="${i === S.tier ? 'cur' : i < S.tier ? 'done' : ''}">${i+1}. ${tierDef(i).n}${i < S.tier ? ' · ' + found(i) + '/${PER}' : ''}</div>`);
-    el.innerHTML = `<div class="card"><h3>${T.ascend}: ${next.n}</h3><p class="sub" style="margin:0 0 6px">Everything ×${TIER_MULT}. Cycle ×${TIER_CYCLE}. A new catalog of ${PER}. Level, upgrades and ${T.cur.toLowerCase()} reset; catalog and research stay.</p>
+    const total = T.tiers.length + T.more.length, last = S.tier >= total - 1; const next = last ? null : tierDef(S.tier+1); const ok = !last && canAscend();
+    const ladder = []; for (let i = 0; i < total; i++) ladder.push(`<div class="${i === S.tier ? 'cur' : i < S.tier ? 'done' : ''}">${i+1}. ${tierDef(i).n}${i < S.tier ? ' · ' + found(i) + '/${PER}' : ''}</div>`);
+    const g = S.gen || { runs:0, pts:0, perks:{} };
+    const up = next ? `<div class="card"><h3>${T.ascend}: ${next.n}</h3><p class="sub" style="margin:0 0 6px">Everything ×${TIER_MULT}. Cycle ×${TIER_CYCLE}. A new catalog of ${PER}. Level, upgrades and ${T.cur.toLowerCase()} reset; catalog, research and studies stay.</p>
       ${STORY[S.tier] ? `<div class="kv"><span>Chapter ${S.tier+1} complete</span><span class="${story().done ? 'good' : 'warn'}">${story().done ? 'yes' : story().step + ' / ' + STORY[S.tier].steps.length + ' requests'}</span></div>` : `<div class="kv"><span>${T.up.lv[0]} ${ASC_LV}</span><span data-live="ascLv" class="${S.lv >= ASC_LV ? 'good' : 'warn'}">${S.lv} / ${ASC_LV}</span></div>`}
       <div class="kv"><span>Catalog ${ASC_FOUND} of ${PER}</span><span data-live="ascFound" class="${found(S.tier) >= ASC_FOUND ? 'good' : 'warn'}">${found(S.tier)} / ${ASC_FOUND}</span></div>
-      <div class="acts" style="display:flex;margin-top:10px"><button class="btn primary" data-act="ascend" ${ok ? '' : 'disabled'}>${T.ascend} to ${next.n}</button></div></div>
-      <div class="card"><h3>The ladder</h3><div class="ladder">${ladder.join('')}</div></div>`;
+      <div class="acts" style="display:flex;margin-top:10px"><button class="btn primary" data-act="ascend" ${ok ? '' : 'disabled'}>${T.ascend} to ${next.n}</button></div></div>` : `<div class="card"><h3>The top of the ladder</h3><p class="sub" style="margin:0">${tierDef(S.tier).n} is as big as it gets. The only way up is back to the start.</p></div>`;
+    const canG = canGenesis(), gate = S.tier < GEN_TIER ? `Finish the ${tierDef(GEN_TIER).n} chapter first.` : !(S.story[GEN_TIER] && S.story[GEN_TIER].done) ? `Finish the ${tierDef(GEN_TIER).n} chapter first.` : '';
+    const genCard = (S.tier >= GEN_TIER || g.runs) ? `<div class="card gen"><h3>🌱 Genesis${g.runs ? ` · run ${g.runs + 1}` : ''}</h3><p class="sub" style="margin:0 0 6px">The ${tierDef(total-1).n.toLowerCase()} collapses to a single cell and Mossbrook starts again. Everything resets: tier, level, ${T.cur.toLowerCase()}, upgrades, research, studies, catalog, stock, medicines, story.</p>
+      <div class="kv"><span>You keep</span><span>the seeded hybrid${S.seed ? ' (' + HYB[S.seed].n + ')' : ''}, the artifact in Decor slot 1${S.placed[0] ? ' (' + ART[S.placed[0]].n + ')' : ''}, your tickets, and the catalog as memory</span></div>
+      <div class="kv"><span>Genome this run</span><span class="good">+${genPoints()} · ${S.tier + 1} tiers, ${Object.keys(S.cat).reduce((n, t) => n + found(+t), 0)} found, ${Object.values(S.story).filter(x => x.done).length} chapters</span></div>
+      ${gate ? `<p class="sub" style="margin:6px 0 0">${gate}</p>` : ''}
+      <div class="acts" style="display:flex;margin-top:10px"><button class="btn ${genArm ? 'primary' : ''}" data-act="genesis" ${canG ? '' : 'disabled'}>${genArm ? 'Tap again to begin Genesis' : 'Begin Genesis'}</button></div></div>` : '';
+    const perks = (g.runs || g.pts) ? `<h4 class="gh">Genome · ${g.pts} to spend</h4><p class="sub">Permanent. Survives every Genesis.</p>` + GEN_DEF.map(d => { const lv = genLv(d.id), maxed = lv >= d.max, cost = genCost(d), can = !maxed && g.pts >= cost; return `<button class="r ${maxed ? 'done' : can ? '' : 'poor'}" data-act="gen" data-id="${d.id}" ${maxed ? 'disabled' : ''}><div class="rn">${d.n} <span class="tag on">${lv}/${d.max}</span></div><div class="rd">${d.d}</div><div class="rc">${maxed ? '✓' : cost + ' 🧬'}</div></button>`; }).join('') : '';
+    el.innerHTML = up + genCard + perks + `<div class="card"><h3>The ladder</h3><div class="ladder">${ladder.join('')}</div></div>`;
   }
 }
 function renderAll(){ T = THEMES[S.theme]; $('phone').dataset.skin = T.skin; $('devSkin').textContent = 'Skin: ' + T.name; if (typeof bakeTextures === 'function' && bakedSkin && bakedSkin !== T.skin) bakeTextures(); applyVessel(); renderTop(); renderTab(); updateLive(); dirty = false; }
@@ -1576,6 +1647,9 @@ $('phone').addEventListener('click', e => {
   else if (act === 'buy') buy(b.dataset.k);
   else if (act === 'research') startResearch(b.dataset.id);
   else if (act === 'ascend') ascend();
+  else if (act === 'study') startStudy(b.dataset.key);
+  else if (act === 'genesis'){ if (!canGenesis()) return; if (!genArm){ genArm = true; markDirty(); setTimeout(() => { if (genArm){ genArm = false; markDirty(); } }, 4000); } else { genArm = false; genesis(); } }
+  else if (act === 'gen') buyGen(b.dataset.id);
   else if (act === 'brew') brewMed(b.dataset.id);
   else if (act === 'deliver') deliver();
   else if (act === 'face') faceBloom();
@@ -1628,7 +1702,8 @@ $('phone').addEventListener('click', e => {
 });
 $('tabs').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; if (tab === b.dataset.tab) closePanel(); else openPanel(b.dataset.tab); });
 let animT, openedAt = 0;
-function openPanel(t){
+let genArm = false;
+function openPanel(t){ genArm = false;
   if (!unlocked(t)){ toast(`🔒 ${unlockName(t)} opens after ${unlockLabel(t)}. ${unlockHint(t)}`); return; }
   tab = t; openedAt = performance.now(); renderTop(); renderTab(); updateLive();
   const p = $('panel'); p.classList.remove('anim'); void p.offsetWidth; p.classList.add('open', 'anim'); $('mapscrim').classList.add('on'); $('tabbody').scrollTop = 0;

@@ -578,7 +578,10 @@ watches. Research, brews and splices are the timers long enough to be worth an a
 
 ## 6. Research
 
-Timed, one at a time, costs currency, skippable by ad. Research persists across scale-ups.
+Timed, one bench, costs currency, skippable by ad. Research and studies persist across
+scale-ups and reset at Genesis (section 7b), which is what makes the Lab replayable.
+
+### The core list (Petri dish)
 
 | Research | Time (real) | Unlocks |
 |---|---:|---|
@@ -589,13 +592,50 @@ Timed, one at a time, costs currency, skippable by ad. Research persists across 
 | Cold storage / Deep storage | 1 h | offline cap 4 h → 8 h |
 | Fast incubator / Fast scanner | 2 h | −25% base cycle time |
 | Third dish / Third field | 4 h | a third dish |
-| Bigger cauldron | 15 min | brew 3 medicines at once |
+| Bigger cauldron | 15 min | brew 3 medicines at once (needs the Apothecary) |
 | Hot cauldron | 30 min | medicines brew in half the time |
 | Vat cauldron | 1 h | brew 6 medicines at once |
-| Long warp | 3 h | time warp gives 2 h (later 4 h) |
 
 Order matters: auto-harvest before the second dish, so the player never has three things
 to tap.
+
+### Tier branches
+
+Each vessel opens a few structural items when you arrive. They are the milestones of a
+tier; the studies below are the filler between them. The Lab says how many are waiting at
+the next vessel. Costs are flat biomass (research ignores the tier multiplier), so they
+sit at about a tenth of a tier's total income.
+
+| Vessel | Items |
+|---|---|
+| Aquarium | Filter pump (−10% cycle), Aerator (+1 colony per cycle), Chilled tanks (offline +4 h, needs Cold storage) |
+| Terrarium | Grow lamps (+2 effective levels), Compost bin (+25% duplicate value), Fourth dish (needs Third dish) |
+| Biome dome | Climate control (−15% cycle), Seed bank (+1 colony), Cryo vault (offline +8 h, needs Chilled tanks) |
+| Living planet | Tidal rhythm (+3 levels), Mantle heat (+50% duplicate value) |
+| Seeded system | Singularity (−20% cycle), Nova seeding (+2 colonies) |
+
+Effects are data (`fx: [kind, amount]`; kinds cycle, drop, lv, val, off) and summed by the
+stat functions, so adding an item is one line.
+
+### Specimen studies
+
+Put a spare of any found strain under the microscope: it costs the spare, some biomass and
+bench time, and gives a permanent perk chosen by the strain's rarity. Thirteen per vessel,
+generated from the roster, so the Lab always has something to do until the catalog is
+complete, and spares get a third use after selling and brewing.
+
+| Rarity | Cost (×tier) | Time | Perk |
+|---|---:|---:|---|
+| Common | 40 | 30 s | +3% income |
+| Uncommon | 120 | 1 min | −3% cycle time |
+| Rare | 400 | 2 min | +1 effective level |
+| Very rare | 1200 | 4 min | +10% income, −5% cycle |
+| Exotic | 4000 | 8 min | +1 colony per cycle |
+| Mythic | 12000 | 15 min | +2 levels, +10% income |
+| any biter | as its rarity | as its rarity | +5% quarantine on arrival instead |
+
+A full Petri dish catalog studied is about +30% income, −14% cycle, +4 levels and +10%
+guard. Cycle reductions from studies floor at 40% of base.
 
 ---
 
@@ -603,8 +643,10 @@ to tap.
 
 **Requirement:** the tier's chapter complete (the outbreak beaten) and 10 of 12 catalog
 entries found. Tiers without a written chapter fall back to dish level ≥ 50 (mockup: 25).
-**Effect:** currency, level and upgrades reset; research and catalog persist; every value
-and income is ×5; the base cycle is ×1.5; a new catalog of twelve.
+**Effect:** currency, level and upgrades reset; research, studies and catalog persist;
+every value and income is ×5; the base cycle is ×1.5; a new catalog of thirteen; the next
+tier's research branch appears in the Lab. The ladder ends at the last named vessel; the
+Scale up tab then says so and offers Genesis.
 
 | Tier | Petri | Orbit |
 |---|---|---|
@@ -619,6 +661,40 @@ and income is ×5; the base cycle is ×1.5; a new catalog of twelve.
 
 Tiers 1–3 are hand-named in the mockup; later tiers use generated names until content is
 written.
+
+## 7b. Genesis (the loop)
+
+The ladder is a loop. Tier 1's mythic is The First Cell and the Genesis Bloom "hums the
+tune the bread used to sing": at the top the whole thing collapses to a single cell and
+Mossbrook starts again, smaller. The Scale up tab carries a Genesis card once the gate is
+met; the button needs two taps.
+
+- **Gate:** the last chapter complete. Until chapters 4 to 6 are written, the Terrarium
+  chapter (`GEN_TIER = 2`), so the loop can be felt now.
+- **Earns Genome:** 1 per tier reached, 1 per 10 catalog entries found across all tiers,
+  1 per chapter finished. A first run through three tiers is about 9.
+- **Keeps:** the seeded hybrid, the artifact in Decor slot 1, today's tickets, and the
+  catalog as memory: entries seen in an earlier life show their name in the Catalog and
+  pay ten times their value the first time they are found again.
+- **Resets:** tier, level, biomass, upgrades, research, studies, catalog, stock, medicines,
+  story, side quests, the splicer. Chapter 1 replays, and the Mayor's opening line changes
+  ("Have we met? You look smaller.") so the loop is acknowledged.
+
+### Genome perks
+
+Permanent, bought on the Scale up tab, cost rises by one point per rank.
+
+| Perk | Ranks | Effect |
+|---|---:|---|
+| Head start | 3 | each run and each tier starts +2 dish levels per rank |
+| Old growth | 10 | +10% income per rank, every tier |
+| Immune memory | 5 | +5% quarantine on arrival per rank |
+| Long memory | 4 | time warp lasts 30 min longer per rank |
+| Warm bench | 1 | the first research of every tier finishes instantly |
+| Culture library | 1 | each run starts with two spares of every common seen before |
+
+Resetting research at Genesis is the point: the Lab is replayable because the loop replays
+it, and the tier branches become milestones on each run rather than a one-time checklist.
 
 ### Each tier is a different vessel
 
