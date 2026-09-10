@@ -372,7 +372,7 @@
 <script>
 'use strict';
 // ---------- constants ----------
-const VERSION = '0.7.1';
+const VERSION = '0.7.2';
 const RAR = [
   {k:'c', n:'Common',    col:'#d6c59a'},
   {k:'u', n:'Uncommon',  col:'#4ade80'},
@@ -644,7 +644,8 @@ function fresh(){ return { theme:'bio', cur:0, tier:0, lv:1, ups:{}, res:{}, act
 function load(){ try{ const s = JSON.parse(localStorage.getItem(SAVE)); if (!s || !s.dishes) return null; s.dishes.forEach(d => d.drops.forEach(g => { g.atk = null; g.meet = null; g.frozen = false; })); s.hyb = s.hyb || {}; s.story = s.story || {}; s.side = (s.side || []).filter(x => x && x.base !== undefined && SIDE[x.k]); s.st = s.st || {}; s.studies = s.studies || {}; s.gen = s.gen || { runs:0, pts:0, perks:{}, seen:{} }; s.freeRes = !!s.freeRes; if (s.active && s.active.id === 'study' && !s.active.key) s.active = null; s.ob = null; if (s.seed === undefined) s.seed = null; if (s.splice === undefined) s.splice = null; s.hasSplicer = !!s.hasSplicer; s.sp = s.sp || [null, null]; s.spOut = s.spOut || null; if (s.splice && !s.splice.a) s.splice = null; s.ups = s.ups || {}; if (s.tickets === undefined) s.tickets = TICKETS_PER_DAY; s.tDay = s.tDay || ''; s.shopT = s.shopT || 0; s.arts = s.arts || {}; s.placed = s.placed || [null, null, null]; s.meds = s.meds || {}; s.brew = s.brew && s.brew.id ? s.brew : null; if (s.res && s.res.wash === true) s.res.wash = 20;
     // chapter 1 grew from 7 steps to 9 (four raw-sample requests, then brewing): map an old position onto the new list
     if (!s.storyV){ const st = s.story && s.story[0]; if (st){ if (st.done) st.step = STORY[0].steps.length; else if (st.step > 0) st.step = [4,5,5,6,7,7,8][Math.min(st.step, 6)]; } s.storyV = 2; } for (const t in s.story){ s.story[t].brewing = null; } return s; }catch(e){ return null; } }
-function save(){ S.last = Date.now(); try{ localStorage.setItem(SAVE, JSON.stringify(S)); }catch(e){} }
+let wiped = false;
+function save(){ if (wiped) return; S.last = Date.now(); try{ localStorage.setItem(SAVE, JSON.stringify(S)); }catch(e){} }
 
 // ---------- derived ----------
 const tierMult = (t) => Math.pow(TIER_MULT, t === undefined ? S.tier : t);
@@ -1718,7 +1719,8 @@ $('devCur').onclick = () => { S.cur += 1000 * tierMult(); renderAll(); };
 $('devLv').onclick = () => { S.lv += 5; renderAll(); };
 $('devTix').onclick = () => { S.tickets += 3; renderAll(); };
 $('devStock').onclick = () => { const c = S.cat[S.tier] = S.cat[S.tier] || {}; COUNTS.forEach((n, r) => { for (let i = 0; i < n; i++) c[`${r}-${i}`] = (c[`${r}-${i}`] || 0) + 4; }); markDirty(); renderAll(); };
-$('devReset').onclick = () => { if (!confirm('Reset the save?')) return; window.removeEventListener('beforeunload', save); localStorage.removeItem(SAVE); location.reload(); };
+$('devReset').onclick = () => { if (!confirm('Reset the save?')) return; wipeSave(); };
+function wipeSave(){ wiped = true; try{ localStorage.removeItem(SAVE); localStorage.clear(); }catch(e){} location.reload(); }
 function openSheet(){ $('scrim').classList.add('on'); $('sheet').classList.add('open'); }
 function closeSheet(){ $('scrim').classList.remove('on'); $('sheet').classList.remove('open'); }
 $('scrim').onclick = () => { if (!adBusy) closeSheet(); };
@@ -1752,7 +1754,7 @@ function openDev(){
   $('devClose').onclick = closeSheet; openSheet();
 }
 $('sheet').addEventListener('click', e => { const b = e.target.closest('[data-dev]'); if (!b) return; const k = b.dataset.dev;
-  if (k === 'skin') $('devSkin').click(); else if (k === 'speed') $('devSpeed').click(); else if (k === 'away'){ closeSheet(); $('devAway').click(); return; } else if (k === 'cur') $('devCur').click(); else if (k === 'lv') $('devLv').click(); else if (k === 'stock') $('devStock').click(); else if (k === 'tix') $('devTix').click(); else if (k === 'ads'){ S.adCd = 0; renderAll(); } else if (k === 'reset'){ window.removeEventListener('beforeunload', save); localStorage.removeItem(SAVE); location.reload(); }
+  if (k === 'skin') $('devSkin').click(); else if (k === 'speed') $('devSpeed').click(); else if (k === 'away'){ closeSheet(); $('devAway').click(); return; } else if (k === 'cur') $('devCur').click(); else if (k === 'lv') $('devLv').click(); else if (k === 'stock') $('devStock').click(); else if (k === 'tix') $('devTix').click(); else if (k === 'ads'){ S.adCd = 0; renderAll(); } else if (k === 'reset'){ wipeSave(); }
   openDev(); });
 if (!S.dishes[0].drops.length) S.dishes[0].drops = rollDrops();
 // Bake the SVG noise textures and the wood filter into PNGs once. Safari re-runs SVG filters on every
