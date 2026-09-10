@@ -295,7 +295,7 @@
       </div>
       <canvas id="machine" width="704" height="552" data-act="machine" hidden></canvas>
       <div class="sideL"><button class="sbtn" data-act="open" data-tab="quests"><span>📜</span><i>Quests</i><b class="cnt ok" id="qCnt" hidden></b><b class="lk" hidden></b></button><button class="sbtn" data-act="open" data-tab="tickets"><span>🎟️</span><i>Tickets</i><b class="cnt" id="tCnt">3</b><b class="lk" hidden></b></button><button class="sbtn" data-act="open" data-tab="splicer"><span>🧬</span><i>Splicer</i><b class="cnt ok" id="sCnt" hidden></b><b class="lk" hidden></b></button></div>
-      <div class="sideR"><button class="sbtn" data-act="open" data-tab="shop"><span>🛒</span><i>Shop</i><b class="lk" hidden></b></button><button class="sbtn" data-act="open" data-tab="decor"><span>🏺</span><i>Decor</i><b class="cnt ok" id="dCnt" hidden></b><b class="lk" hidden></b></button><button class="sbtn" data-act="open" data-tab="brew"><span>⚗️</span><i>Brewery</i><b class="cnt ok" id="bCnt" hidden></b></button></div>
+      <div class="sideR"><button class="sbtn" data-act="open" data-tab="shop"><span>🛒</span><i>Shop</i><b class="lk" hidden></b></button><button class="sbtn" data-act="open" data-tab="decor"><span>🏺</span><i>Decor</i><b class="cnt ok" id="dCnt" hidden></b><b class="lk" hidden></b></button><button class="sbtn" data-act="open" data-tab="brew"><span>⚗️</span><i>Brewery</i><b class="cnt ok" id="bCnt" hidden></b><b class="lk" hidden></b></button></div>
     </div>
     <div class="board">
       <div class="bp" id="board1">
@@ -330,7 +330,7 @@
       <button data-tab="lab"><span class="i">🔬</span>Lab<i class="badge"></i><b class="lk" hidden></b></button>
       <button data-tab="clinic"><span class="i">💊</span>Clinic<i class="badge"></i></button>
       <button data-tab="cat"><span class="i">📖</span>Catalog<i class="badge"></i></button>
-      <button data-tab="asc"><span class="i">🚀</span>Scale up<i class="badge"></i></button>
+      <button data-tab="asc"><span class="i">🚀</span>Scale up<i class="badge"></i><b class="lk" hidden></b></button>
       <b class="ver" id="ver"></b>
     </div>
 
@@ -369,7 +369,7 @@
 <script>
 'use strict';
 // ---------- constants ----------
-const VERSION = '0.5.1';
+const VERSION = '0.6.0';
 const RAR = [
   {k:'c', n:'Common',    col:'#d6c59a'},
   {k:'u', n:'Uncommon',  col:'#4ade80'},
@@ -487,21 +487,26 @@ const RES_DEF = [
   {id:'storage', cost:600,  time:150, req:null},
   {id:'fast',    cost:1200, time:200, req:'auto'},
   {id:'dish3',   cost:3000, time:300, req:'dish2'},
-  {id:'batch2',  cost:120,  time:50,  req:null},
-  {id:'fastbrew',cost:350,  time:90,  req:'batch2'},
-  {id:'batch3',  cost:900,  time:150, req:'batch2'},
+  {id:'batch2',  cost:120,  time:50,  req:null, gate:'brew'},
+  {id:'fastbrew',cost:350,  time:90,  req:'batch2', gate:'brew'},
+  {id:'batch3',  cost:900,  time:150, req:'batch2', gate:'brew'},
 ];
 const SHAPES = ['blob','rod','ring','dots','spiral','crystal','amoeba','star'];
 
 // ---------- the Clinic: story chapters, side requests, hybrids ----------
 // need entries are [rarity, index, quantity] against the current tier's catalog stock (count minus the one you keep)
-const STORY = { 0: { title:'Something in the water', intro:'Mossbrook: one pond, one bakery, one lab. The lab is yours. People will bring you problems. Brew them something.', steps:[
-  { who:'Mayor Bramble', face:'🎩', say:'Welcome to Mossbrook! Small thing: the tap water has gone fizzy. Can that dish of yours do anything?', tonic:'Fizz-Fix', need:[[0,0,2]], reward:40, after:'The water is flat again. Bramble calls it a triumph of local science.' },
-  { who:'Ida the baker', face:'👩‍🍳', say:'My bread is singing. Not a metaphor. Four-part harmony, every loaf.', tonic:'Hush syrup', need:[[0,1,2],[0,2,1]], reward:90, after:'The bread has gone quiet. Ida seems almost disappointed.' },
-  { who:'Pip', face:'🧒', say:'My cat glows at night. Mum says it is my fault. It is NOT my fault.', tonic:'Dimmer drops', need:[[1,0,1],[0,0,2]], reward:160, after:'Pip is thrilled. The cat is still faintly green, which Pip says is fine.' },
-  { who:'Doc Ferro', face:'🥼', say:'Purple spots. Six patients since Tuesday. I need something that bites back. Take my old splicer, you will need it.', tonic:'Bitters', need:[[1,2,1],[0,3,2]], reward:260, gives:'splicer', after:'Ferro frowns at the sample. "This is not a bug. Something is spreading."' },
-  { who:'Gran Moss', face:'👵', say:'The pond has gone black. BLACK. My ducks refuse to go in.', tonic:'Mirror wash', need:[[2,0,1],[0,4,2]], reward:520, after:'The pond clears. Something moved under the surface as it did.' },
-  { who:'Doc Ferro', face:'🥼', say:'It is in the water supply. Bring me a live culture of the thing itself, contained. Keep it away from your others.', tonic:'Contained sample', need:[[2,1,1],[1,0,1],[0,0,3]], reward:900, after:'Ferro goes pale. "I have seen this strain once. We called it The Wipe. It blooms."' },
+// A request's `req` is a list of requirements: {t:'strain', r, i, n} a specific strain, {t:'any', n} spare samples of
+// anything, {t:'rarity', r, n} spares of that rarity or better, {t:'med', id, n} a brewed medicine. Steps without
+// `req` fall back to the medicine schedule (chapters 2 and 3). A step with `tonic`+`need` also defines that medicine's recipe.
+const STORY = { 0: { title:'Something in the water', intro:'Mossbrook: one pond, one bakery, one lab. The lab is yours. People will bring you problems. Grow them what they ask for.', steps:[
+  { who:'Mayor Bramble', face:'🎩', say:'Welcome to Mossbrook! Small thing: the tap water has gone fizzy. Grow me a couple of Blubb from it so I can see what is in there. Keep one for your records, bring me two.', req:[{t:'strain', r:0, i:0, n:2}], reward:40, after:'Bramble holds the jar up to the light. "Fizzy. Definitely fizzy." He seems pleased anyway.' },
+  { who:'Ida the baker', face:'👩‍🍳', say:'My bread is singing. Not a metaphor. Bring me a handful of anything from that dish, I want to see what my yeast has been talking to.', req:[{t:'any', n:5}], reward:70, after:'Ida sniffs each sample in turn. "It is the fuzzy one. It is always the fuzzy one." The bread goes quiet, and half the town has heard about your dish.' },
+  { who:'Pip', face:'🧒', say:'My cat glows at night. Mum says it is my fault. Doc says something unusual grows in your dish now and then, the green-tag kind. Bring me one. Level the dish up if they are not showing.', req:[{t:'rarity', r:1, n:1}], reward:150, after:'Pip holds the specimen up beside the cat. Same glow. "Write it in your book," says Pip, meaning the Catalog. You do.' },
+  { who:'Doc Ferro', face:'🥼', say:'Purple spots. Six patients since Tuesday. I need two Fuzzwald and a Dotto, together and alive. And take a bench in my lab while you are here, you will need it.', req:[{t:'strain', r:0, i:1, n:2},{t:'strain', r:0, i:2, n:1}], reward:220, after:'Ferro frowns at the samples. "This is not a bug. Something is spreading."' },
+  { who:'Doc Ferro', face:'🥼', say:'Raw samples are not enough any more. The town needs medicine. There is a copper kettle in my back room: two Blubb in it makes a Fizz-Fix. Bring me two of those and I will sort the water.', tonic:'Fizz-Fix', need:[[0,0,2]], req:[{t:'med', id:'Fizz-Fix', n:2}], reward:260, after:'The water runs flat. "That is the water sorted," says Ferro. "The pond is another matter."' },
+  { who:'Gran Moss', face:'👵', say:'The pond has gone black. BLACK. Ida says you make medicines now. I want the mirror one for the pond and some of that fizzy stuff for my ducks.', tonic:'Mirror wash', need:[[2,0,1],[0,4,2]], req:[{t:'med', id:'Mirror wash', n:2},{t:'med', id:'Fizz-Fix', n:2}], reward:520, after:'The pond clears. Something moved under the surface as it did.' },
+  { who:'Doc Ferro', face:'🥼', say:'I need something that bites back. Bitters, three of them, and a live Nibbler for me to look at. Take my old splicer as well, you will need it.', tonic:'Bitters', need:[[1,2,1],[0,3,2]], req:[{t:'med', id:'Bitters', n:3},{t:'strain', r:1, i:2, n:1}], reward:700, gives:'splicer', after:'Ferro drops the Nibbler in a jar and watches it for a long time. "It is learning."' },
+  { who:'Doc Ferro', face:'🥼', say:'It is in the water supply. Bring me a live culture of the thing itself, contained, and enough Bitters to keep it that way.', tonic:'Contained sample', need:[[2,1,1],[1,0,1],[0,0,3]], req:[{t:'med', id:'Contained sample', n:2},{t:'med', id:'Bitters', n:2}], reward:900, after:'Ferro goes pale. "I have seen this strain once. We called it The Wipe. It blooms."' },
   { who:'Doc Ferro', face:'🥼', say:'It is blooming in your dish. Seed a Sentinel if you have one, then tap it until it breaks. Go!', outbreak:true, hp:30, time:25, reward:2000, after:'The bloom breaks apart and drains away. Downstream is the pond, and the pond is where we go next.' },
 ]},
 1: { title:'The pond', intro:'The pond is bigger than it looks and everything in it has changed since the water went black. Gran Moss keeps ducks on it. Old Bill fishes it. Doc Ferro wants a map of it.', steps:[
@@ -523,11 +528,11 @@ const STORY = { 0: { title:'Something in the water', intro:'Mossbrook: one pond,
   { who:'Doc Ferro', face:'🥼', say:'The corpse flower is opening. That is it. That is its last body. Break it and I can finish the cure.', outbreak:true, boss:[2,4,0], hp:60, time:30, reward:50000, after:'The flower fell apart into seeds. Ferro has a cure. Mossbrook is quiet, humming softly, mostly tomatoes. Past the garden wall there is a whole dome of the stuff, and somebody has to look.' },
 ]}};
 const SIDE = [
-  { who:'Farmer Tuck', face:'🧑‍🌾', say:'The cows are humming. In key.', tonic:'Calm cream', need:[[0,1,1],[0,4,1]], reward:60, qty:2 },
-  { who:'Postie Lark', face:'📬', say:'Letters keep sticking together. Love letters, mostly.', tonic:'Unstick', need:[[0,3,2]], reward:50 },
-  { who:'Old Bill', face:'🎣', say:'Caught a fish that argues. It is winning.', tonic:'Quiet bait', need:[[0,2,2],[0,0,1]], reward:70 },
-  { who:'Nurse Ona', face:'💉', say:'The waiting room smells of lemons. Nobody brought lemons.', tonic:'Air fix', need:[[1,1,1],[0,0,1]], reward:130 },
-  { who:'Coach Dabb', face:'🏃', say:'The football keeps rolling uphill.', tonic:'Downhill drops', need:[[0,4,1],[0,2,1]], reward:65, qty:2 },
+  { who:'Farmer Tuck', face:'🧑‍🌾', say:'The cows are humming. In key. Bring me a couple of fuzzy ones to put in the trough.', req:[{t:'strain', r:0, i:1, n:2}], reward:60 },
+  { who:'Postie Lark', face:'📬', say:'Letters keep sticking together. Love letters, mostly. Three of anything, I will try them all.', req:[{t:'any', n:3}], reward:50 },
+  { who:'Old Bill', face:'🎣', say:'Caught a fish that argues. It is winning. Two Dotto and a Blubb for the bait tin.', req:[{t:'strain', r:0, i:2, n:2},{t:'strain', r:0, i:0, n:1}], reward:70 },
+  { who:'Nurse Ona', face:'💉', say:'The waiting room smells of lemons. Nobody brought lemons. Something green-tag, please, whichever you have.', req:[{t:'rarity', r:1, n:1}], reward:130 },
+  { who:'Coach Dabb', face:'🏃', say:'The football keeps rolling uphill. Four samples, any kind, for the changing-room shelf.', req:[{t:'any', n:4}], reward:65 },
 ];
 const HYBRIDS = [
   { id:'glowfuzz', n:'Glowfuzz', d:'Fuzzy and lit. Rare things like the light.', par:[[0,1],[1,0]], look:{shape:'blob', col:'#8ff7d8', col2:'#e2fff6', eyes:2, fuzz:1, glow:1}, perk:'luck', pd:'+3 effective levels while seeded' },
@@ -551,10 +556,13 @@ const ARTS = [
 ];
 const ART = Object.fromEntries(ARTS.map(a => [a.id, a]));
 const TICKETS_PER_DAY = 3;
+// The shop sells for biomass only. Items show once the system they touch is open; `show` decides.
 const SHOP = [
-  { id:'ticket', n:'Extra ticket',   e:'🎟️', d:'One more go at the pipette today. Price climbs each time.', cost: () => Math.round(150 * tierMult() * Math.pow(1.6, S.shopT || 0)) },
-  { id:'pebble', n:'Mystery pebble', e:'🪨', d:'A random common artifact.', cost: () => 300 * tierMult() },
-  { id:'boost',  n:'Boost',          e:'✦',  d:'2× income and speed for two minutes, paid in biomass instead of an ad.', cost: () => 400 * tierMult() },
+  { id:'crate',   n:'Sample crate',   e:'📦', d:'Three spare samples of common strains you have already found. Doc Ferro keeps a fridge. Price climbs each time today.', cost: () => Math.round(40 * tierMult() * Math.pow(1.35, S.shopC || 0)), show: () => true },
+  { id:'boost',   n:'Heat lamp',      e:'🔥', d:'2× growth and income for two minutes.', cost: () => 400 * tierMult(), show: () => true },
+  { id:'icepack', n:'Ice pack',       e:'🧊', d:'The dish keeps working two hours longer while you are away. Once.', cost: () => 800 * tierMult(), show: () => !S.icepack },
+  { id:'ticket',  n:'Extra ticket',   e:'🎟️', d:'One more go at the pipette today. Price climbs each time.', cost: () => Math.round(150 * tierMult() * Math.pow(1.6, S.shopT || 0)), show: () => unlocked('tickets') },
+  { id:'pebble',  n:'Mystery pebble', e:'🪨', d:'A random common artifact for the enclosure.', cost: () => 300 * tierMult(), show: () => unlocked('decor') },
 ];
 const PALETTE = ['#5aa9ff','#7ed957','#ffb347','#ff85c2','#35e0c9','#a78bfa','#f4a261','#c77dff','#9ef01a','#ff9f1c'];
 
@@ -593,8 +601,10 @@ const UPT = [
     { id:'l_val',   n:'Museum deal',     d:'+60% duplicate value',  k:'val',   v:.6,  cost:9000 } ] },
 ];
 const UPI = Object.fromEntries(UPT.flatMap(t => t.items).map(u => [u.id, u]));
-function fresh(){ return { theme:'bio', cur:0, tier:0, lv:1, ups:{}, res:{}, active:null, cat:{}, dishes:[newDish()], boost:0, adCd:0, ads:0, adUse:{}, recent:[], shelf:[], cycles:0, eaten:0, hasSplicer:false, hyb:{}, seed:null, splice:null, sp:[null,null], spOut:null, story:{}, side:[], ob:null, tickets:TICKETS_PER_DAY, tDay:'', shopT:0, arts:{}, placed:[null,null,null], meds:{}, brew:null, last:Date.now() }; }
-function load(){ try{ const s = JSON.parse(localStorage.getItem(SAVE)); if (!s || !s.dishes) return null; s.dishes.forEach(d => d.drops.forEach(g => { g.atk = null; g.meet = null; g.frozen = false; })); s.hyb = s.hyb || {}; s.story = s.story || {}; s.side = s.side || []; s.ob = null; if (s.seed === undefined) s.seed = null; if (s.splice === undefined) s.splice = null; s.hasSplicer = !!s.hasSplicer; s.sp = s.sp || [null, null]; s.spOut = s.spOut || null; if (s.splice && !s.splice.a) s.splice = null; s.ups = s.ups || {}; if (s.tickets === undefined) s.tickets = TICKETS_PER_DAY; s.tDay = s.tDay || ''; s.shopT = s.shopT || 0; s.arts = s.arts || {}; s.placed = s.placed || [null, null, null]; s.meds = s.meds || {}; s.brew = s.brew && s.brew.id ? s.brew : null; if (s.res && s.res.wash === true) s.res.wash = 20; for (const t in s.story){ s.story[t].brewing = null; } return s; }catch(e){ return null; } }
+function fresh(){ return { theme:'bio', cur:0, tier:0, lv:1, ups:{}, res:{}, active:null, cat:{}, dishes:[newDish()], boost:0, adCd:0, ads:0, adUse:{}, recent:[], shelf:[], cycles:0, eaten:0, hasSplicer:false, hyb:{}, seed:null, splice:null, sp:[null,null], spOut:null, story:{}, side:[], ob:null, tickets:TICKETS_PER_DAY, tDay:'', shopT:0, arts:{}, placed:[null,null,null], meds:{}, brew:null, storyV:2, shopC:0, icepack:false, last:Date.now() }; }
+function load(){ try{ const s = JSON.parse(localStorage.getItem(SAVE)); if (!s || !s.dishes) return null; s.dishes.forEach(d => d.drops.forEach(g => { g.atk = null; g.meet = null; g.frozen = false; })); s.hyb = s.hyb || {}; s.story = s.story || {}; s.side = s.side || []; s.ob = null; if (s.seed === undefined) s.seed = null; if (s.splice === undefined) s.splice = null; s.hasSplicer = !!s.hasSplicer; s.sp = s.sp || [null, null]; s.spOut = s.spOut || null; if (s.splice && !s.splice.a) s.splice = null; s.ups = s.ups || {}; if (s.tickets === undefined) s.tickets = TICKETS_PER_DAY; s.tDay = s.tDay || ''; s.shopT = s.shopT || 0; s.arts = s.arts || {}; s.placed = s.placed || [null, null, null]; s.meds = s.meds || {}; s.brew = s.brew && s.brew.id ? s.brew : null; if (s.res && s.res.wash === true) s.res.wash = 20;
+    // chapter 1 grew from 7 steps to 9 (four raw-sample requests, then brewing): map an old position onto the new list
+    if (!s.storyV){ const st = s.story && s.story[0]; if (st){ if (st.done) st.step = STORY[0].steps.length; else if (st.step > 0) st.step = [4,5,5,6,7,7,8][Math.min(st.step, 6)]; } s.storyV = 2; } for (const t in s.story){ s.story[t].brewing = null; } return s; }catch(e){ return null; } }
 function save(){ S.last = Date.now(); try{ localStorage.setItem(SAVE, JSON.stringify(S)); }catch(e){} }
 
 // ---------- derived ----------
@@ -622,11 +632,30 @@ function haveAll(need){ return need.every(([r, i, q]) => stock(r, i) >= q); }
 function consume(need){ const c = S.cat[S.tier]; need.forEach(([r, i, q]) => { c[`${r}-${i}`] -= q; }); }
 // ---- medicines: strains brew into medicines, requests want medicines in quantity ----
 const medCache = {};
-function medsFor(t){ const key = T.skin + ':' + t; if (medCache[key]) return medCache[key]; const list = []; const add = (n, need, time) => { if (!list.find(m => m.id === n)) list.push({ id: n, n, need, time }); }; const ch = STORY[t]; if (ch) ch.steps.forEach((s, k) => { if (!s.outbreak) add(s.tonic, s.need, 20 + k*6); }); SIDE.forEach(q => add(q.tonic, q.need, 15)); return medCache[key] = list; }
+function medsFor(t){ const key = T.skin + ':' + t; if (medCache[key]) return medCache[key]; const list = []; const add = (n, need, time) => { if (!list.find(m => m.id === n)) list.push({ id: n, n, need, time }); }; const ch = STORY[t]; if (ch) ch.steps.forEach((s, k) => { if (!s.outbreak && s.tonic) add(s.tonic, s.need, 20 + k*4); }); return medCache[key] = list; }
 function med(id, t){ return medsFor(t === undefined ? S.tier : t).find(m => m.id === id); }
 // how many of which medicines a chapter step wants: its own climbs 2→5, and the previous one or two come along
 function stepMeds(t, k){ const ch = STORY[t]; if (!ch) return []; const s = ch.steps[k]; if (!s || s.outbreak) return []; const seq = ch.steps.filter(x => !x.outbreak), idx = seq.indexOf(s); const own = [2,3,3,4,5,3], prev = [0,1,2,2,3,4], pp = [0,0,0,0,1,2]; const out = [[s.tonic, own[Math.min(idx, 5)]]]; if (idx >= 1 && prev[idx]) out.push([seq[idx-1].tonic, prev[idx]]); if (idx >= 2 && pp[idx]) out.push([seq[idx-2].tonic, pp[idx]]); return out; }
-function sideMeds(q){ return [[q.tonic, q.qty || 1]]; }
+// ---- generic requirements: what a request wants, how many, how many you have, and taking them ----
+function totalStock(){ let n = 0; const c = S.cat[S.tier] || {}; for (const k in c) n += Math.max(0, c[k] - 1); return n; }
+function rarityStock(r){ let n = 0; const c = S.cat[S.tier] || {}; for (const k in c) if (+k[0] >= r) n += Math.max(0, c[k] - 1); return n; }
+function stepReqs(t, k){ const ch = STORY[t]; const s = ch && ch.steps[k]; if (!s || s.outbreak) return []; if (s.req) return s.req; return stepMeds(t, k).map(([id, n]) => ({ t:'med', id, n })); }
+function sideReqs(q){ return q.req || q.need.map(([r, i, n]) => ({ t:'strain', r, i, n })); }
+function reqHave(q){ return q.t === 'strain' ? stock(q.r, q.i) : q.t === 'med' ? medHave(q.id) : q.t === 'any' ? totalStock() : q.t === 'rarity' ? rarityStock(q.r) : 0; }
+function reqName(q){ return q.t === 'strain' ? item(S.tier, q.r, q.i).n : q.t === 'med' ? q.id : q.t === 'any' ? 'samples of anything' : q.t === 'rarity' ? `${RAR[q.r].n.toLowerCase()} or better` : '?'; }
+function reqIcon(q){ return q.t === 'med' ? '💊' : `<i style="background:${RAR[q.t === 'any' ? 0 : q.r].col}"></i>`; }
+function reqOk(list){ return list.every(q => reqHave(q) >= q.n); }
+function reqTake(list){ const c = S.cat[S.tier] || {};
+  const takeFrom = (key, n) => { const spare = Math.max(0, (c[key] || 0) - 1), take = Math.min(spare, n); c[key] -= take; return take; };
+  for (const q of list){
+    if (q.t === 'strain') takeFrom(`${q.r}-${q.i}`, q.n);
+    else if (q.t === 'med') medsTake([[q.id, q.n]]);
+    else { // 'any' or 'rarity': take the most plentiful spares first, lowest rarity first, so the good ones are kept
+      let left = q.n; const keys = Object.keys(c).filter(k => q.t === 'any' || +k[0] >= q.r).sort((a, b) => (+a[0] - +b[0]) || ((c[b] || 0) - (c[a] || 0)));
+      while (left > 0){ let took = 0; for (const k of keys){ if (left <= 0) break; const t = takeFrom(k, 1); left -= t; took += t; } if (!took) break; } }
+  } }
+function reqChips(list){ return `<div class="needs">${list.map(q => { const h = Math.min(reqHave(q), q.n); return `<span class="chip" style="${h >= q.n ? '' : 'opacity:.55'}">${reqIcon(q)}${reqName(q)} ${h}/${q.n}</span>`; }).join('')}</div>`; }
+function reqSummary(list){ return list.map(q => `${q.n} ${reqName(q)}`).join(', '); }
 function medHave(id){ return ((S.meds[S.tier] || {})[id]) || 0; }
 function medsOk(list){ return list.every(([id, q]) => medHave(id) >= q); }
 function medsTake(list){ const m = S.meds[S.tier] = S.meds[S.tier] || {}; list.forEach(([id, q]) => { m[id] = Math.max(0, (m[id] || 0) - q); }); }
@@ -635,7 +664,7 @@ function brewTime(m, n){ return m.time * (S.res.fastbrew ? .5 : 1) * Math.sqrt(n
 function batchesAffordable(m){ let n = Infinity; m.need.forEach(([r, i, q]) => { n = Math.min(n, Math.floor(stock(r, i) / q)); }); return Math.min(batchSize(), n === Infinity ? 0 : n); }
 function brewMed(id){ const m = med(id); if (!m || S.brew) return; const n = batchesAffordable(m); if (n < 1){ toast(`Not enough spare strains for ${m.n}.`); return; } m.need.forEach(([r, i, q]) => { S.cat[S.tier][`${r}-${i}`] -= q * n; }); const t = brewTime(m, n); S.brew = { id, n, left: t, total: t }; toast(`Brewing ${n} ${m.n}`); renderAll(); save(); }
 function finishBrew(){ if (!S.brew) return; const b = S.brew; S.brew = null; const m = S.meds[S.tier] = S.meds[S.tier] || {}; m[b.id] = (m[b.id] || 0) + b.n; toast(`${b.n} ${b.id} ready`); markDirty(); }
-function medsRelevant(){ const ids = new Set(); const st = story(); stepMeds(S.tier, st.step).forEach(([id]) => ids.add(id)); stepMeds(S.tier, st.step + 1).forEach(([id]) => ids.add(id)); (S.side || []).forEach(x => SIDE[x.k] && ids.add(SIDE[x.k].tonic)); for (const id in (S.meds[S.tier] || {})) if (S.meds[S.tier][id] > 0) ids.add(id); return medsFor(S.tier).filter(m => ids.has(m.id)); }
+function medsRelevant(){ const ids = new Set(); const st = story(); [st.step, st.step + 1].forEach(k => stepReqs(S.tier, k).forEach(q => { if (q.t === 'med') ids.add(q.id); })); for (const id in (S.meds[S.tier] || {})) if (S.meds[S.tier][id] > 0) ids.add(id); return medsFor(S.tier).filter(m => ids.has(m.id)); }
 function weights(L){
   if (L <= KEYS[0][0]) return KEYS[0][1];
   for (let i = 1; i < KEYS.length; i++){ if (L <= KEYS[i][0]){ const [a,wa] = KEYS[i-1], [b,wb] = KEYS[i]; const t = (L-a)/(b-a); return wa.map((w,j) => w + (wb[j]-w)*t); } }
@@ -666,7 +695,7 @@ function rollDrops(){
   return out;
 }
 function lvCost(){ return Math.round(15 * Math.pow(1.22, S.lv-1) * tierMult()); }
-function offlineCap(){ return OFFLINE_CAP * (S.res.storage ? 2 : 1); }
+function offlineCap(){ return OFFLINE_CAP * (S.res.storage ? 2 : 1) + (S.icepack ? 2*3600 : 0); }
 function canAscend(){ if (STORY[S.tier]) return !!(S.story[S.tier] && S.story[S.tier].done) && found(S.tier) >= ASC_FOUND; return S.lv >= ASC_LV && found(S.tier) >= ASC_FOUND; }
 const spawned = (g, prog) => prog >= g.t0 + .06;
 
@@ -816,7 +845,7 @@ function tick(dt, now){
   if (S.brew){ S.brew.left -= dt; if (S.brew.left <= 0) finishBrew(); }
   if (S.splice){ S.splice.left -= dt; if (S.splice.left <= 0) finishSplice(); }
   if (S.ob) obTick(dt, now);
-  const today = new Date().toDateString(); if (S.tDay !== today){ S.tDay = today; S.tickets = TICKETS_PER_DAY; S.shopT = 0; markDirty(); }
+  const today = new Date().toDateString(); if (S.tDay !== today){ S.tDay = today; S.tickets = TICKETS_PER_DAY; S.shopT = 0; S.shopC = 0; markDirty(); }
   if (S.boost > 0){ S.boost = Math.max(0, S.boost - dt); if (S.boost === 0) markDirty(); }
   if (S.adCd > 0) S.adCd = Math.max(0, S.adCd - dt);
 }
@@ -853,7 +882,7 @@ function adWarp(){ ad('time warp', () => { const s = simulate(WARP); showResults
 function adBoost(){ if (boostOn()) return; ad('boost', () => { S.boost = BOOST_LEN; toast('2× for two minutes'); renderAll(); }); }
 
 // ---------- clinic, splicer, outbreak ----------
-function deliver(){ const s = curStep(), st = story(); if (!s) return; const needs = s.outbreak ? null : stepMeds(S.tier, st.step); if (s.outbreak ? !st.brewed : !medsOk(needs)) return; if (needs) medsTake(needs); const pay = s.reward * tierMult(); S.cur += pay; st.log.push(s.after); st.brewed = false; if (s.gives === 'splicer') S.hasSplicer = true; st.step++;
+function deliver(){ const s = curStep(), st = story(); if (!s) return; const needs = s.outbreak ? null : stepReqs(S.tier, st.step); if (s.outbreak ? !st.brewed : !reqOk(needs)) return; if (needs) reqTake(needs); const pay = s.reward * tierMult(); S.cur += pay; st.log.push(s.after); st.brewed = false; if (s.gives === 'splicer') S.hasSplicer = true; st.step++;
   const opened = Object.keys(UNLOCK).filter(k => UNLOCK[k][0] === S.tier && UNLOCK[k][1] === st.step);
   if (st.step >= STORY[S.tier].steps.length){ st.done = true; toast(`Chapter complete! ${T.ascend} is open.`); } else if (opened.length) toast(`Unlocked: ${opened.map(unlockName).join(' and ')}!`); else toast(`+${fmt(pay)} ${T.cur}. ${STORY[S.tier].steps[st.step].who} is waiting.`);
   renderAll(); save(); }
@@ -867,7 +896,7 @@ function obTick(dt, now){
 }
 function obWin(){ S.ob = null; story().brewed = true; ripples.push({ x: cv.width*.5, y: cv.height*.45, t: performance.now(), col: '#fff', w: 10 }); deliver(); }
 function sideRefill(){ let guard = 0; while (S.side.length < 2 && guard++ < 20){ const used = S.side.map(x => x.k); const k = Math.floor(Math.random()*SIDE.length); if (!used.includes(k)) S.side.push({ k }); } }
-function doSide(idx){ const x = S.side[idx]; if (!x) return; const q = SIDE[x.k]; if (!medsOk(sideMeds(q))) return; medsTake(sideMeds(q)); const pay = q.reward * tierMult(); S.cur += pay; toast(`${q.who}: "Much obliged." +${fmt(pay)}`); S.side.splice(idx, 1); sideRefill(); renderAll(); save(); }
+function doSide(idx){ const x = S.side[idx]; if (!x) return; const q = SIDE[x.k]; if (!reqOk(sideReqs(q))) return; reqTake(sideReqs(q)); const pay = q.reward * tierMult(); S.cur += pay; toast(`${q.who}: "Much obliged." +${fmt(pay)}`); S.side.splice(idx, 1); sideRefill(); renderAll(); save(); }
 function spMatch(a, b){ if (!a || !b) return null; const eq = (p, q) => p[0] === q[0] && p[1] === q[1]; const h = HYBRIDS.find(h => (eq(h.par[0], a) && eq(h.par[1], b)) || (eq(h.par[0], b) && eq(h.par[1], a))); return h ? h.id : null; }
 function spReady(){ const [a, b] = S.sp; if (!S.hasSplicer || S.splice || S.spOut || !a || !b || S.cur < SPLICE_COST*tierMult()) return false; const same = a[0] === b[0] && a[1] === b[1]; return same ? stock(a[0], a[1], 0) >= 2 : stock(a[0], a[1], 0) >= 1 && stock(b[0], b[1], 0) >= 1; }
 function spWhy(){ const [a, b] = S.sp; if (!S.hasSplicer) return 'Doc Ferro still has it.'; if (S.splice) return 'Splicing.'; if (S.spOut) return 'Tap the chamber to collect.'; if (!a || !b) return 'Tap a tube to load a strain.'; if (S.cur < SPLICE_COST*tierMult()) return `Needs ${fmt(SPLICE_COST*tierMult())} ${T.cur.toLowerCase()}.`; if (!spReady()) return 'Not enough spares of that strain.'; return 'Pull the lever.'; }
@@ -887,10 +916,11 @@ function openPicker(slot){
 function seedHyb(id){ if (!S.hyb[id]) return; S.seed = S.seed === id ? null : id; toast(S.seed ? `${HYB[id].n} seeded in the ${T.dish}` : `${T.dish} unseeded`); renderAll(); save(); }
 function adBrew(){ if (!S.brew) return; ad('finish brew', () => { finishBrew(); renderAll(); }); }
 function adSplice(){ if (!S.splice) return; ad('finish splice', () => { finishSplice(); renderAll(); }); }
-function clinicHas(){ const s = curStep(), st = S.story[S.tier]; if (!s) return false; if (s.outbreak) return !S.ob; return medsOk(stepMeds(S.tier, st.step)); }
+function clinicHas(){ const s = curStep(), st = S.story[S.tier]; if (!s) return false; if (s.outbreak) return !S.ob; return reqOk(stepReqs(S.tier, st.step)); }
 // ---- what opens when: [tier, deliveries made in that tier's chapter] ----
-const UNLOCK = { quests:[0,1], shop:[0,1], tickets:[0,2], decor:[0,2], lab:[0,3], splicer:[0,4] };
-const UNLOCK_NAME = { quests:'Quests', shop:'the Shop', tickets:'Tickets', decor:'Decor', lab:'the Lab', splicer:'the Splice-o-matic' };
+// one new place per chapter step: [tier, deliveries made]. A key opens the moment that step's request appears.
+const UNLOCK = { quests:[0,2], shop:[0,2], lab:[0,3], brew:[0,4], tickets:[0,5], decor:[0,5], splicer:[0,7], asc:[0,8] };
+const UNLOCK_NAME = { quests:'Quests', shop:'the Shop', tickets:'Tickets', decor:'Decor', lab:'the Lab', brew:'the Apothecary', splicer:'the Splice-o-matic', asc:'Scaling up' };
 function unlocked(k){ const u = UNLOCK[k]; if (!u) return true; if (S.tier > u[0]) return true; if (S.tier < u[0]) return false; return (S.story[S.tier] ? S.story[S.tier].step : 0) >= u[1] && (k !== 'splicer' || S.hasSplicer); }
 function unlockLabel(k){ const u = UNLOCK[k]; return u ? `${u[0]+1}-${u[1]}` : ''; }
 function unlockName(k){ return UNLOCK_NAME[k] || k; }
@@ -902,13 +932,13 @@ function goalHtml(){
   const st = story(); if (st.done) return `<b class="stepno">${S.tier+1} ✓</b> Chapter done · ${T.ascend} is open`;
   const s = ch.steps[st.step], no = `${S.tier+1}-${st.step+1}`;
   if (s.outbreak) return `<b class="stepno">${no}</b> ${s.who}: face the bloom`;
-  const list = stepMeds(S.tier, st.step);
-  if (medsOk(list)) return `<b class="stepno">${no}</b> Deliver to ${s.who}`;
+  const list = stepReqs(S.tier, st.step);
+  if (reqOk(list)) return `<b class="stepno">${no}</b> Deliver to ${s.who}`;
   if (S.brew) return `<b class="stepno">${no}</b> Brewing ${S.brew.n} ${S.brew.id} · ${fmtDur(S.brew.left)}`;
-  const needs = list.map(([id, q]) => { const h = Math.min(medHave(id), q); return `<span class="${h >= q ? 'ok' : ''}">💊 ${h}/${q} ${id}</span>`; }).join('');
+  const needs = list.map(q => { const h = Math.min(reqHave(q), q.n); return `<span class="${h >= q.n ? 'ok' : ''}">${reqIcon(q)}${h}/${q.n} ${reqName(q)}</span>`; }).join('');
   return `<b class="stepno">${no}</b><span>${s.who}</span>${needs}`;
 }
-function questsHas(){ return (S.side || []).filter(x => SIDE[x.k] && medsOk(sideMeds(SIDE[x.k]))).length; }
+function questsHas(){ return (S.side || []).filter(x => SIDE[x.k] && reqOk(sideReqs(SIDE[x.k]))).length; }
 function unplacedCount(){ let n = 0; for (const id in S.arts) n += Math.max(0, S.arts[id] - S.placed.filter(p => p === id).length); return n; }
 // ---- the pipette mini-game ----
 let mg = null;
@@ -919,8 +949,10 @@ function mgDrop(){ if (!mg || mg.done) return; const pos = mgPos(performance.now
   const pool = ARTS.filter(a => a.r === ri), art = pool[Math.floor(Math.random()*pool.length)]; S.arts[art.id] = (S.arts[art.id] || 0) + 1;
   mg.done = true; mg.result = { art, grade, pos }; toast(`${['Miss.','Close.','Nice!','Perfect!'][grade]} You found ${art.n}.`); renderAll(); save(); }
 function adTicket(){ ad('ticket', () => { S.tickets++; toast('+1 ticket'); renderAll(); }); }
-function buyShop(id){ const it = SHOP.find(x => x.id === id); if (!it) return; const c = it.cost(); if (S.cur < c){ toast(`Needs ${fmt(c)} ${T.cur.toLowerCase()}.`); return; } S.cur -= c;
+function buyShop(id){ const it = SHOP.find(x => x.id === id); if (!it || (it.show && !it.show())) return; const c = it.cost(), cost0 = c; if (S.cur < c){ toast(`Needs ${fmt(c)} ${T.cur.toLowerCase()}.`); return; } S.cur -= c;
   if (id === 'ticket'){ S.tickets++; S.shopT = (S.shopT || 0) + 1; toast('+1 ticket'); }
+  else if (id === 'crate'){ const c = S.cat[S.tier] = S.cat[S.tier] || {}; const found0 = Object.keys(c).filter(k => k[0] === '0' && c[k] > 0); if (!found0.length){ S.cur += cost0; toast('The fridge is empty until you have found a common strain.'); renderAll(); return; } const got = []; for (let k = 0; k < 3; k++){ const key = found0[Math.floor(Math.random()*found0.length)]; c[key]++; got.push(item(S.tier, +key[0], +key.slice(2)).n); } S.shopC = (S.shopC || 0) + 1; toast(`Crate: ${got.join(', ')}`); }
+  else if (id === 'icepack'){ S.icepack = true; toast('Ice pack fitted: +2 h offline'); }
   else if (id === 'pebble'){ const pool = ARTS.filter(a => a.r === 0), a = pool[Math.floor(Math.random()*pool.length)]; S.arts[a.id] = (S.arts[a.id] || 0) + 1; toast(`Inside the pebble: ${a.n}`); }
   else if (id === 'boost'){ S.boost = BOOST_LEN; toast('2× for two minutes'); }
   renderAll(); save(); }
@@ -1014,10 +1046,10 @@ function updateLive(){
   });
   const warp = document.querySelector('[data-act="adWarp"]'); setHTML(warp, adLabel('Time warp +1 h')); setDis(warp, S.adCd > 0 || adBusy);
   const b = $('boostBtn'); setHTML(b, boostOn() ? `<span class="ico">✦</span>2× · ${fmtDur(S.boost)}` : adLabel('2× for 2 min')); setDis(b, boostOn() || S.adCd > 0 || adBusy);
-  $('tabs').children[1].classList.toggle('has', !S.active && RES_DEF.some(r => !resDone(r) && S.cur >= resCost(r) && (!r.req || S.res[r.req])));
+  $('tabs').children[1].classList.toggle('has', unlocked('lab') && !S.active && RES_DEF.some(r => !resDone(r) && (!r.gate || unlocked(r.gate)) && S.cur >= resCost(r) && (!r.req || S.res[r.req])));
   $('tabs').children[0].classList.toggle('has', upAvailable());
   const sc = S.hasSplicer ? (S.spOut ? 1 : 0) : 0; $('sCnt').hidden = !sc; setText($('sCnt'), '!');
-  const bc = !S.brew && medsRelevant().some(m => batchesAffordable(m) >= 1); $('bCnt').hidden = !bc; setText($('bCnt'), '!');
+  const bc = unlocked('brew') && !S.brew && medsRelevant().some(m => batchesAffordable(m) >= 1); $('bCnt').hidden = !bc; setText($('bCnt'), '!');
   document.querySelectorAll('.sbtn[data-tab], #tabs button[data-tab]').forEach(b => { const k = b.dataset.tab; if (!UNLOCK[k]) return; const ok = unlocked(k); b.classList.toggle('locked', !ok); const lk = b.querySelector('.lk'); if (lk){ lk.hidden = ok; setText(lk, unlockLabel(k)); } });
   if (tab === 'splicer'){ setHTML($('mstat'), S.splice ? `<b>Splicing</b> · ${fmtDur(S.splice.left)} · ${item(0, S.splice.a[0], S.splice.a[1]).n} + ${item(0, S.splice.b[0], S.splice.b[1]).n}` : S.spOut ? `<b>Something formed.</b> Tap the chamber to collect it.` : `<b>Splice-o-matic</b> · ${spWhy()}`); setDis($('spBtn'), !spReady()); const sa = $('spAd'); setHTML(sa, adLabel('Finish now')); setDis(sa, !S.splice || S.adCd > 0 || adBusy); }
   $('tabs').children[2].classList.toggle('has', clinicHas());
@@ -1050,18 +1082,17 @@ function renderTab(){
   const el = $('tabbody');
   if (!tab){ el.innerHTML = ''; return; }
   setText($('panelTitle'), {up:'Upgrades', lab:'Lab', clinic:'Clinic', cat:'Catalog', asc:T.ascend, quests:'Side quests', tickets:'Pipette drop', shop:'Shop', decor:'Decor', splicer:'Splice-o-matic', brew:'Apothecary', notes:'Notes'}[tab]);
-  const medChips = list => `<div class="needs">${list.map(([id, q]) => { const h = Math.min(medHave(id), q); return `<span class="chip" style="${h >= q ? '' : 'opacity:.55'}">💊 ${id} ${h}/${q}</span>`; }).join('')}</div>`;
   const recipeChips = m => m.need.map(([r, i, q]) => `<span class="chip" style="font-size:10px;padding:1px 6px;${stock(r, i) >= q ? '' : 'opacity:.55'}"><i style="background:${RAR[r].col}"></i>${q} ${item(S.tier, r, i).n} <small style="color:var(--muted)">(${stock(r, i)})</small></span>`).join('');
   // ingredient tiles: portrait, how many this batch needs, how many spare you have
   const ingTiles = (m, n, big) => `<div class="ings">${m.need.map(([r, i, q], k) => { const need = q * n, have = stock(r, i), it = item(S.tier, r, i); return `${k ? '<span class="ing plus" style="border:0;background:none;box-shadow:none;min-width:0;padding:0">+</span>' : ''}<div class="ing ${have >= need ? 'ok' : 'short'} ${big ? 'big' : ''}"><canvas class="pc" width="144" height="144" data-r="${r}" data-i="${i}"></canvas><span>${need}× ${it.n}</span><small>${have >= need ? `have ${have} ✓` : `have ${have} · short ${need - have}`}</small></div>`; }).join('')}</div>`;
-  const sideHtml = () => { sideRefill(); return S.side.map((x, idx) => { const q = SIDE[x.k]; const ok = medsOk(sideMeds(q)); return `<div class="card req small"><div class="who"><span class="face">${q.face}</span><div><b>${q.who}</b><div class="sub" style="margin:0">wants ${sideMeds(q)[0][1]} ${q.tonic} · pays ${fmt(q.reward*tierMult())}</div></div></div><p class="say">“${q.say}”</p>${medChips(sideMeds(q))}<div class="acts" style="display:flex;margin-top:8px"><button class="btn primary" data-act="side" data-i="${idx}" ${ok ? '' : 'disabled'}>Deliver now</button></div></div>`; }).join(''); };
+  const sideHtml = () => { sideRefill(); return S.side.map((x, idx) => { const q = SIDE[x.k], rq = sideReqs(q); const ok = reqOk(rq); return `<div class="card req small"><div class="who"><span class="face">${q.face}</span><div><b>${q.who}</b><div class="sub" style="margin:0">wants ${reqSummary(rq)} · pays ${fmt(q.reward*tierMult())}</div></div></div><p class="say">“${q.say}”</p>${reqChips(rq)}<div class="acts" style="display:flex;margin-top:8px"><button class="btn primary" data-act="side" data-i="${idx}" ${ok ? '' : 'disabled'}>Deliver now</button></div></div>`; }).join(''); };
   const apothecary = () => {
     if (S.brew){ const m = med(S.brew.id); return `<div class="r"><div class="rn">${S.brew.n} × ${m ? m.n : S.brew.id} <span class="tag">brewing</span></div><div class="rd">Ready soon</div><div class="rc" data-live="brLeft">${fmtDur(S.brew.left)}</div><div class="prog"><b data-live="brProg" style="width:${(1 - S.brew.left/S.brew.total)*100}%"></b></div><div class="acts"><button class="btn ad" data-act="adBrew" ${S.adCd > 0 || adBusy ? 'disabled' : ''}>${adLabel('Finish now')}</button></div></div>`; }
     const list = medsRelevant(); if (!list.length) return `<div class="card"><p class="sub" style="margin:0">Nothing to brew yet.</p></div>`;
     return list.map(m => { const n = batchesAffordable(m); return `<div class="r" style="cursor:default"><div class="rn">${m.n} <span class="tag on">×${medHave(m.id)} ready</span></div><div class="rd">${recipeChips(m)}<div style="margin-top:3px">${fmtDur(brewTime(m, 1))} each · up to ${batchSize()} at once</div></div><div class="rc"></div><div class="acts"><button class="btn primary" data-act="brew" data-id="${m.id}" ${n ? '' : 'disabled'}>Brew ×${Math.max(1, n)}</button></div></div>`; }).join('');
   };
   if (tab === 'quests'){
-    el.innerHTML = `<p class="sub">Odd jobs from around town. Small recipes, small pay, instant delivery, and a fresh one turns up whenever you finish one. Good for spare commons.</p>` + sideHtml();
+    el.innerHTML = `<p class="sub">Odd jobs from around town. A few spare samples, small pay, instant delivery, and a fresh one turns up whenever you finish one. Good for spare commons.</p>` + sideHtml();
   }
   else if (tab === 'tickets'){
     const res = mg && mg.done ? mg.result : null;
@@ -1070,7 +1101,7 @@ function renderTab(){
     el.innerHTML = `<div class="card"><h3>Pipette drop</h3><p class="sub" style="margin:0 0 4px">Stop the drop over the green. The closer to the middle, the rarer the artifact. Artifacts go in the ${T.dish} and change your odds.</p>${bar}</div>${resHtml}<div class="card"><div class="kv"><span>Tickets today</span><span class="${S.tickets ? 'good' : 'warn'}">${S.tickets} / ${TICKETS_PER_DAY}</span></div><div class="kv"><span>Refill</span><span>every day · +1 per ad · or the Shop</span></div><div class="kv"><span>Odds by grade</span><span>miss 85/15 · close 55/35/9/1 · nice 25/45/25/5 · perfect 5/25/45/25</span></div></div>`;
   }
   else if (tab === 'shop'){
-    el.innerHTML = `<p class="sub">Paid in ${T.cur.toLowerCase()}. Nothing here you can't also earn.</p>` + SHOP.map(it => { const c = it.cost(); return `<div class="r" style="cursor:default"><div class="rn">${it.e} ${it.n}</div><div class="rd">${it.d}</div><div class="rc">${fmt(c)}</div><div class="acts"><button class="btn primary" data-act="shop" data-id="${it.id}" ${S.cur >= c ? '' : 'disabled'}>Buy</button></div></div>`; }).join('');
+    el.innerHTML = `<p class="sub">Paid in ${T.cur.toLowerCase()}. Nothing here you can't also earn; more appears as the town opens up.</p>` + SHOP.filter(it => !it.show || it.show()).map(it => { const c = it.cost(); return `<div class="r" style="cursor:default"><div class="rn">${it.e} ${it.n}</div><div class="rd">${it.d}</div><div class="rc">${fmt(c)}</div><div class="acts"><button class="btn primary" data-act="shop" data-id="${it.id}" ${S.cur >= c ? '' : 'disabled'}>Buy</button></div></div>`; }).join('');
   }
   else if (tab === 'decor'){
     const slots = S.placed.map((id, k) => { const a = id && ART[id]; return a ? `<div class="slot full"><div class="e">${a.e}</div><div class="nm">${a.n}</div><div class="pd">${a.d}</div><button class="btn" data-act="unplace" data-i="${k}">Remove</button></div>` : `<div class="slot"><div class="e" style="opacity:.35">＋</div><div class="pd">Slot ${k+1}</div><div class="pd">empty</div></div>`; }).join('');
@@ -1116,7 +1147,8 @@ function renderTab(){
   }
   else if (tab === 'lab'){
     const sp = `<h4 class="gh">Splicer</h4><div class="card"><p class="sub" style="margin:0">${S.hasSplicer ? `The Splice-o-matic has its own button beside the ${T.dish}. Any two spare strains can go in; five pairs react.` : 'Doc Ferro has an old splicer. Help the Clinic and it is yours.'}</p></div>`;
-    el.innerHTML = `<h4 class="gh" style="margin-top:0">Research</h4><p class="sub">One at a time. Research survives ${T.ascend.toLowerCase()}. Every research timer can be finished with an ad.</p>` + RES_DEF.map(r => {
+    const hiddenRes = RES_DEF.filter(r => r.gate && !unlocked(r.gate)).length;
+    el.innerHTML = `<h4 class="gh" style="margin-top:0">Research</h4><p class="sub">One at a time. Research survives ${T.ascend.toLowerCase()}. Every research timer can be finished with an ad.${hiddenRes ? ` ${hiddenRes} more open with the Apothecary.` : ''}</p>` + RES_DEF.filter(r => !r.gate || unlocked(r.gate)).map(r => {
       const [n, d] = T.res[r.id]; const done = resDone(r); const act = S.active && S.active.id === r.id; const locked = r.req && !S.res[r.req]; const lv = r.max ? ` <span class="tag on">${resLv(r.id)}/${r.max}${r.id === 'wash' ? ' · ' + Math.round(guardChance()*100) + '%' : ''}</span>` : '';
       if (done) return `<div class="r done"><div class="rn">${n}${lv} <span class="tag on">done</span></div><div class="rd">${d}</div><div class="rc">✓</div></div>`;
       if (act) return `<div class="r"><div class="rn">${n} <span class="tag">researching</span></div><div class="rd">${d}</div><div class="rc" data-live="resLeft">${fmtDur(S.active.left)}</div><div class="prog"><b data-live="resProg" style="width:${(1 - S.active.left/S.active.total)*100}%"></b></div><div class="acts"><button class="btn ad" data-act="adResearch" ${S.adCd > 0 || adBusy ? 'disabled' : ''}>${adLabel('Finish now')}</button></div></div>`;
@@ -1134,16 +1166,17 @@ function renderTab(){
       let main;
       if (st.done) main = `<div class="card"><h3>Chapter complete</h3><p class="sub" style="margin:0 0 6px">${ch.steps[ch.steps.length-1].after}</p><p class="sub" style="margin:0">${STORY[S.tier+1] ? `<b>${T.ascend}</b> is open. Chapter ${S.tier+2}, <b>${STORY[S.tier+1].title}</b>, waits in the ${tierDef(S.tier+1).n}.` : `That is the end of the story so far. <b>${T.ascend}</b> is open and the ${tierDef(S.tier+1).n} is unwritten territory.`}</p></div>`;
       else {
-        const list = stepMeds(S.tier, st.step);
-        const needs = s.outbreak ? '' : medChips(list);
+        const list = stepReqs(S.tier, st.step);
+        const needs = s.outbreak ? '' : reqChips(list);
         let act;
         if (s.outbreak) act = S.ob ? `<button class="btn primary" disabled>Bloom in progress</button>` : `<button class="btn primary" data-act="face">Face the bloom</button>`;
-        else act = `<button class="btn primary" data-act="deliver" ${medsOk(list) ? '' : 'disabled'}>Deliver to ${s.who}</button>`;
-        main = `<div class="card req"><div class="who"><span class="face">${s.face}</span><div><b>${s.who}</b><div class="sub" style="margin:0">${s.outbreak ? 'needs you at the ' + T.dish : 'wants ' + list.map(([id, q]) => q + ' ' + id).join(', ')} · pays ${fmt(s.reward*tierMult())}</div></div></div><p class="say">“${s.say}”</p>${needs}<div class="acts" style="display:flex;gap:8px;align-items:center;margin-top:8px">${act}</div></div>`;
+        else act = `<button class="btn primary" data-act="deliver" ${reqOk(list) ? '' : 'disabled'}>Deliver to ${s.who}</button>`;
+        const hint = s.outbreak || reqOk(list) ? '' : list.some(q => q.t === 'med') ? (unlocked('brew') ? `<p class="sub" style="margin:6px 0 0">Medicines are brewed at the Apothecary from spare samples.</p>` : '') : list.some(q => q.t === 'rarity') ? `<p class="sub" style="margin:6px 0 0">Rarer strains show up as the dish levels. The odds bar under the dish shows your chances.</p>` : `<p class="sub" style="margin:6px 0 0">Spare samples are copies beyond the one the Catalog keeps. Harvest until you have enough.</p>`;
+        main = `<div class="card req"><div class="who"><span class="face">${s.face}</span><div><b>${s.who}</b><div class="sub" style="margin:0">${s.outbreak ? 'needs you at the ' + T.dish : 'wants ' + reqSummary(list)} · pays ${fmt(s.reward*tierMult())}</div></div></div><p class="say">“${s.say}”</p>${needs}${hint}<div class="acts" style="display:flex;gap:8px;align-items:center;margin-top:8px">${act}</div></div>`;
       }
       const log = st.log.length ? `<h4 class="gh">So far</h4><div class="card">${st.log.map(l => `<p class="sub" style="margin:0 0 6px">${l}</p>`).join('')}</div>` : `<div class="card"><p class="sub" style="margin:0">${ch.intro}</p></div>`;
-      const up = st.done ? '' : (() => { const next = []; for (let k = st.step + 1; k < ch.steps.length && next.length < 2; k++) next.push(k); return next.length ? `<h4 class="gh">Coming up</h4><div class="card">${next.map(k => { const s = ch.steps[k]; return `<div class="kv"><span>${S.tier+1}-${k+1} · ${s.who}</span><span>${s.outbreak ? 'the bloom' : stepMeds(S.tier, k).map(([id, q]) => `${q} ${id}`).join(', ')}</span></div>`; }).join('')}</div>` : ''; })();
-      const apo = st.done ? '' : `<div class="acts" style="display:flex;margin:2px 0 4px"><button class="btn" data-act="open" data-tab="brew">⚗️ Brew medicines at the Apothecary${S.brew ? ' · ' + fmtDur(S.brew.left) : ''}</button></div>`;
+      const up = st.done ? '' : (() => { const next = []; for (let k = st.step + 1; k < ch.steps.length && next.length < 2; k++) next.push(k); return next.length ? `<h4 class="gh">Coming up</h4><div class="card">${next.map(k => { const s = ch.steps[k]; return `<div class="kv"><span>${S.tier+1}-${k+1} · ${s.who}</span><span>${s.outbreak ? 'the bloom' : reqSummary(stepReqs(S.tier, k))}</span></div>`; }).join('')}</div>` : ''; })();
+      const apo = st.done || !unlocked('brew') || !(s && !s.outbreak && stepReqs(S.tier, st.step).some(q => q.t === 'med')) ? '' : `<div class="acts" style="display:flex;margin:2px 0 4px"><button class="btn" data-act="open" data-tab="brew">⚗️ Brew medicines at the Apothecary${S.brew ? ' · ' + fmtDur(S.brew.left) : ''}</button></div>`;
       el.innerHTML = `<p class="sub" style="margin-bottom:6px"><b>Chapter ${S.tier+1} · ${ch.title}</b><br>${dots} ${st.done ? 'done' : (st.step+1) + ' of ' + ch.steps.length}</p>` + main + apo + up + log;
     }
   }

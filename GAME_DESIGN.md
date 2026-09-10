@@ -236,7 +236,8 @@ row off the screen. The Orbit skin inherits the chunky UI but keeps its glow-dot
 ## 3b. The Clinic (the spine)
 
 Mossbrook is a small town with one pond, one bakery and one lab, which is yours. People turn
-up with problems and you brew them something. This is the second item set (**tonics**), the
+up with problems and you grow them something: raw samples at first, medicines once Doc Ferro
+shows you the kettle. This is the second item set (**tonics**), the
 second area (**the request board**), and the main goal (**the chapter**) in one system, and
 it is the system the game leans on hardest.
 
@@ -273,30 +274,51 @@ want medicines in quantity. That is the chain: harvest strains, brew medicines, 
 
 ### Requests
 
-Two kinds sit on the board:
+A request is a list of **requirements**, each one of four kinds, and every kind is shown the
+same way: a chip with what, how many you have of how many, and a Deliver button that lights
+when all chips are full. Delivering takes exactly those items (never the catalog's keeper
+copy) and pays.
 
-- **Story requests**, one at a time in chapter order. Each names a character, a problem, the
-  medicines they want, and a payout. Quantities climb through the chapter and are generated
-  from the step order: a step wants 2, 3, 3, 4, 5 then 3 of its own medicine, plus the
-  previous step's medicine (1, 2, 2, 3, 4) and from step five the one before that (1, 2).
-  So 1-1 is two Fizz-Fix; 1-2 is three Hush syrup and one Fizz-Fix; 1-5 is five Mirror wash,
-  three Bitters and one Dimmer drops. Delivering pays, logs a line of story, and opens the
-  next request. Some deliveries hand you something: Doc Ferro lends you the splicer.
-- **Side requests**, two at a time, repeatable, drawn from a pool. One or two of a simple
-  medicine, small pay, delivered instantly. They keep the board alive between story beats and
-  give commons a use. The pool is indexed by rarity and slot, so it works in every tier.
+| Kind | Reads as | Counts |
+|---|---|---|
+| strain ×n | "2 Blubb" | spares of that one strain |
+| any ×n | "5 samples of anything" | all spares in the tier, taken commons-first |
+| rarity ×n | "1 uncommon or better" | spares of that rarity or higher |
+| medicine ×n | "2 Fizz-Fix" | bottles on the Apothecary shelf |
+
+Two kinds of request sit on the board:
+
+- **Story requests**, one at a time in chapter order. Chapter 1 opens with four raw-sample
+  requests, each teaching one thing (a specific strain, quantity, rarity, then two strains at
+  once), and only then does Doc Ferro introduce the kettle. From there requests want
+  medicines, often two kinds, and sometimes a live strain on the side. Chapters 2 and 3 keep
+  the generated medicine schedule: a step wants 2, 3, 3, 4, 5 then 3 of its own medicine,
+  plus the previous step's (1, 2, 2, 3, 4) and from step five the one before that (1, 2).
+  Delivering pays, logs a line of story, and opens the next request. Some deliveries hand you
+  something: Doc Ferro opens his lab bench, then his kettle, then lends you the splicer.
+  Under the chips the card says one sentence about how to get what is missing (harvest for
+  spares, level the dish for rarity, brew at the Apothecary).
+- **Side requests**, two at a time, repeatable, drawn from a pool. Raw samples only, small
+  pay, delivered instantly. They keep the board alive between story beats and give commons a
+  use.
 
 ### Chapter 1: Something in the water
 
-| # | Who | Problem | Tonic | Recipe | Pays | Afterwards |
+| # | Who | Problem | Wants | Teaches / opens | Pays | Afterwards |
 |---|---|---|---|---|---|---|
-| 1 | Mayor Bramble | The tap water has gone fizzy | Fizz-Fix | 2 Blubb | 40 | "A triumph of local science." |
-| 2 | Ida the baker | The bread is singing, in four parts | Hush syrup | 2 Fuzzwald, 1 Dotto | 90 | Ida seems almost disappointed. |
-| 3 | Pip | The cat glows at night, not Pip's fault | Dimmer drops | 1 Glowbert, 2 Blubb | 160 | The cat is still faintly green. |
-| 4 | Doc Ferro | Purple spots, six patients since Tuesday | Bitters | 1 Nibbler, 2 Wiggly | 260 | "This is not a bug. Something is spreading." **Gives the splicer.** |
-| 5 | Gran Moss | The pond has gone black | Mirror wash | 1 Mirror Mike, 2 Moldy Pete | 520 | Something moved under the surface. |
-| 6 | Doc Ferro | It is in the water supply; bring a live culture | Contained sample | 1 Gulp, 1 Glowbert, 3 Blubb | 900 | "We called it The Wipe. It blooms." |
-| 7 | Doc Ferro | It is blooming in your dish | **Outbreak** | fight it in the dish | 2000 | "Downstream is the pond, and the pond is where we go next." |
+| 1 | Mayor Bramble | The tap water has gone fizzy | 2 Blubb | harvest, spares vs the keeper copy | 40 | "Fizzy. Definitely fizzy." |
+| 2 | Ida the baker | The bread is singing | 5 samples of anything | quantity; opens Quests and Shop | 70 | "It is always the fuzzy one." |
+| 3 | Pip | The cat glows at night | 1 uncommon or better | rarity, the odds bar, levelling, the Catalog; opens the Lab | 150 | Same glow as the cat. |
+| 4 | Doc Ferro | Purple spots, six patients | 2 Fuzzwald, 1 Dotto | two targets at once; opens the Apothecary | 220 | "Something is spreading." |
+| 5 | Doc Ferro | The town needs medicine | 2 Fizz-Fix (recipe: 2 Blubb) | brewing, one recipe; opens Tickets and Decor | 260 | "The pond is another matter." |
+| 6 | Gran Moss | The pond has gone black | 2 Mirror wash, 2 Fizz-Fix | two medicines, a rare ingredient | 520 | Something moved under the surface. |
+| 7 | Doc Ferro | Needs something that bites back | 3 Bitters, 1 live Nibbler | a dangerous strain as an ingredient and a deliverable; **gives the splicer** | 700 | "It is learning." |
+| 8 | Doc Ferro | It is in the water supply | 2 Contained sample, 2 Bitters | the biter itself, contained; opens Scale up | 900 | "We called it The Wipe. It blooms." |
+| 9 | Doc Ferro | It is blooming in your dish | **Outbreak** | fight it in the dish | 2000 | "Downstream is the pond, and the pond is where we go next." |
+
+Recipes stay as before: Fizz-Fix is two Blubb, Mirror wash a Mirror Mike and two Moldy Pete,
+Bitters a Nibbler and two Wiggly, Contained sample a Gulp, a Glowbert and three Blubb. Hush
+syrup and Dimmer drops are gone from chapter 1; Ida and Pip ask for samples instead.
 
 ### Chapter 2: The pond (Aquarium)
 
@@ -343,9 +365,10 @@ tier 4 dish is.
 
 ### Side request pool
 
-Farmer Tuck (the cows are humming, in key), Postie Lark (love letters sticking together),
-Old Bill (a fish that argues, and is winning), Nurse Ona (the waiting room smells of lemons),
-Coach Dabb (the football rolls uphill).
+Farmer Tuck (the cows are humming, in key: 2 Fuzzwald), Postie Lark (love letters sticking
+together: 3 of anything), Old Bill (a fish that argues, and is winning: 2 Dotto and a Blubb),
+Nurse Ona (the waiting room smells of lemons: 1 uncommon or better), Coach Dabb (the football
+rolls uphill: 4 of anything). All raw samples, so Quests never needs the kettle.
 
 ### The Clinic is story only
 
@@ -367,13 +390,19 @@ and Clinic only and every delivery hands the player a new place. A locked button
 greyscale with a padlock on the medallion and a pill saying which chapter-step opens it;
 tapping it says who to help. The delivery that opens something announces it.
 
-| Opens after | Area |
-|---|---|
-| 1-1 (the Mayor) | Quests, Shop |
-| 1-2 (Ida) | Tickets, Decor |
-| 1-3 (Pip) | Lab (research) |
-| 1-4 (Doc Ferro) | Splicer |
-| always | Upgrades, Clinic, Brewery, Catalog, Scale up |
+| Opens after | Area | Why then |
+|---|---|---|
+| always | Upgrades, Clinic, Catalog | the loop: grow, harvest, buy, deliver |
+| 1-2 (Ida) | Quests, Shop | "half the town has heard about your dish"; a second use for spares |
+| 1-3 (Pip) | Lab (research) | Pip's request is the first that needs levelling; brewing research stays hidden until the kettle |
+| 1-4 (Doc Ferro) | Brewery (Apothecary) | Ferro's first medicine request arrives as the button opens |
+| 1-5 (Ferro's kettle) | Tickets, Decor | artifacts matter once rarity matters |
+| 1-7 (Ferro's Bitters) | Splicer | the story hands it over |
+| 1-8 (Contained sample) | Scale up | the tab appears with the chapter's last request |
+
+In code this is one table, `UNLOCK`, keyed by area with `[tier, deliveries]`; `unlocked(k)`
+is the only check. Buttons, tabs, research rows, shop items and the Clinic's Apothecary link
+all read it.
 
 The story log lives at the bottom of the Clinic, so there is no separate Notes button.
 
@@ -382,9 +411,9 @@ The story log lives at the bottom of the Clinic, so there is no separate Notes b
 | **Quests** (left) | the odd jobs that used to clutter the Clinic: two at a time, small recipes, instant delivery, a fresh one when you finish one. A badge counts the ones you can deliver. |
 | **Tickets** (left) | the pipette mini-game, below. The badge is today's ticket count. |
 | **Splicer** (left) | the Splice-o-matic, its own area. Badge when a hybrid is waiting in the chamber. |
-| **Shop** (right) | paid in biomass, nothing you can't also earn: an extra ticket (price climbs each purchase, resets daily), a mystery pebble (random common artifact), a 2× boost without the ad. |
+| **Shop** (right) | paid in biomass only, nothing you can't also earn, no premium currency. Five items, shown as their systems open: **Sample crate** (three spares of commons you have already found, 40 biomass, ×1.35 per purchase, resets daily; the early-game unblocker), **Heat lamp** (2× growth and income for two minutes), **Ice pack** (+2 h offline cap, once), **Extra ticket** (once Tickets is open; price climbs, resets daily), **Mystery pebble** (once Decor is open; a random common artifact). |
 | **Decor** (right) | place up to three artifacts in the enclosure. Only placed ones count. A badge counts unplaced artifacts. |
-| **Brewery** (right) | the Apothecary's Copper Kettle, its own area. Badge when something can be brewed. Open from the start, since 1-1 needs it. |
+| **Brewery** (right) | the Apothecary's Copper Kettle, its own area. Badge when something can be brewed. Locked until 1-4, when Doc Ferro's first medicine request explains it. |
 
 ### Tickets and the pipette
 
