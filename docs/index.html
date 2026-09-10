@@ -1,0 +1,1511 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Petri</title>
+<meta name="theme-color" content="#1f8b6f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Petri">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&display=swap">
+<style>
+  :root{
+    --ground:#0f3b36; --notes-text:#cfe6df; --notes-ink:#ffffff;
+    --display:'Fredoka', 'Arial Rounded MT Bold', 'Segoe UI', sans-serif;
+    --ui:'Nunito', 'Segoe UI', Roboto, system-ui, sans-serif;
+  }
+  /* Petri skin: lush, warm, cartoon */
+  .phone{
+    --bg0:#4fc39a; --bg1:#1f8b6f; --surface:#fff6dc; --raised:#ffe9b3; --line:#e2c98a; --ink:#1f3d33;
+    --text:#1f3d33; --muted:#5f7a6e; --faint:#9db3a8;
+    --accent0:#ffd166; --accent1:#ff9f1c; --accent-ink:#3a2200;
+    --teal:#22d3b0; --teal-soft:#c8f5ea; --warn:#e07b00; --bad:#e63946;
+    --ad0:#b57bff; --ad1:#7b3fd1; --ad-ink:#ffffff; --ad-soft:#efe2ff;
+    --agar0:#ffd9c7; --agar1:#f4a988; --rim:#c96d4a; --glass:rgba(255,246,220,.94);
+    --wood0:#c88347; --wood1:#8a4f25; --wood-edge:#3b2413; --woodf:url(#wood);
+    --brass0:#ffe6a3; --brass1:#e0a53a; --brass-edge:#7a4a12; --brass-ink:#3a2200; --band:#2f7d74;
+    --paper:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .4  0 0 0 0 .22  0 0 0 0 .05  .17 0 0 0 0'/></filter><rect width='100%25' height='100%25' filter='url(%23p)'/></svg>");
+    --tex:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='320' height='320'><filter id='m'><feTurbulence type='fractalNoise' baseFrequency='.05' numOctaves='3' stitchTiles='stitch' seed='4'/><feColorMatrix values='0 0 0 0 .02  0 0 0 0 .2  0 0 0 0 .12  .5 0 0 0 -.12'/></filter><rect width='100%25' height='100%25' filter='url(%23m)'/></svg>");
+  }
+  /* Orbit skin: deep navy, glowing */
+  .phone[data-skin="space"]{
+    --bg0:#2b3a7a; --bg1:#0b1020; --surface:#1b2447; --raised:#26325e; --line:#3a4a86; --ink:#070b1c;
+    --text:#eef1ff; --muted:#a4b0dc; --faint:#6b78a8;
+    --accent0:#ffd166; --accent1:#ff9f1c; --accent-ink:#3a2200;
+    --teal:#5de1ff; --teal-soft:#183a55; --warn:#ffb347; --bad:#ff5c7a;
+    --ad0:#b57bff; --ad1:#7b3fd1; --ad-ink:#ffffff; --ad-soft:#2d2455;
+    --agar0:#141d3a; --agar1:#070b18; --rim:#3b4a7a; --glass:rgba(27,36,71,.94);
+    --wood0:#5d6fa8; --wood1:#2b3760; --wood-edge:#0a0f24; --woodf:none;
+    --brass0:#e8f0ff; --brass1:#8ea2d6; --brass-edge:#1a2447; --brass-ink:#0d1430; --band:#1f2a52;
+    --paper:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  .07 0 0 0 0'/></filter><rect width='100%25' height='100%25' filter='url(%23p)'/></svg>");
+    --tex:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><g fill='white'><circle cx='20' cy='30' r='1.3' opacity='.8'/><circle cx='90' cy='12' r='.9' opacity='.6'/><circle cx='150' cy='60' r='1.1' opacity='.7'/><circle cx='200' cy='110' r='.8' opacity='.5'/><circle cx='60' cy='120' r='1' opacity='.6'/><circle cx='120' cy='170' r='1.4' opacity='.8'/><circle cx='30' cy='200' r='.9' opacity='.5'/><circle cx='180' cy='190' r='1' opacity='.6'/></g></svg>");
+  }
+  /* metal instead of wood on the space skin */
+  .phone[data-skin="space"] .board::before, .phone[data-skin="space"] .tabs::before, .phone[data-skin="space"] .sign::before, .phone[data-skin="space"] .shelf::after{background:repeating-linear-gradient(0deg, rgba(255,255,255,.05) 0 1px, transparent 1px 4px), linear-gradient(180deg, var(--wood0), var(--wood1))}
+
+  *{box-sizing:border-box} [hidden]{display:none !important}
+  html,body{height:100%}
+  body{margin:0; background:var(--ground); color:var(--notes-text); font-family:var(--ui); font-size:14px; line-height:1.4; overscroll-behavior:none; -webkit-tap-highlight-color:transparent; touch-action:manipulation; -webkit-touch-callout:none}
+  /* installed on a phone: fill the screen, respect the notch and the home bar */
+  @media (display-mode: standalone){ body{background:var(--phone)} .stage{padding:0} .phone{width:100vw; height:100dvh; border:0; border-radius:0; box-shadow:none} .top{padding-top:calc(14px + env(safe-area-inset-top))} .sideL,.sideR{top:calc(8px + env(safe-area-inset-top)*0)} .notes{display:none} .pill{top:env(safe-area-inset-top)} }
+  .stage{min-height:100%; display:flex; align-items:center; justify-content:center; gap:40px; padding:24px}
+  .phone{width:min(100vw, 400px); height:min(100vh, 820px); background:var(--bg1); color:var(--text); border:4px solid var(--ink); border-radius:34px; overflow:hidden; display:flex; flex-direction:column; position:relative; isolation:isolate; box-shadow:0 30px 80px rgba(0,0,0,.45); font-family:var(--ui)}
+  .phone::before{content:''; position:absolute; inset:0; z-index:-1; pointer-events:none; background:var(--tex), radial-gradient(ellipse at 50% 18%, rgba(255,255,255,.16), transparent 55%), radial-gradient(ellipse at 50% 105%, rgba(0,0,0,.35), transparent 60%), linear-gradient(180deg, var(--bg0), var(--bg1))}
+  /* the hanging title sign */
+  .sign{position:relative; isolation:isolate; padding:5px 14px 7px 12px; border:3px solid var(--wood-edge); border-radius:12px 10px 14px 9px / 10px 14px 9px 12px; box-shadow:0 4px 0 var(--wood-edge); transform:rotate(-1.5deg); transform-origin:left center}
+  .sign::before{content:''; position:absolute; inset:0; z-index:-1; filter:var(--woodf); background:radial-gradient(circle at 9px 9px, #6b4423 2.5px, #2e1a0c 3.5px, transparent 4.5px), radial-gradient(circle at calc(100% - 9px) calc(100% - 9px), #6b4423 2.5px, #2e1a0c 3.5px, transparent 4.5px), linear-gradient(180deg, var(--wood0), var(--wood1))}
+  .sign .eyebrow{color:#fff3d6cc} .sign h1{transform:none; font-size:27px}
+  @media (max-width:520px){ .stage{padding:0} .phone{width:100vw; height:100vh; height:100dvh; border:0; border-radius:0; box-shadow:none} }
+  @media (max-width:900px){ .notes{display:none} }
+
+  button{font-family:var(--display)}
+  .top{display:flex; justify-content:space-between; align-items:center; padding:14px 14px 6px; gap:12px}
+  .eyebrow{font-family:var(--display); font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:#ffffffcc; font-weight:600; text-shadow:0 1px 0 rgba(0,0,0,.25)}
+  .top h1{font-family:var(--display); font-weight:700; font-size:30px; margin:0; line-height:1; color:#fff; letter-spacing:.01em; -webkit-text-stroke:1.5px var(--ink); paint-order:stroke fill; text-shadow:0 3px 0 var(--ink); transform:rotate(-2deg); transform-origin:left bottom}
+  .kn{background:linear-gradient(180deg, var(--brass0), var(--brass1)); border:3px solid var(--brass-edge); border-radius:999px; padding:4px 12px 4px 8px; box-shadow:0 3px 0 var(--brass-edge), inset 0 2px 0 rgba(255,255,255,.6), inset 0 -2px 0 rgba(0,0,0,.12); text-align:right; display:flex; align-items:center; gap:6px}
+  .kn .v{color:var(--brass-ink) !important} .kn .rt{color:var(--brass-ink) !important; opacity:.75}
+  .kn .ic{font-size:18px} .kn .v{font-family:var(--display); font-weight:700; font-size:20px; line-height:1; color:var(--text); font-variant-numeric:tabular-nums} .kn .rt{font-family:var(--display); font-size:10.5px; color:var(--muted); font-weight:600}
+  .pill{position:absolute; left:50%; transform:translateX(-50%); top:-2px; background:var(--surface) var(--paper); border:3px solid var(--ink); border-top:0; color:var(--text); border-radius:0 0 14px 14px; padding:3px 12px 4px; font:600 11px var(--display); cursor:pointer; z-index:3; box-shadow:0 3px 0 var(--ink)}
+
+  .main{flex:1; min-height:0; overflow-y:auto; display:flex; flex-direction:column; padding-bottom:80px; scrollbar-width:none}
+  .dishcard{user-select:none; -webkit-user-select:none; margin:0; padding:2px 0 0; position:relative}
+  .pager{display:flex; overflow-x:auto; scroll-snap-type:x mandatory; scrollbar-width:none; overscroll-behavior-x:contain}
+  .pager::-webkit-scrollbar{display:none}
+  .page{flex:0 0 100%; display:flex; justify-content:center; align-items:center; min-height:270px}
+  #machine{width:100%; max-width:352px; height:auto; aspect-ratio:704/552; display:block; margin:0 auto 10px; cursor:pointer; filter:drop-shadow(0 6px 0 rgba(0,0,0,.18))}
+  .uptier{margin:12px 0 6px; display:flex; justify-content:space-between; align-items:center} .uptier h4{margin:0; font-family:var(--display); font-size:13px; letter-spacing:.04em; text-transform:uppercase; color:var(--text)} .uptier .lk{font:700 11px var(--display); color:var(--muted)} .uptier .lk.on{color:#1a9c7f}
+  .pdots{display:flex; justify-content:center; gap:7px; margin:4px 0 0; cursor:pointer} .pdots i{width:9px; height:9px; border-radius:50%; border:2px solid var(--ink); background:transparent; display:block} .pdots i.on{background:#fff}
+  .parr{position:absolute; top:50%; transform:translateY(-50%); width:34px; height:34px; border-radius:50%; border:3px solid var(--brass-edge); background:linear-gradient(180deg, var(--brass0), var(--brass1)); box-shadow:0 3px 0 var(--brass-edge), inset 0 2px 0 rgba(255,255,255,.6); font:700 18px var(--display); color:var(--brass-ink); cursor:pointer; z-index:2; display:flex; align-items:center; justify-content:center; padding:0 0 2px} .parr.left{left:8px} .parr.right{right:8px}
+  .bp{display:flex; flex-direction:column; gap:8px}
+  button.chip{cursor:pointer}
+  .dishwrap{position:relative; width:272px; height:272px; cursor:pointer; -webkit-tap-highlight-color:transparent; filter:drop-shadow(0 10px 0 rgba(0,0,0,.18))}
+  .dishwrap canvas{position:absolute; inset:14px; width:244px; height:244px; display:block}
+  .dishwrap svg{position:absolute; inset:0; width:272px; height:272px}
+  .dishwrap svg path{fill:none; stroke-width:7; stroke-linecap:round; stroke-linejoin:round}
+  .strip{width:100%; background:var(--surface) var(--paper); border:3px solid var(--ink); border-radius:16px; padding:8px 10px; box-shadow:0 4px 0 var(--ink); display:flex; flex-direction:column; gap:6px}
+  .dishwrap svg circle{fill:none; stroke-width:7; stroke-linecap:round}
+  .dishwrap svg .bg{stroke:var(--raised)} .dishwrap svg .fg{stroke:var(--teal); transition:stroke-dashoffset .2s linear}
+  .dishwrap.ready{animation:wob .7s ease-in-out infinite} .dishwrap.ready svg .fg{stroke:var(--accent1)}
+  @keyframes wob{0%,100%{transform:rotate(-1.5deg)} 50%{transform:rotate(1.5deg)}}
+  .dstat{font-family:var(--display); font-size:13px; color:#ffffffd9; text-align:center; font-variant-numeric:tabular-nums; font-weight:500; text-shadow:0 1px 0 rgba(0,0,0,.35)} .dstat b{color:#fff; font-weight:700}
+  .dbtns{display:flex; gap:8px; width:100%}
+  .incub{flex:1; text-align:center; font:600 12.5px var(--display); color:#fff3d6; padding:7px 8px; border:3px dashed rgba(255,255,255,.4); border-radius:16px; text-shadow:0 1px 0 rgba(0,0,0,.45); background:rgba(0,0,0,.08); cursor:pointer; display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:4px 7px; line-height:1.25; white-space:normal; transition:transform .12s cubic-bezier(.34,1.56,.64,1)}
+  .incub:hover{transform:scale(1.02)} .incub.go{border-style:solid; border-color:var(--accent0); background:rgba(255,209,102,.18); color:#fff}
+  .incub .stepno{background:linear-gradient(180deg, var(--accent0), var(--accent1)); color:var(--accent-ink); border:2px solid var(--ink); border-radius:8px; padding:1px 7px; font:700 11px var(--display); box-shadow:0 2px 0 var(--ink); text-shadow:none}
+  .incub i{display:inline-block; width:9px; height:9px; border-radius:50%; border:1.5px solid var(--ink); margin-right:3px; vertical-align:-1px} .incub .ok{color:#8ff7d8}
+  .btn{user-select:none; flex:1; border:3px solid var(--ink); background:var(--raised) var(--paper); color:var(--text); border-radius:16px; padding:9px 8px; font-weight:700; font-size:14px; cursor:pointer; font-variant-numeric:tabular-nums; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; box-shadow:0 4px 0 var(--ink), inset 0 2px 0 rgba(255,255,255,.4), inset 0 -2px 0 rgba(0,0,0,.08); transition:transform .12s cubic-bezier(.34,1.56,.64,1), box-shadow .12s; position:relative; top:0}
+  .btn:not(:disabled):hover{transform:translateY(-1px) scale(1.03)}
+  .btn:not(:disabled):active{transform:translateY(3px); box-shadow:0 1px 0 var(--ink)}
+  .btn:disabled{opacity:.5; cursor:default; box-shadow:0 2px 0 var(--ink); filter:saturate(.4)}
+  .btn.primary{background:linear-gradient(180deg, var(--accent0), var(--accent1)); color:var(--accent-ink); text-shadow:0 1px 0 rgba(255,255,255,.35)}
+  .btn.ad{background:repeating-linear-gradient(135deg, rgba(255,255,255,.1) 0 6px, transparent 6px 14px), linear-gradient(180deg, var(--ad0), var(--ad1)); color:var(--ad-ink); text-shadow:0 1px 0 rgba(0,0,0,.35)}
+  .btn.ad .ico{font-size:10px; margin-right:4px}
+  .chips{display:flex; gap:4px; flex-wrap:wrap; justify-content:center; min-height:22px; width:100%}
+  .chip{font-family:var(--display); font-size:10.5px; padding:2px 8px; border-radius:999px; border:2px solid var(--ink); background:#fff; color:var(--ink); font-weight:600; white-space:nowrap; animation:pop .4s cubic-bezier(.34,1.56,.64,1); display:inline-flex; align-items:center; gap:4px}
+  .chip i{width:8px; height:8px; border-radius:50%; border:1.5px solid var(--ink); display:inline-block}
+  .chip.new{background:var(--accent0)}
+  @keyframes pop{from{transform:scale(.4); opacity:0}}
+  .catbar{width:100%; display:flex; align-items:center; gap:8px; font-family:var(--display); font-size:11px; color:var(--muted); font-weight:600} .catbar .bar{flex:1; height:8px; background:var(--raised); border:2px solid var(--ink); border-radius:6px; overflow:hidden} .catbar .bar b{display:block; height:100%; background:var(--teal); transition:width .3s}
+
+  .extra{margin:0; display:flex; flex-direction:column; gap:6px} .extra:empty{display:none}
+  .xd{background:var(--surface) var(--paper); border:3px solid var(--ink); border-radius:16px; padding:6px 10px; display:grid; grid-template-columns:28px 1fr auto auto; gap:8px; align-items:center; font-family:var(--display); font-size:12px; font-weight:600; box-shadow:0 3px 0 var(--ink)}
+  .xd svg{width:28px; height:28px; transform:rotate(-90deg)} .xd svg circle{fill:none; stroke-width:5} .xd .bg{stroke:var(--raised)} .xd .fg{stroke:var(--teal)} .xd.ready .fg{stroke:var(--accent1)}
+  .xd .btn{flex:none; padding:5px 10px; font-size:12px}
+  .xdd i{display:inline-block; width:8px; height:8px; border-radius:50%; border:1.5px solid var(--ink); margin-right:2px; vertical-align:-1px}
+
+  .adrow{margin:0; display:flex; gap:8px}
+  /* the wooden board under the dish */
+  .board{position:relative; flex-shrink:0; margin:12px 12px 0; padding:10px 12px 12px; border:4px solid var(--wood-edge); border-radius:30px 18px 26px 22px / 20px 28px 18px 30px; overflow:hidden; background:var(--wood1); box-shadow:0 6px 0 var(--wood-edge), inset 0 3px 0 rgba(255,255,255,.14), inset 0 -4px 0 rgba(0,0,0,.22); display:flex; flex-direction:column; gap:8px; isolation:isolate}
+  .board::before{content:''; position:absolute; inset:-14px; z-index:-1; pointer-events:none; filter:var(--woodf); transform:rotate(-.6deg); background:
+    radial-gradient(circle at 16px 16px, #6b4423 3.5px, #2e1a0c 4.5px, transparent 5.5px), radial-gradient(circle at calc(100% - 18px) 14px, #6b4423 3.5px, #2e1a0c 4.5px, transparent 5.5px), radial-gradient(circle at 14px calc(100% - 16px), #6b4423 3.5px, #2e1a0c 4.5px, transparent 5.5px), radial-gradient(circle at calc(100% - 16px) calc(100% - 18px), #6b4423 3.5px, #2e1a0c 4.5px, transparent 5.5px),
+    radial-gradient(ellipse 30px 16px at 30% 66%, rgba(40,18,6,.5) 30%, rgba(40,18,6,.15) 60%, transparent 75%), radial-gradient(ellipse 20px 11px at 82% 24%, rgba(40,18,6,.45) 30%, transparent 75%), radial-gradient(ellipse 14px 8px at 58% 90%, rgba(40,18,6,.4) 30%, transparent 75%),
+    linear-gradient(93deg, transparent 31.5%, rgba(0,0,0,.28) 31.7%, rgba(255,255,255,.1) 32.3%, transparent 32.8%), linear-gradient(87deg, transparent 63%, rgba(0,0,0,.28) 63.2%, rgba(255,255,255,.1) 63.8%, transparent 64.3%),
+    linear-gradient(180deg, var(--wood0), var(--wood1))}
+  .board::after{content:''; position:absolute; inset:-40% -60%; z-index:-1; pointer-events:none; background:linear-gradient(115deg, transparent 42%, rgba(255,236,190,.16) 50%, transparent 58%); animation:sheen 8s ease-in-out infinite}
+  @keyframes sheen{0%{transform:translateX(-35%)} 60%,100%{transform:translateX(35%)}}
+  /* specimen shelf between the board and the menu */
+  /* the shelf lives inside the board's strip: the last harvests, in jars */
+  .shelf{margin:0; padding:8px 0 0; position:relative; display:flex; gap:8px; justify-content:center; align-items:flex-end; min-height:0; overflow-x:auto; scrollbar-width:none}
+  .shelf::-webkit-scrollbar{display:none}
+  .jarwrap{display:flex; flex-direction:column; align-items:center; gap:3px; position:relative; z-index:1; margin-bottom:0; flex:none; animation:pop .4s cubic-bezier(.34,1.56,.64,1)}
+  .jarwrap .cnt2{position:absolute; right:-7px; top:38px; z-index:3; background:var(--surface) var(--paper); border:2px solid var(--ink); border-radius:8px; font:700 9px var(--display); padding:1px 4px; box-shadow:0 2px 0 var(--ink); color:var(--text)}
+  .jarwrap .newtag{position:absolute; top:-2px; right:-8px; z-index:3; background:var(--accent0); border:2px solid var(--ink); border-radius:8px; font:700 8px var(--display); padding:1px 4px; box-shadow:0 2px 0 var(--ink); color:var(--ink)}
+  .dishcard{flex-shrink:0}
+  .jar{--jc:rgba(220,245,255,.45); --jc2:rgba(180,225,245,.55); width:56px; height:60px; position:relative; background:linear-gradient(180deg, var(--jc), var(--jc2)); border:3px solid var(--ink); border-radius:8px 8px 16px 16px; box-shadow:inset 0 0 0 3px rgba(255,255,255,.3), 0 3px 0 var(--ink); overflow:hidden}
+  .jar::before{content:''; position:absolute; left:6px; top:4px; width:8px; height:34px; background:rgba(255,255,255,.55); border-radius:4px; z-index:1}
+  /* jars by rarity: plain glass for commons, more exotic as you go up */
+  .jarwrap.r1 .jar{--jc:rgba(200,255,215,.5); --jc2:rgba(74,222,128,.55)} .jarwrap.r1 .lid{background:#3f9a3a}
+  .jarwrap.r2 .jar{--jc:rgba(200,225,255,.5); --jc2:rgba(96,165,250,.65)} .jarwrap.r2 .lid{background:linear-gradient(180deg,#ffe6a3,#e0a53a)}
+  .jarwrap.r3 .jar{--jc:rgba(255,205,200,.55); --jc2:rgba(240,86,78,.62); box-shadow:inset 0 0 0 3px rgba(255,255,255,.3), 0 3px 0 var(--ink), 0 0 12px rgba(240,86,78,.55)} .jarwrap.r3 .lid{background:linear-gradient(180deg,#ffe6a3,#e0a53a)}
+  .jarwrap.r3 .jar::after{content:''; position:absolute; left:-2px; right:-2px; top:16px; height:6px; background:#e0a53a; border-top:2px solid var(--ink); border-bottom:2px solid var(--ink); box-shadow:0 30px 0 -2px #e0a53a, 0 28px 0 0 var(--ink), 0 34px 0 0 var(--ink)}
+  .jarwrap.r4 .jar{--jc:rgba(235,205,255,.6); --jc2:rgba(150,90,230,.72); border-color:#3a1c5e; box-shadow:inset 0 0 0 3px rgba(255,255,255,.35), 0 3px 0 #3a1c5e, 0 0 16px rgba(181,123,255,.75)} .jarwrap.r4 .lid{background:linear-gradient(180deg,#ffe6a3,#b57bff); border-color:#3a1c5e}
+  .jarwrap.r4 .jar::after{content:''; position:absolute; inset:-40%; background:linear-gradient(115deg, transparent 40%, rgba(255,255,255,.55) 50%, transparent 60%); animation:jshimmer 2.6s ease-in-out infinite}
+  .jarwrap.r5 .jar{--jc:rgba(255,245,190,.7); --jc2:rgba(255,190,60,.8); border-color:#6b4a12; box-shadow:inset 0 0 0 3px rgba(255,255,255,.5), 0 3px 0 #6b4a12, 0 0 18px rgba(255,210,63,.9); animation:jpulse 1.6s ease-in-out infinite} .jarwrap.r5 .lid{background:linear-gradient(180deg,#fff3b0,#e0a53a); border-color:#6b4a12; width:40px}
+  .jarwrap.r5 .lid::before{content:''; position:absolute; left:50%; top:-9px; width:10px; height:10px; margin-left:-5px; background:#ff5c7a; border:2px solid #6b4a12; transform:rotate(45deg); border-radius:2px}
+  .jarwrap.r5 .jar::after{content:''; position:absolute; inset:-60%; background:conic-gradient(from 0deg, transparent 0 20%, rgba(255,255,255,.75) 24%, transparent 28%, transparent 60%, rgba(255,255,255,.55) 64%, transparent 68%); animation:jspin 5s linear infinite}
+  .jarwrap.rh .jar{--jc:rgba(190,255,240,.5); --jc2:rgba(55,211,168,.6)} .jarwrap.rh .lid{background:#2a6b64}
+  @keyframes jshimmer{0%{transform:translateX(-45%)} 60%,100%{transform:translateX(45%)}}
+  @keyframes jspin{to{transform:rotate(360deg)}}
+  @keyframes jpulse{0%,100%{box-shadow:inset 0 0 0 3px rgba(255,255,255,.5), 0 3px 0 #6b4a12, 0 0 12px rgba(255,210,63,.6)} 50%{box-shadow:inset 0 0 0 3px rgba(255,255,255,.5), 0 3px 0 #6b4a12, 0 0 24px rgba(255,210,63,1)}}
+  /* the odds bar */
+  .rbar{display:flex; width:100%; height:12px; border:2px solid var(--ink); border-radius:8px; overflow:hidden; background:#d6c59a; box-shadow:inset 0 2px 0 rgba(255,255,255,.35)} .rbar i{display:block; height:100%; transition:width .4s}
+  .rbar.sm{height:8px; margin-top:4px}
+  .rleg{display:flex; flex-wrap:wrap; gap:3px 8px; justify-content:center; font:700 9.5px var(--display); color:#fff8ea; text-shadow:0 1px 0 rgba(0,0,0,.5); margin-top:-2px} .rleg i{display:inline-block; width:8px; height:8px; border-radius:50%; border:1.5px solid var(--ink); margin-right:3px; vertical-align:-1px}
+  .it[data-r="4"]{box-shadow:0 3px 0 var(--ink), 0 0 12px rgba(181,123,255,.55)} .it[data-r="5"]{border-color:#8a6a1a; box-shadow:0 3px 0 #6b4a12, 0 0 14px rgba(255,210,63,.75); background:linear-gradient(180deg,#fff8dc,#ffe9a8) var(--paper)}
+  .jar canvas{position:absolute; left:2px; bottom:0; width:48px; height:48px}
+  .lid{width:34px; height:9px; background:#c96d4a; border:3px solid var(--ink); border-bottom:0; border-radius:6px 6px 0 0; margin-bottom:-3px; position:relative; z-index:2}
+  .jarwrap span{font:600 9.5px var(--display); color:#fff8ea; text-shadow:0 1px 0 rgba(0,0,0,.5); white-space:nowrap; max-width:64px; overflow:hidden; text-overflow:ellipsis}
+  .shelf .empty{font:700 11px var(--display); color:var(--faint); margin:8px 0 4px; position:relative; z-index:1}
+  .jarwrap span{color:var(--text); text-shadow:none}
+  .board .dstat{color:#fff8ea; text-shadow:0 1px 0 rgba(0,0,0,.5)} .board .dstat b{color:#fff}
+  .board .btn:not(.primary):not(.ad){background:#f3dfb8}
+  .adrow .btn{font-size:13px; padding:8px 6px}
+
+  .mapscrim{position:absolute; inset:0; background:rgba(8,30,24,.45); opacity:0; pointer-events:none; transition:opacity .25s; z-index:4} .mapscrim.on{opacity:1; pointer-events:auto}
+  .panel{position:absolute; left:0; right:0; bottom:0; height:65%; background:var(--surface) var(--paper); border-top:4px solid var(--ink); border-radius:26px 26px 0 0; overflow:hidden; transform:translateY(110%); transition:transform .45s cubic-bezier(.34,1.25,.64,1); z-index:5; display:flex; flex-direction:column; box-shadow:0 -10px 30px rgba(0,0,0,.28)}
+  .panel.open{transform:none}
+  .panel .ph{display:flex; justify-content:space-between; align-items:center; padding:9px 16px 9px; background:repeating-linear-gradient(135deg, rgba(255,255,255,.06) 0 6px, transparent 6px 14px), var(--band); border-bottom:4px solid var(--ink); box-shadow:inset 0 3px 0 rgba(255,255,255,.15), inset 0 -3px 0 rgba(0,0,0,.18)} .panel .ph h2{font-family:var(--display); font-weight:700; font-size:22px; margin:0; color:#fff; -webkit-text-stroke:1.2px var(--ink); paint-order:stroke fill; text-shadow:0 2px 0 var(--ink)}
+  .panel .close{width:34px; height:34px; border-radius:50%; border:3px solid var(--ink); background:linear-gradient(180deg,#ff8f8f,#e04848); box-shadow:0 3px 0 var(--ink), inset 0 2px 0 rgba(255,255,255,.45); font:700 15px var(--display); color:#fff; cursor:pointer; transition:transform .12s cubic-bezier(.34,1.56,.64,1)} .panel .close:hover{transform:scale(1.08) rotate(90deg)}
+  .panel .body{flex:1; overflow-y:auto; padding:10px 12px 90px; scrollbar-width:thin}
+  @keyframes rise{from{transform:translateY(26px) scale(.96); opacity:0}}
+  .panel.anim .body > *{animation:rise .5s cubic-bezier(.34,1.56,.64,1) both}
+  .panel.anim .body > :nth-child(2){animation-delay:.04s} .panel.anim .body > :nth-child(3){animation-delay:.08s} .panel.anim .body > :nth-child(4){animation-delay:.12s} .panel.anim .body > :nth-child(5){animation-delay:.16s} .panel.anim .body > :nth-child(6){animation-delay:.2s} .panel.anim .body > :nth-child(7){animation-delay:.24s} .panel.anim .body > :nth-child(n+8){animation-delay:.28s}
+  /* the menu: a wooden plank with medallion tabs */
+  .tabs{position:absolute; left:0; right:0; bottom:0; display:flex; border-top:4px solid var(--wood-edge); background:var(--wood1); z-index:6; padding:7px 4px calc(6px + env(safe-area-inset-bottom)); isolation:isolate; box-shadow:0 -8px 22px rgba(0,0,0,.3)}
+  .tabs::before{content:''; position:absolute; inset:0; z-index:-1; pointer-events:none; filter:var(--woodf); background:radial-gradient(ellipse 22px 10px at 18% 70%, rgba(40,18,6,.35), transparent 70%), radial-gradient(ellipse 16px 8px at 84% 30%, rgba(40,18,6,.3), transparent 70%), linear-gradient(180deg, var(--wood0), var(--wood1))}
+  .tabs::after{content:''; position:absolute; left:0; right:0; top:0; height:3px; background:rgba(255,255,255,.2); pointer-events:none}
+  .tabs button{flex:1; background:none; border:0; color:#fff3d6; padding:2px 2px 3px; font:700 10.5px var(--display); cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:3px; position:relative; text-shadow:0 1px 0 rgba(0,0,0,.55); transition:transform .18s cubic-bezier(.34,1.56,.64,1)}
+  .tabs button span.i{width:40px; height:40px; border-radius:50%; background:var(--surface) var(--paper); border:3px solid var(--ink); box-shadow:0 3px 0 var(--ink), inset 0 2px 0 rgba(255,255,255,.5); display:flex; align-items:center; justify-content:center; font-size:20px; line-height:1; filter:grayscale(.55) opacity(.9); transition:transform .18s cubic-bezier(.34,1.56,.64,1), background .18s}
+  .tabs button[aria-selected="true"]{color:#fff; transform:translateY(-6px)} .tabs button[aria-selected="true"] span.i{filter:none; background:linear-gradient(180deg, var(--accent0), var(--accent1)); transform:scale(1.12)}
+  .tabs button .badge{position:absolute; top:-3px; left:calc(50% + 12px); width:13px; height:13px; border-radius:50%; background:var(--bad); border:2px solid var(--ink); box-shadow:0 2px 0 var(--ink); display:none; z-index:1} .tabs button.has .badge{display:block}
+
+  .sub{color:var(--muted); font-size:12.5px; margin:2px 4px 10px; font-weight:700}  .r{background:var(--surface) var(--paper); border:3px solid var(--ink); border-radius:16px; padding:10px 12px; display:grid; grid-template-columns:1fr auto; gap:2px 10px; align-items:center; text-align:left; color:var(--text); cursor:pointer; width:100%; margin-bottom:8px; box-shadow:0 4px 0 var(--ink); font-family:var(--ui); transition:transform .12s cubic-bezier(.34,1.56,.64,1)}
+  .r:not(.locked):not(.done):not(.poor):hover{transform:translateY(-1px) scale(1.01)} .r:not(.locked):not(.done):not(.poor):active{transform:translateY(3px); box-shadow:0 1px 0 var(--ink)}
+  .r.done{opacity:.6; cursor:default} .r.locked{opacity:.55; cursor:default} .r.poor{cursor:default; filter:saturate(.5); opacity:.8}
+  .r .rn{font-family:var(--display); font-weight:700; font-size:15px} .r .rn .tag{font-size:10px; letter-spacing:.04em; text-transform:uppercase; color:var(--warn); font-weight:700; margin-left:6px} .r .rn .tag.on{color:#1a9c7f}
+  .r .rd{grid-column:1; font-size:12px; color:var(--muted); font-weight:700} .r .rc{font-family:var(--display); font-size:15px; font-weight:700; color:var(--warn); grid-row:span 2; white-space:nowrap; text-align:right} .r.poor .rc{color:var(--muted)} .r.done .rc{color:#1a9c7f}
+  .r .acts{grid-column:1/-1; display:flex; gap:6px; margin-top:8px} .r .acts .btn{flex:none; padding:6px 12px; font-size:12px}
+  .r .prog{grid-column:1/-1; height:8px; background:var(--raised); border:2px solid var(--ink); border-radius:6px; overflow:hidden; margin-top:6px} .r .prog b{display:block; height:100%; background:var(--teal)}
+
+  .card{background:var(--surface) var(--paper); border:3px solid var(--ink); border-radius:18px; padding:12px 14px; margin-bottom:10px; box-shadow:0 4px 0 var(--ink)}
+  .card h3{font-family:var(--display); font-weight:700; font-size:18px; margin:0 0 4px}
+  .req .who{display:flex; gap:10px; align-items:center} .req .face{font-size:26px; width:46px; height:46px; flex:none; display:flex; align-items:center; justify-content:center; background:var(--raised); border:3px solid var(--ink); border-radius:50%; box-shadow:0 3px 0 var(--ink)}
+  .req .who b{font-family:var(--display); font-size:15px} .req .say{font-family:var(--display); font-size:13.5px; margin:8px 0 6px; font-weight:500; line-height:1.3}
+  .req.small .face{width:36px; height:36px; font-size:20px} .req.small .say{font-size:12.5px; margin:6px 0 4px}
+  .needs{display:flex; flex-wrap:wrap; gap:4px} .needs .chip{animation:none}
+  .gh{font-family:var(--display); font-size:11px; letter-spacing:.06em; text-transform:uppercase; margin:10px 4px 6px; color:var(--muted); font-weight:700}
+  .dots i{display:inline-block; width:11px; height:11px; border-radius:50%; border:2px solid var(--ink); margin-right:3px; vertical-align:-1px}
+  /* side buttons flanking the vessel */
+  .sideL,.sideR{position:absolute; top:8px; bottom:8px; display:flex; flex-direction:column; justify-content:space-between; z-index:2} .sideL{left:8px} .sideR{right:8px}
+  .sbtn{width:54px; background:none; border:0; padding:0; display:flex; flex-direction:column; align-items:center; gap:3px; cursor:pointer; position:relative; transition:transform .15s cubic-bezier(.34,1.56,.64,1)} .sbtn:hover{transform:scale(1.06)} .sbtn:active{transform:translateY(2px)}
+  .sbtn span{width:46px; height:46px; border-radius:50%; background:linear-gradient(180deg, var(--brass0), var(--brass1)); border:3px solid var(--brass-edge); box-shadow:0 3px 0 var(--brass-edge), inset 0 2px 0 rgba(255,255,255,.6); display:flex; align-items:center; justify-content:center; font-size:22px; line-height:1}
+  .sbtn i{font:700 10.5px var(--display); font-style:normal; color:#fff; text-shadow:0 1px 0 rgba(0,0,0,.55)}
+  /* locked buttons: dim, padlock on the medallion, and the chapter-step that opens them */
+  .sbtn.locked span, .tabs button.locked span.i{filter:grayscale(1) brightness(.72) !important; background:linear-gradient(180deg,#d8cfbd,#a89d86) !important}
+  .sbtn.locked i, .tabs button.locked{opacity:.7}
+  .sbtn.locked span::after, .tabs button.locked span.i::after{content:'🔒'; position:absolute; right:-6px; bottom:-6px; width:20px; height:20px; border-radius:50%; background:var(--ink); border:2px solid #fff3d6; font-size:11px; display:flex; align-items:center; justify-content:center; filter:none}
+  .sbtn span, .tabs button span.i{position:relative}
+  .lk{position:absolute; left:50%; bottom:-9px; transform:translateX(-50%); background:var(--ink); color:#ffd166; font:700 9.5px var(--display); padding:1px 6px; border-radius:8px; border:2px solid #ffd166; white-space:nowrap; z-index:3}
+  .tabs button .lk{bottom:auto; top:-4px; left:auto; right:2px; transform:none}
+  .sbtn .cnt{position:absolute; top:-5px; right:-1px; min-width:19px; height:19px; padding:0 4px; border-radius:10px; background:var(--bad); color:#fff; font:700 11px var(--display); border:2px solid var(--ink); display:flex; align-items:center; justify-content:center; box-shadow:0 2px 0 var(--ink)} .sbtn .cnt.ok{background:var(--teal); color:var(--ink)}
+  /* pipette mini-game */
+  .mgbar{position:relative; height:30px; border:3px solid var(--ink); border-radius:15px; overflow:visible; background:linear-gradient(90deg,#e63946 0 18%,#ffd166 18% 34%,#22d3b0 34% 66%,#ffd166 66% 82%,#e63946 82%); box-shadow:inset 0 2px 0 rgba(255,255,255,.35); margin:10px 6px}
+  .mgbar .mid{position:absolute; left:50%; top:-6px; width:2px; height:42px; margin-left:-1px; background:rgba(0,0,0,.35)}
+  .mgm{position:absolute; top:-8px; width:14px; height:46px; margin-left:-7px; left:50%; background:#fff; border:3px solid var(--ink); border-radius:7px; box-shadow:0 3px 0 var(--ink)} .mgm::after{content:''; position:absolute; left:2px; right:2px; bottom:-14px; height:10px; border-radius:0 0 8px 8px; background:#5aa9ff; border:2px solid var(--ink); border-top:0}
+  .mgres{display:flex; gap:12px; align-items:center} .mgres .big{font-size:44px; width:70px; height:70px; display:flex; align-items:center; justify-content:center; background:var(--raised) var(--paper); border:3px solid var(--ink); border-radius:18px; box-shadow:0 3px 0 var(--ink)}
+  /* decor slots */
+  .slots{display:grid; grid-template-columns:repeat(3, 1fr); gap:8px} .slot{border:3px dashed var(--ink); border-radius:16px; padding:8px 6px; text-align:center; background:var(--raised) var(--paper); min-height:96px; display:flex; flex-direction:column; align-items:center; gap:3px} .slot.full{border-style:solid; box-shadow:0 3px 0 var(--ink)} .slot .e{font-size:30px; line-height:1} .slot .nm{font:700 12px var(--display)} .slot .pd{font-size:10.5px; color:var(--muted); font-weight:700} .slot .btn{flex:none; padding:4px 8px; font-size:11px; margin-top:auto}
+  .artrow{display:flex; align-items:center; gap:10px} .artrow .e{font-size:26px; width:40px; text-align:center}
+  .kv{display:flex; justify-content:space-between; padding:6px 0; border-bottom:2px dashed var(--line); font-size:13px; gap:10px; font-weight:700} .kv:last-of-type{border:0} .kv span:last-child{font-family:var(--display); color:var(--muted); text-align:right} .kv .good{color:#1a9c7f} .kv .warn{color:var(--warn)}
+  .ladder{display:flex; flex-direction:column; gap:3px; font-size:12.5px; font-weight:700} .ladder div{padding:5px 8px; border-radius:8px; color:var(--muted)} .ladder div.cur{background:var(--teal-soft); color:var(--text)} .ladder div.done{color:var(--text)}
+
+  .rgroup{margin-bottom:12px} .rgroup h4{margin:0 0 6px; font-family:var(--display); font-size:11px; letter-spacing:.06em; text-transform:uppercase; font-weight:700; color:#fff; text-shadow:0 1px 0 var(--ink), 1px 0 0 var(--ink), -1px 0 0 var(--ink), 0 -1px 0 var(--ink)}
+  .items{display:grid; grid-template-columns:1fr 1fr; gap:8px}
+  .it{border:3px solid var(--ink); border-radius:16px; padding:6px 8px 8px; background:var(--surface) var(--paper); display:flex; flex-direction:column; align-items:center; gap:2px; text-align:center; box-shadow:0 3px 0 var(--ink); position:relative; overflow:hidden}
+  .it canvas{width:72px; height:72px; display:block}
+  .it .nm{font-family:var(--display); font-weight:700; font-size:13px; line-height:1.1} .it .ds{font-size:10.5px; color:var(--muted); font-weight:700; line-height:1.2} .it small{font-family:var(--display); font-weight:600; color:var(--muted); font-size:10px}
+  .it.unk{background:var(--raised); border-style:dashed} .it.unk .nm{color:var(--faint)}
+  .it .dg{position:absolute; top:5px; right:6px; font-size:12px}
+  .it .band{position:absolute; left:0; top:0; bottom:0; width:6px}
+
+  .scrim{position:absolute; inset:0; background:rgba(10,30,25,.5); opacity:0; pointer-events:none; transition:opacity .2s; z-index:7} .scrim.on{opacity:1; pointer-events:auto}
+  .sheet{position:absolute; left:0; right:0; bottom:0; max-height:80%; overflow-y:auto; background:var(--surface) var(--paper); border-top:4px solid var(--ink); border-radius:26px 26px 0 0; padding:16px 16px 20px; transform:translateY(105%); transition:transform .35s cubic-bezier(.34,1.3,.64,1); z-index:8}
+  .sheet.open{transform:none}
+  .sheet h3{font-family:var(--display); font-weight:700; font-size:24px; margin:0 0 2px} .sheet .sub{margin:0 0 10px}
+  .sheet .acts{display:flex; gap:8px; margin-top:12px}
+  .adbox{background:#111; color:#eee; border:3px solid var(--ink); border-radius:16px; padding:18px 14px; text-align:center; font-family:var(--display); font-size:12px; margin:8px 0} .adbox .big{font-size:40px; font-weight:700; color:#fff; margin:6px 0} .adbox .cd{color:#9ae6b4}
+  .finds{display:flex; flex-wrap:wrap; gap:4px; margin-top:4px}
+
+  .toast{position:absolute; left:50%; top:14px; transform:translate(-50%,-40px) scale(.8); background:var(--surface) var(--paper); color:var(--text); border:3px solid var(--ink); box-shadow:0 4px 0 var(--ink); padding:7px 14px; border-radius:999px; font-family:var(--display); font-weight:600; font-size:13px; opacity:0; transition:all .35s cubic-bezier(.34,1.56,.64,1); z-index:10; pointer-events:none; white-space:nowrap; max-width:92%; overflow:hidden; text-overflow:ellipsis} .toast.on{opacity:1; transform:translate(-50%,0) scale(1)}
+  .toast.bad{background:#ffd6dc}
+
+  .notes{width:340px; color:var(--notes-text); font-size:13px; line-height:1.5}
+  .notes h2{font-family:var(--display); color:var(--notes-ink); font-size:30px; font-weight:700; margin:0 0 4px}
+  .notes p{margin:0 0 10px} .notes b{color:var(--notes-ink)}
+  .notes .dev{display:flex; flex-wrap:wrap; gap:6px; margin:10px 0 14px}
+  .notes .dev button{background:rgba(255,255,255,.08); border:2px solid rgba(255,255,255,.25); color:#fff; border-radius:999px; padding:5px 11px; font:600 12px var(--display); cursor:pointer} .notes .dev button[aria-pressed="true"]{background:#22d3b0; color:#0f3b36; border-color:#22d3b0}
+  .notes ul{padding-left:18px; margin:0 0 10px} .notes li{margin-bottom:4px}
+  .notes .stat{font-family:ui-monospace, Consolas, monospace; font-size:11.5px; color:#fff; background:rgba(0,0,0,.25); border-radius:10px; padding:8px 10px; margin-bottom:12px; white-space:pre-line}
+  @media (prefers-reduced-motion:reduce){ .sheet,.toast,.scrim,.btn,.r{transition:none} .chip{animation:none} .dishwrap.ready{animation:none} .board::before,.board::after{animation:none} }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <filter id="wood" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+    <feTurbulence type="fractalNoise" baseFrequency="0.006 0.11" numOctaves="4" seed="11" result="n">
+      <animate attributeName="baseFrequency" values="0.006 0.11;0.0068 0.118;0.006 0.11" dur="14s" repeatCount="indefinite"/>
+    </feTurbulence>
+    <feColorMatrix in="n" type="matrix" values="0 0 0 0 0.22  0 0 0 0 0.10  0 0 0 0 0.03  0.9 0 0 0 -0.32" result="dark"/>
+    <feColorMatrix in="n" type="matrix" values="0 0 0 0 1  0 0 0 0 0.9  0 0 0 0 0.7  0 0.7 0 0 -0.42" result="light"/>
+    <feComposite in="dark" in2="SourceGraphic" operator="over" result="a"/>
+    <feComposite in="light" in2="a" operator="over"/>
+  </filter>
+</defs></svg>
+<div class="stage">
+  <div class="phone" id="phone" data-skin="bio">
+    <div class="top">
+      <div class="sign"><div class="eyebrow" id="tierLabel"></div><h1 id="gameName"></h1></div>
+      <div class="kn"><span class="ic" id="curIc">🧫</span><div><div class="v" id="cur">0</div><div class="rt" id="rate"></div></div></div>
+    </div>
+    <button class="pill" id="skinPill" title="Switch skin"></button>
+
+    <div class="main" id="main">
+    <div class="dishcard">
+      <div class="page">
+      <div class="dishwrap" id="dishwrap" data-act="stir" data-i="0">
+        <canvas id="dish" width="360" height="360"></canvas>
+        <svg viewBox="0 0 200 200"><path class="bg" id="ringBg" d="M100 5 A95 95 0 1 1 99.99 5 Z"/><path class="fg" id="ring" d="M100 5 A95 95 0 1 1 99.99 5 Z" stroke-dasharray="596.9" stroke-dashoffset="596.9"/></svg>
+      </div>
+      </div>
+      <canvas id="machine" width="704" height="552" data-act="machine" hidden></canvas>
+      <div class="sideL"><button class="sbtn" data-act="open" data-tab="quests"><span>📜</span><i>Quests</i><b class="cnt ok" id="qCnt" hidden></b><b class="lk" hidden></b></button><button class="sbtn" data-act="open" data-tab="tickets"><span>🎟️</span><i>Tickets</i><b class="cnt" id="tCnt">3</b><b class="lk" hidden></b></button><button class="sbtn" data-act="open" data-tab="splicer"><span>🧬</span><i>Splicer</i><b class="cnt ok" id="sCnt" hidden></b><b class="lk" hidden></b></button></div>
+      <div class="sideR"><button class="sbtn" data-act="open" data-tab="shop"><span>🛒</span><i>Shop</i><b class="lk" hidden></b></button><button class="sbtn" data-act="open" data-tab="decor"><span>🏺</span><i>Decor</i><b class="cnt ok" id="dCnt" hidden></b><b class="lk" hidden></b></button><button class="sbtn" data-act="open" data-tab="notes"><span>📓</span><i>Notes</i></button></div>
+    </div>
+    <div class="board">
+      <div class="bp" id="board1">
+      <div class="dstat" id="dstat"></div>
+      <div class="rbar" id="rbar"></div>
+      <div class="rleg" id="rleg"></div>
+      <div class="dbtns">
+        <button class="incub" id="incub" data-act="open" data-tab="clinic"></button>
+        <button class="btn primary" id="collect" data-act="collect" data-i="0" hidden>Harvest</button>
+      </div>
+      <div class="strip">
+        <div class="shelf" id="shelf"></div>
+        <div class="catbar"><span id="catTxt"></span><div class="bar"><b id="catFill" style="width:0"></b></div><span id="catBonus"></span></div>
+      </div>
+      <div class="extra" id="extra"></div>
+      <div class="adrow">
+      <button class="btn ad" data-act="adWarp"><span class="ico">▶</span>Time warp +1 h</button>
+      <button class="btn ad" data-act="adBoost" id="boostBtn"><span class="ico">▶</span>2× for 2 min</button>
+      </div>
+      </div>
+    </div>
+    </div>
+
+    <div class="mapscrim" id="mapscrim"></div>
+    <div class="panel" id="panel">
+      <div class="ph"><h2 id="panelTitle"></h2><button class="close" id="panelClose" aria-label="Close">✕</button></div>
+      <div class="body" id="tabbody"></div>
+    </div>
+
+    <div class="tabs" id="tabs">
+      <button data-tab="up" aria-selected="true"><span class="i">🧪</span>Upgrades<i class="badge"></i></button>
+      <button data-tab="lab"><span class="i">🔬</span>Lab<i class="badge"></i><b class="lk" hidden></b></button>
+      <button data-tab="clinic"><span class="i">💊</span>Clinic<i class="badge"></i></button>
+      <button data-tab="cat"><span class="i">📖</span>Catalog<i class="badge"></i></button>
+      <button data-tab="asc"><span class="i">🚀</span>Scale up<i class="badge"></i></button>
+    </div>
+
+    <div class="scrim" id="scrim"></div>
+    <div class="sheet" id="sheet"></div>
+    <div class="toast" id="toast"></div>
+  </div>
+
+  <aside class="notes">
+    <h2>Petri / Orbit</h2>
+    <p>Milestone 0 mockup. One set of mechanics, two skins. Timings are compressed about 6× (a 20 s cycle here is 2 min in the real game). Ads are a 3 s fake with a 20 s cooldown.</p>
+    <div class="dev">
+      <button id="devSkin">Skin: Petri</button>
+      <button id="devSpeed" aria-pressed="false">Sim ×10</button>
+      <button id="devAway">Simulate 1 h away</button>
+      <button id="devCur">+1000</button>
+      <button id="devLv">+5 levels</button>
+      <button id="devStock">+4 of everything</button>
+      <button id="devTix">+3 tickets</button>
+      <button id="devReset">Reset save</button>
+    </div>
+    <div class="stat" id="devStat"></div>
+    <ul>
+      <li><b>Strains are characters.</b> Every catalog entry has a look and a temperament. Most are fuzzy guys. Some bite.</li>
+      <li><b>Dangerous strains</b> (⚠ in the catalog) eat neighbouring colonies while the cycle runs. <b>Tap one to quarantine it.</b> Nibbler eats once; Gulp eats one every five seconds; The Wipe eats one every 2.5 s until the dish is empty. Antibiotic wash research contains them automatically, which is what protects you offline.</li>
+      <li><b>Rarity</b> comes from the dish level only (plus luck). Level 1 is all common; level 10 is 85 / 12 / 3; level 20 adds epics; 35 adds legendaries.</li>
+      <li><b>Long timers have an ad.</b> Finish research, a brew or a splice; warp an hour; boost; double what came in while you were away. The dish itself has no skip: the ring shows the cycle and a Harvest button appears when it is done.</li>
+      <li><b>Side buttons.</b> Quests holds the odd jobs (the Clinic is story only now, with a "coming up" list so you can hunt ahead). Tickets is the pipette mini-game: three a day, stop the drop near the middle for a rarer artifact. Decor places up to three artifacts in the enclosure; only placed ones count. Shop sells a ticket, a mystery pebble and a paid boost.</li>
+      <li><b>Splicer button</b> opens the Splice-o-matic once Doc Ferro hands it over. Tap a tube to load a strain, pull the lever, tap the chamber to collect, tap a jar to seed it. Any two strains can go in; only five pairs react. Notes is Doc Ferro's notebook.</li>
+      <li><b>Upgrades</b> are one-time, in four tiers of five. Buy enough in a tier to open the next. Dish level stays repeatable. The Upgrades tab gets a red dot when you can afford one.</li>
+      <li><b>Scale up</b> needs the chapter finished and 10 of 13 found. Everything ×5, cycle ×1.5, catalog and research kept.</li>
+    </ul>
+  </aside>
+</div>
+
+<script>
+'use strict';
+// ---------- constants ----------
+const RAR = [
+  {k:'c', n:'Common',    col:'#d6c59a'},
+  {k:'u', n:'Uncommon',  col:'#4ade80'},
+  {k:'r', n:'Rare',      col:'#60a5fa'},
+  {k:'v', n:'Very rare', col:'#f0564e'},
+  {k:'x', n:'Exotic',    col:'#b57bff'},
+  {k:'m', n:'Mythic',    col:'#ffd23f'},
+];
+const COUNTS = [5,3,2,1,1,1];
+const PER = COUNTS.reduce((a, b) => a + b, 0);
+const KEYS = [[1,[100,0,0,0,0,0]],[10,[85,12,3,0,0,0]],[20,[68,20,9,3,0,0]],[35,[50,25,14,7,3,1]],[50,[34,26,18,11,7,4]]];
+const VAL = [3,12,60,400,3000,20000];
+const BONUS = [.01,.03,.08,.2,.5,1];
+const CYCLE_BASE = 20, TIER_MULT = 5, TIER_CYCLE = 1.5, ASC_LV = 25, ASC_FOUND = 10;
+const AD_LEN = 3, AD_CD = 20, BOOST_LEN = 120, WARP = 3600, OFFLINE_CAP = 4*3600;
+const EAT_EVERY = [0, Infinity, 5, 2.5], EAT_FIRST = [0, 2.5, 5, 2.5];
+const INK = '#1f3d33';
+
+// look: shape blob|amoeba|rod|ring|dots|spiral|crystal|star · col, col2 · eyes 0-3 · fuzz, tail, teeth, glow, halo, spots
+const sp = (n, d, look, danger) => ({ n, d, look, danger: danger || 0 });
+const THEMES = {
+  bio: {
+    name:'Petri', skin:'bio', cur:'Biomass', ic:'🧫', dish:'dish', drop:'colony', drops:'colonies', cycling:'Incubating', collect:'Harvest', ascend:'Scale up', contain:'Quarantined',
+    up:{ lv:['Dish level','Shifts the rarity table'], yield:['Nutrient agar','+1 colony per cycle'], speed:['Incubator heat','−6% cycle time'], luck:['Selective medium','+1.5 effective levels for rarity'], gen:['Culture vats','Biomass per second'] },
+    res:{ luck:['Selective media','Unlocks the luck upgrade'], auto:['Auto-harvest','Cycles collect themselves'], wash:['Antibiotic wash','Dangerous strains are quarantined on arrival, even offline'], dish2:['Second dish','A second dish runs in parallel'], storage:['Cold storage','Offline cap 4 h → 8 h'], fast:['Fast incubator','−25% base cycle time'], dish3:['Third dish','A third dish'] },
+    tiers:[
+      {n:'Petri dish', items:[
+        [ sp('Blubb', 'Sleeps through most cycles. Harmless and a little damp.', {shape:'blob', col:'#5aa9ff', col2:'#cfe6ff', eyes:2}),
+          sp('Fuzzwald', 'Just a fuzzy guy. Wants to be your friend.', {shape:'blob', col:'#7ed957', col2:'#d6f5c4', eyes:2, fuzz:1}),
+          sp('Dotto', 'Three of them. They never agree on a direction.', {shape:'dots', col:'#ffb347', col2:'#ffe0b3', eyes:2}),
+          sp('Wiggly', 'A rod with a tail. Wiggles. That is the whole deal.', {shape:'rod', col:'#ff85c2', col2:'#ffd1e8', eyes:2, tail:1}),
+          sp('Moldy Pete', 'A ring of mold with a lot of opinions.', {shape:'ring', col:'#c2b280', col2:'#eee3bd', eyes:2, spots:1}) ],
+        [ sp('Glowbert', 'Lights up when nobody is looking. Everybody is looking.', {shape:'blob', col:'#35e0c9', col2:'#c9fff6', eyes:2, glow:1}),
+          sp('Spirally', 'Corkscrews around the dish. Gets dizzy. Keeps going.', {shape:'spiral', col:'#a78bfa', eyes:2}),
+          sp('Nibbler', 'Small and bitey. Eats one neighbour, then feels bad about it.', {shape:'amoeba', col:'#d96be0', col2:'#f3c9f7', eyes:2, teeth:1}, 1) ],
+        [ sp('Mirror Mike', 'Reflective in every sense.', {shape:'crystal', col:'#c8d3e0', col2:'#ffffff', eyes:2}),
+          sp('Gulp', 'One eye, all mouth. Eats a neighbour every five seconds until you quarantine it.', {shape:'amoeba', col:'#5b2d8e', col2:'#2a0f4a', eyes:1, teeth:1}, 2) ],
+        [ sp('The Wipe', 'Wipes the dish clean if you let it. Contain it fast. Worth a fortune.', {shape:'amoeba', col:'#22222c', col2:'#ff2e4d', eyes:2, teeth:1}, 3) ],
+        [ sp('The First Cell', 'Where it all started. Calm. Glowing. Slightly smug.', {shape:'star', col:'#ffd23f', col2:'#fff3b0', eyes:2, glow:1, halo:1}) ],
+        [ sp('Genesis Bloom', 'Nobody has seen one twice. It hums the tune the bread used to sing.', {shape:'amoeba', col:'#ffb3f0', col2:'#fff6a8', eyes:2, glow:1, halo:1, spots:1, sparkle:1}) ],
+      ]},
+      {n:'Aquarium', items:[
+        [ sp('Water flea', 'Hops. Cannot stop hopping.', {shape:'dots', col:'#8ecae6', col2:'#d9f0fb', eyes:2}),
+          sp('Algae thread', 'A long green thought.', {shape:'rod', col:'#4caf50', col2:'#b7e4b9', eyes:2, tail:1}),
+          sp('Rotifer', 'Spins its little wheel all day.', {shape:'ring', col:'#f4a261', col2:'#ffd9b8', eyes:2, fuzz:1}),
+          sp('Pond snail', 'Slow. Content. Leaves a trail of opinions.', {shape:'blob', col:'#c77dff', col2:'#ead6ff', eyes:2, spots:1}),
+          sp('Duckweed', 'Floats. Multiplies. Floats more.', {shape:'blob', col:'#9ef01a', col2:'#e2ffb3', eyes:2}) ],
+        [ sp('Hydra', 'Waves hello with all of them.', {shape:'blob', col:'#2ec4b6', col2:'#c4f2ee', eyes:2, fuzz:1}),
+          sp('Diatom lattice', 'Glass architecture, tiny.', {shape:'crystal', col:'#a3cef1', col2:'#ffffff', eyes:2}),
+          sp('Copepod swarm', 'A crowd that moves as one. Mostly.', {shape:'dots', col:'#ffb703', col2:'#ffe8a3', eyes:2, tail:1}) ],
+        [ sp('Glass shrimp', 'You can see its lunch.', {shape:'rod', col:'#e0fbfc', col2:'#ffffff', eyes:2, tail:1, glow:1}),
+          sp('Blue planarian', 'Regrows. Eats. Regrows.', {shape:'rod', col:'#3a86ff', col2:'#1b4fbf', eyes:3, teeth:1}, 2) ],
+        [ sp('Lantern tadpole', 'Lights the tank. Will be a lantern frog.', {shape:'blob', col:'#ff9f1c', col2:'#ffe3b3', eyes:2, tail:1, glow:1}) ],
+        [ sp('Eyeless newt', 'Does not need to see you to like you.', {shape:'rod', col:'#ffd6a5', col2:'#fff1dc', eyes:0, halo:1}) ],
+        [ sp('Leviathan fry', 'A baby something. Gran Moss says the pond is deeper than the map.', {shape:'rod', col:'#7fe3ff', col2:'#ffffff', eyes:3, tail:1, glow:1, halo:1, sparkle:1}) ],
+      ]},
+      {n:'Terrarium', items:[
+        [ sp('Moss cushion', 'Soft. Sat on by everyone.', {shape:'blob', col:'#6a994e', col2:'#c7e2b3', eyes:2, fuzz:1}),
+          sp('Springtail', 'Boing.', {shape:'dots', col:'#bc6c25', col2:'#f1c9a0', eyes:2, tail:1}),
+          sp('Fern shoot', 'Unrolls on schedule.', {shape:'spiral', col:'#52b788', eyes:2}),
+          sp('Pill bug', 'Rolls up when startled. Startled often.', {shape:'rod', col:'#8d99ae', col2:'#d9dee8', eyes:2, spots:1}),
+          sp('Clover', 'Four leaves, occasionally.', {shape:'star', col:'#38b000', col2:'#b5f28a', eyes:2}) ],
+        [ sp('Orchid mantis', 'Pretty. Patient. Bites once.', {shape:'crystal', col:'#ffafcc', col2:'#ffe5ef', eyes:2, teeth:1}, 1),
+          sp('Jumping spider', 'Eight eyes, three shown. Curious about you.', {shape:'blob', col:'#3d405b', col2:'#8b8fb5', eyes:3, fuzz:1}),
+          sp('Sundew', 'Sticky. Hungry. Blames nobody.', {shape:'star', col:'#e63946', col2:'#ffb3ba', eyes:2, teeth:1}, 1) ],
+        [ sp('Jewel beetle', 'Worth more than the terrarium.', {shape:'crystal', col:'#06d6a0', col2:'#b8ffe9', eyes:2, glow:1}),
+          sp('Ghost slug', 'Mostly not there.', {shape:'blob', col:'#f1faee', col2:'#ffffff', eyes:2, glow:1}) ],
+        [ sp('Blue morpho', 'Opens its wings and the room goes quiet.', {shape:'star', col:'#4361ee', col2:'#b3c2ff', eyes:2, glow:1}) ],
+        [ sp('Corpse flower', 'Blooms once. Everything nearby regrets it.', {shape:'star', col:'#7b2d26', col2:'#f7d6bf', eyes:2, teeth:1}, 3) ],
+        [ sp('Root Mother', 'Every plant in the garden is her. She is polite about it.', {shape:'crystal', col:'#c9f27a', col2:'#fff8c4', eyes:2, fuzz:1, glow:1, halo:1, sparkle:1}) ],
+      ]},
+    ],
+    more:['Biome dome','Living planet','Seeded system','Living galaxy'],
+    style:{ bg0:'#ffd9c7', bg1:'#f4a988', rim:'#c96d4a' },
+  },
+  space: {
+    name:'Orbit', skin:'space', cur:'Matter', ic:'✨', dish:'field', drop:'find', drops:'finds', cycling:'Scanning', collect:'Catalog', ascend:'Zoom out', contain:'Shielded',
+    up:{ lv:['Field level','Shifts the rarity table'], yield:['Wider aperture','+1 find per scan'], speed:['Scan rate','−6% scan time'], luck:['Spectral filter','+1.5 effective levels for rarity'], gen:['Mining drones','Matter per second'] },
+    res:{ luck:['Spectral filters','Unlocks the luck upgrade'], auto:['Auto-catalog','Scans catalog themselves'], wash:['Debris shield','Hazards are shielded on arrival, even offline'], dish2:['Second field','A second field scans in parallel'], storage:['Deep storage','Offline cap 4 h → 8 h'], fast:['Fast scanner','−25% base scan time'], dish3:['Third field','A third field'] },
+    tiers:[
+      {n:'Gravel bed', items:[
+        [ sp('Flint chip','Sharp. Older than the tray.',{col:'#9aa5b1'}), sp('Quartz grain','Catches the light and keeps it.',{col:'#e8e8ff'}), sp('Basalt pebble','Was lava once. Over it now.',{col:'#5c6370'}), sp('River stone','Smooth from a long trip.',{col:'#b8a58a'}), sp('Iron flake','Rusts if you look at it.',{col:'#c9743d'}) ],
+        [ sp('Fossil shard','Something lived. This is what is left.',{col:'#d4c29a'}), sp('Geode','Boring outside. Party inside.',{col:'#a78bfa'}), sp('Tektite','Glass from an impact nobody saw.',{col:'#3b3b4f'}) ],
+        [ sp('Meteorite fragment','Not from around here.',{col:'#7c8aa5'}), sp('Lodestone','Drags nearby finds off the tray.',{col:'#3a3a3a'}, 1) ],
+        [ sp('Moon rock','Came back with someone.',{col:'#d9d9e3'}) ],
+        [ sp('The pebble that fell from the sky','Everyone has a story about it.',{col:'#fbbf24'}) ],
+        [ sp('A grain of the first star','Older than the tray, the room, the planet.',{col:'#ffd23f', sparkle:1}) ],
+      ]},
+      {n:'Asteroid belt', items:[
+        [ sp('Rubble pile','Held together by good intentions.',{col:'#8a8f98'}), sp('Carbon chondrite','Old as the system.',{col:'#4a4a55'}), sp('Nickel nugget','Dense. Valuable. Heavy.',{col:'#c0c8d0'}), sp('Ice chunk','Sublimating quietly.',{col:'#bfe9ff'}), sp('Dust clump','Barely a thing.',{col:'#a89f91'}) ],
+        [ sp('Metallic core','The middle of something bigger.',{col:'#d0d6dc'}), sp('Trojan rock','Rides ahead of a planet.',{col:'#9d8b6e'}), sp('Comet head','Losing its tail.',{col:'#e6f7ff'}) ],
+        [ sp('Diamond asteroid','Someone is going to be rich.',{col:'#e0ffff'}), sp('Hollow asteroid','Something lives inside. It is hungry.',{col:'#2b2b36'}, 2) ],
+        [ sp('Binary pair','Two rocks, one orbit.',{col:'#c084fc'}) ],
+        [ sp('Ceres','The big one.',{col:'#fbbf24'}) ],
+        [ sp("Vesta's heart",'The belt keeps one secret. This is it.',{col:'#ffd23f', sparkle:1}) ],
+      ]},
+      {n:'Planetary system', items:[
+        [ sp('Barren moon','Nothing home.',{col:'#bfbfbf'}), sp('Gas dwarf','A puff with ambitions.',{col:'#f4d58d'}), sp('Ring shard','A piece of a ring.',{col:'#e8dcc4'}), sp('Rogue comet','Not on the schedule.',{col:'#d9f7ff'}), sp('Hot rock','Too close to its star.',{col:'#ff7a45'}) ],
+        [ sp('Ocean world','All beach, no sand.',{col:'#3b82f6'}), sp('Ringed giant','Shows off.',{col:'#e9c46a'}), sp('Tidally locked twin','One side always waiting.',{col:'#9d4edd'}) ],
+        [ sp('Storm giant','A storm the size of worlds. It pulls things in.',{col:'#5b21b6'}, 2), sp('Diamond-core world','Pressure makes jewellery.',{col:'#c7f9ff'}) ],
+        [ sp('Habitable world','Somebody could live here.',{col:'#22c55e'}) ],
+        [ sp('A blue marble','You know this one.',{col:'#60a5fa'}) ],
+        [ sp('A second Earth','Nobody agrees on who saw it first.',{col:'#ffd23f', sparkle:1}) ],
+      ]},
+    ],
+    more:['Star cluster','Galaxy','Supercluster','Universe','Multiverse'],
+    style:{ bg0:'#141d3a', bg1:'#070b18', rim:'#3b4a7a' },
+  },
+};
+const RES_DEF = [
+  {id:'luck',    cost:80,   time:45,  req:null},
+  {id:'auto',    cost:150,  time:60,  req:null},
+  {id:'wash',    cost:250,  time:90,  req:null},
+  {id:'dish2',   cost:400,  time:120, req:'auto'},
+  {id:'storage', cost:600,  time:150, req:null},
+  {id:'fast',    cost:1200, time:200, req:'auto'},
+  {id:'dish3',   cost:3000, time:300, req:'dish2'},
+];
+const SHAPES = ['blob','rod','ring','dots','spiral','crystal','amoeba','star'];
+
+// ---------- the Clinic: story chapters, side requests, hybrids ----------
+// need entries are [rarity, index, quantity] against the current tier's catalog stock (count minus the one you keep)
+const STORY = { 0: { title:'Something in the water', intro:'Mossbrook: one pond, one bakery, one lab. The lab is yours. People will bring you problems. Brew them something.', steps:[
+  { who:'Mayor Bramble', face:'🎩', say:'Welcome to Mossbrook! Small thing: the tap water has gone fizzy. Can that dish of yours do anything?', tonic:'Fizz-Fix', need:[[0,0,2]], reward:40, after:'The water is flat again. Bramble calls it a triumph of local science.' },
+  { who:'Ida the baker', face:'👩‍🍳', say:'My bread is singing. Not a metaphor. Four-part harmony, every loaf.', tonic:'Hush syrup', need:[[0,1,2],[0,2,1]], reward:90, after:'The bread has gone quiet. Ida seems almost disappointed.' },
+  { who:'Pip', face:'🧒', say:'My cat glows at night. Mum says it is my fault. It is NOT my fault.', tonic:'Dimmer drops', need:[[1,0,1],[0,0,2]], reward:160, after:'Pip is thrilled. The cat is still faintly green, which Pip says is fine.' },
+  { who:'Doc Ferro', face:'🥼', say:'Purple spots. Six patients since Tuesday. I need something that bites back. Take my old splicer, you will need it.', tonic:'Bitters', need:[[1,2,1],[0,3,2]], reward:260, gives:'splicer', after:'Ferro frowns at the sample. "This is not a bug. Something is spreading."' },
+  { who:'Gran Moss', face:'👵', say:'The pond has gone black. BLACK. My ducks refuse to go in.', tonic:'Mirror wash', need:[[2,0,1],[0,4,2]], reward:520, after:'The pond clears. Something moved under the surface as it did.' },
+  { who:'Doc Ferro', face:'🥼', say:'It is in the water supply. Bring me a live culture of the thing itself, contained. Keep it away from your others.', tonic:'Contained sample', need:[[2,1,1],[1,0,1],[0,0,3]], reward:900, after:'Ferro goes pale. "I have seen this strain once. We called it The Wipe. It blooms."' },
+  { who:'Doc Ferro', face:'🥼', say:'It is blooming in your dish. Seed a Sentinel if you have one, then tap it until it breaks. Go!', outbreak:true, hp:30, time:25, reward:2000, after:'The bloom breaks apart and drains away. Downstream is the pond, and the pond is where we go next.' },
+]},
+1: { title:'The pond', intro:'The pond is bigger than it looks and everything in it has changed since the water went black. Gran Moss keeps ducks on it. Old Bill fishes it. Doc Ferro wants a map of it.', steps:[
+  { who:'Gran Moss', face:'👵', say:'The ducks came back. They came back PURPLE. Fix my ducks.', tonic:'Duck rinse', need:[[0,4,2],[0,0,1]], reward:200, after:'The ducks are white again, except one, which Gran Moss has decided to keep purple.' },
+  { who:'Old Bill', face:'🎣', say:'The fish that argues has friends now. A whole choir. They do requests.', tonic:'Choir syrup', need:[[0,1,2],[0,2,1]], reward:450, after:'The choir has stopped. Bill hums one of their songs when he thinks nobody is listening.' },
+  { who:'Pip', face:'🧒', say:'There is a snail in my boot. There was a snail in my boot yesterday too. DIFFERENT boot.', tonic:'Snail-be-gone', need:[[1,0,1],[0,3,2]], reward:800, after:'Pip reports zero snails, then finds one in a hat.' },
+  { who:'Doc Ferro', face:'🥼', say:'The water in the clinic taps is moving on its own. Against the flow. I need it still.', tonic:'Still water', need:[[1,1,1],[0,0,2]], reward:1300, after:'The taps run straight again. Ferro, quietly: "It is learning the pipes."' },
+  { who:'Marla the lifeguard', face:'🏊', say:'Something regrew in the shallows. I cut it in half to be safe. Now there are two, and they are both looking at me.', tonic:'Planarian salve', need:[[2,1,1],[1,2,1],[0,4,2]], reward:2600, after:'Both halves went still. Marla has moved her chair further up the beach.' },
+  { who:'Doc Ferro', face:'🥼', say:'It hides from light. I need to see the bottom of that pond, all of it, at once.', tonic:'Lantern draught', need:[[2,0,1],[1,0,1],[0,1,3]], reward:4500, after:'The pond floor lit up like a town at night. It is under there. All of it. Ferro: "Then we bring it up."' },
+  { who:'Doc Ferro', face:'🥼', say:'It is coming up through the pond and into your dish. Bigger this time. Break it.', outbreak:true, hp:45, time:28, reward:10000, after:'It broke apart and sank into the mud. The mud gets dredged into the garden beds. Gran Moss grows tomatoes there.' },
+]},
+2: { title:'The garden', intro:'Everything in the garden grew out of pond mud. Some of it is lovely. Some of it bites. Doc Ferro thinks a cure is in there somewhere.', steps:[
+  { who:'Gran Moss', face:'👵', say:'The tomatoes are humming. Not the cows. The TOMATOES.', tonic:'Quiet mulch', need:[[0,0,2],[0,4,1]], reward:1000, after:'The tomatoes have gone quiet. Gran Moss is a little suspicious of how quiet.' },
+  { who:'Coach Dabb', face:'🏃', say:'The football pitch is bouncing. Not the ball. The grass, specifically, is bouncing.', tonic:'Flat grass', need:[[0,1,2],[0,2,1]], reward:2200, after:'The pitch is flat. Coach Dabb lost the match anyway and blames the grass.' },
+  { who:'Ida the baker', face:'👩‍🍳', say:'Ferns are growing out of my ovens. They like it warm. The bread is fine. The bread is fern-flavoured.', tonic:'Oven weed', need:[[1,1,1],[0,3,2]], reward:4000, after:'The ovens are clear. Ida is keeping one fern. It has a name.' },
+  { who:'Mayor Bramble', face:'🎩', say:'The town sign is covered in something very pretty and it bit the postman.', tonic:'Mantis balm', need:[[1,0,1],[0,4,2]], reward:6500, after:'The sign is clean. Postie Lark is fine and wants it noted that she bit it back.' },
+  { who:'Doc Ferro', face:'🥼', say:'Ona found a slug in the clinic that is not entirely there. I want to know where the rest of it is.', tonic:'Ghost trap', need:[[2,1,1],[1,2,1],[0,0,2]], reward:13000, after:'The rest of it was in the garden wall. Ferro: "The Wipe is not a strain any more. It is a place. It is this garden."' },
+  { who:'Pip', face:'🧒', say:'There is a beetle in the hedge worth more than the school. Mum says give it to the doctor. I say we buy the school.', tonic:'Jewel tincture', need:[[2,0,1],[1,1,1],[0,2,3]], reward:22000, after:'Ferro holds the tincture up to the light. "With this I can make a cure. I need one thing more, and it only blooms once."' },
+  { who:'Doc Ferro', face:'🥼', say:'The corpse flower is opening. That is it. That is its last body. Break it and I can finish the cure.', outbreak:true, boss:[2,4,0], hp:60, time:30, reward:50000, after:'The flower fell apart into seeds. Ferro has a cure. Mossbrook is quiet, humming softly, mostly tomatoes. Past the garden wall there is a whole dome of the stuff, and somebody has to look.' },
+]}};
+const SIDE = [
+  { who:'Farmer Tuck', face:'🧑‍🌾', say:'The cows are humming. In key.', tonic:'Calm cream', need:[[0,1,1],[0,4,1]], reward:60 },
+  { who:'Postie Lark', face:'📬', say:'Letters keep sticking together. Love letters, mostly.', tonic:'Unstick', need:[[0,3,2]], reward:50 },
+  { who:'Old Bill', face:'🎣', say:'Caught a fish that argues. It is winning.', tonic:'Quiet bait', need:[[0,2,2],[0,0,1]], reward:70 },
+  { who:'Nurse Ona', face:'💉', say:'The waiting room smells of lemons. Nobody brought lemons.', tonic:'Air fix', need:[[1,1,1],[0,0,1]], reward:130 },
+  { who:'Coach Dabb', face:'🏃', say:'The football keeps rolling uphill.', tonic:'Downhill drops', need:[[0,4,1],[0,2,1]], reward:65 },
+];
+const HYBRIDS = [
+  { id:'glowfuzz', n:'Glowfuzz', d:'Fuzzy and lit. Rare things like the light.', par:[[0,1],[1,0]], look:{shape:'blob', col:'#8ff7d8', col2:'#e2fff6', eyes:2, fuzz:1, glow:1}, perk:'luck', pd:'+3 effective levels while seeded' },
+  { id:'blobbly', n:'Blobbly', d:'A blob that finally has somewhere to be.', par:[[0,0],[0,3]], look:{shape:'blob', col:'#9bb8ff', col2:'#ffd1e8', eyes:2, tail:1}, perk:'drop', pd:'+1 colony per cycle while seeded' },
+  { id:'dizzy', n:'Dizzy Dots', d:'Three of them, all spinning.', par:[[0,2],[1,1]], look:{shape:'dots', col:'#c9a3ff', col2:'#ffe0b3', eyes:2}, perk:'speed', pd:'−15% cycle time while seeded' },
+  { id:'polish', n:'Polish', d:'Mold with a mirror finish. Very proud.', par:[[0,4],[2,0]], look:{shape:'ring', col:'#dfe6ee', col2:'#ffffff', eyes:2, spots:1}, perk:'value', pd:'+50% duplicate value while seeded' },
+  { id:'sentinel', n:'Sentinel', d:'Nibbler taught to bite the right things.', par:[[1,2],[1,0]], look:{shape:'amoeba', col:'#37d3a8', col2:'#fff6a8', eyes:1, teeth:1, glow:1}, perk:'guard', pd:'Biters quarantined on arrival while seeded. Bites the bloom.' },
+];
+const HYB = Object.fromEntries(HYBRIDS.map(h => [h.id, h]));
+const SPLICE_COST = 120, SPLICE_TIME = 60, BREW_TIME = 45, OB_HP = 30, OB_TIME = 25;
+// ---------- artifacts (won at the pipette, placed in the enclosure), shop ----------
+const ARTS = [
+  { id:'pebble',    n:'Lucky pebble',   e:'🪨', r:0, perk:['lv', 1],     d:'+1 effective level' },
+  { id:'lamp',      n:'Warm lamp',      e:'💡', r:0, perk:['speed', .05], d:'−5% cycle time' },
+  { id:'sprinkles', n:'Agar sprinkles', e:'🧂', r:0, perk:['value', .1],  d:'+10% duplicate value' },
+  { id:'prism',     n:'Prism',          e:'🔮', r:1, perk:['lv', 2],     d:'+2 effective levels' },
+  { id:'chime',     n:'Wind chime',     e:'🎐', r:1, perk:['income', .1], d:'+10% income' },
+  { id:'moon',      n:'Moon shard',     e:'🌙', r:2, perk:['lv', 4],     d:'+4 effective levels' },
+  { id:'key',       n:'Old key',        e:'🗝️', r:2, perk:['drop', 1],    d:'+1 colony per cycle' },
+  { id:'bell',      n:'Golden bell',    e:'🔔', r:3, perk:['lv', 6],     d:'+6 effective levels' },
+];
+const ART = Object.fromEntries(ARTS.map(a => [a.id, a]));
+const TICKETS_PER_DAY = 3;
+const SHOP = [
+  { id:'ticket', n:'Extra ticket',   e:'🎟️', d:'One more go at the pipette today. Price climbs each time.', cost: () => Math.round(150 * tierMult() * Math.pow(1.6, S.shopT || 0)) },
+  { id:'pebble', n:'Mystery pebble', e:'🪨', d:'A random common artifact.', cost: () => 300 * tierMult() },
+  { id:'boost',  n:'Boost',          e:'✦',  d:'2× income and speed for two minutes, paid in biomass instead of an ad.', cost: () => 400 * tierMult() },
+];
+const PALETTE = ['#5aa9ff','#7ed957','#ffb347','#ff85c2','#35e0c9','#a78bfa','#f4a261','#c77dff','#9ef01a','#ff9f1c'];
+
+// ---------- state ----------
+const SAVE = 'petri-orbit-mock-v2';
+let S = load() || fresh();
+let T = THEMES[S.theme];
+let tab = null, simSpeed = 1, adBusy = false, lastFrame = performance.now(), uiAcc = 0;
+let ripples = [], parts = [], shakeT = 0, stirAcc = 0, mParts = [], leverT = 0, page = 0, boardKey = '';
+
+// ---------- one-time upgrades in tiers (buy enough in a tier to open the next) ----------
+const UPT = [
+  { n:'Basics', need:0, items:[
+    { id:'b_yield', n:'Richer agar',     d:'+1 colony per cycle',   k:'yield', v:1,   cost:30 },
+    { id:'b_speed', n:'Warm incubator',  d:'−12% cycle time',       k:'speed', v:.12, cost:40 },
+    { id:'b_gen',   n:'Bigger vats',     d:'income ×1.5',           k:'gen',   v:1.5, cost:25 },
+    { id:'b_lv',    n:'Sharp eyes',      d:'+1 effective level',    k:'lv',    v:1,   cost:50 },
+    { id:'b_val',   n:'Sales pitch',     d:'+20% duplicate value',  k:'val',   v:.2,  cost:45 } ] },
+  { n:'Instruments', need:3, items:[
+    { id:'i_yield', n:'Double agar',     d:'+2 colonies per cycle', k:'yield', v:2,   cost:200 },
+    { id:'i_speed', n:'Hot incubator',   d:'−15% cycle time',       k:'speed', v:.15, cost:240 },
+    { id:'i_gen',   n:'Vat farm',        d:'income ×2',             k:'gen',   v:2,   cost:180 },
+    { id:'i_lv',    n:'Selective medium', d:'+2 effective levels',  k:'lv',    v:2,   cost:300, req:'luck' },
+    { id:'i_val',   n:'Auctioneer',      d:'+30% duplicate value',  k:'val',   v:.3,  cost:260 } ] },
+  { n:'Precision', need:4, items:[
+    { id:'p_yield', n:'Triple agar',     d:'+2 colonies per cycle', k:'yield', v:2,   cost:1200 },
+    { id:'p_speed', n:'Cryo-timer',      d:'−18% cycle time',       k:'speed', v:.18, cost:1500 },
+    { id:'p_gen',   n:'Industrial vats', d:'income ×2.5',           k:'gen',   v:2.5, cost:1000 },
+    { id:'p_lv',    n:'Rare lens',       d:'+3 effective levels',   k:'lv',    v:3,   cost:1800 },
+    { id:'p_val',   n:"Collector's market", d:'+40% duplicate value', k:'val', v:.4,  cost:1400 } ] },
+  { n:'Legendary gear', need:5, items:[
+    { id:'l_yield', n:'Endless agar',    d:'+2 colonies per cycle', k:'yield', v:2,   cost:8000 },
+    { id:'l_speed', n:'Time dilation',   d:'−20% cycle time',       k:'speed', v:.2,  cost:10000 },
+    { id:'l_gen',   n:'Vat empire',      d:'income ×3',             k:'gen',   v:3,   cost:7000 },
+    { id:'l_lv',    n:'Golden lens',     d:'+5 effective levels',   k:'lv',    v:5,   cost:12000 },
+    { id:'l_val',   n:'Museum deal',     d:'+60% duplicate value',  k:'val',   v:.6,  cost:9000 } ] },
+];
+const UPI = Object.fromEntries(UPT.flatMap(t => t.items).map(u => [u.id, u]));
+function fresh(){ return { theme:'bio', cur:0, tier:0, lv:1, ups:{}, res:{}, active:null, cat:{}, dishes:[newDish()], boost:0, adCd:0, ads:0, adUse:{}, recent:[], shelf:[], cycles:0, eaten:0, hasSplicer:false, hyb:{}, seed:null, splice:null, sp:[null,null], spOut:null, story:{}, side:[], ob:null, tickets:TICKETS_PER_DAY, tDay:'', shopT:0, arts:{}, placed:[null,null,null], last:Date.now() }; }
+function load(){ try{ const s = JSON.parse(localStorage.getItem(SAVE)); if (!s || !s.dishes) return null; s.dishes.forEach(d => d.drops.forEach(g => { g.atk = null; g.meet = null; g.frozen = false; })); s.hyb = s.hyb || {}; s.story = s.story || {}; s.side = s.side || []; s.ob = null; if (s.seed === undefined) s.seed = null; if (s.splice === undefined) s.splice = null; s.hasSplicer = !!s.hasSplicer; s.sp = s.sp || [null, null]; s.spOut = s.spOut || null; if (s.splice && !s.splice.a) s.splice = null; s.ups = s.ups || {}; if (s.tickets === undefined) s.tickets = TICKETS_PER_DAY; s.tDay = s.tDay || ''; s.shopT = s.shopT || 0; s.arts = s.arts || {}; s.placed = s.placed || [null, null, null]; return s; }catch(e){ return null; } }
+function save(){ S.last = Date.now(); try{ localStorage.setItem(SAVE, JSON.stringify(S)); }catch(e){} }
+
+// ---------- derived ----------
+const tierMult = () => Math.pow(TIER_MULT, S.tier);
+const boostOn = () => S.boost > 0;
+function catMult(){ let m = 1; for (const t in S.cat) for (const k in S.cat[t]) m += BONUS[+k[0]]; return m; }
+function artPerk(k){ let v = 0; for (const id of (S.placed || [])){ const a = id && ART[id]; if (a && a.perk[0] === k) v += a.perk[1]; } return v; }
+function upSum(k){ let v = 0; for (const id in S.ups){ const u = UPI[id]; if (u && u.k === k) v += u.v; } return v; }
+function upProd(k){ let v = 1; for (const id in S.ups){ const u = UPI[id]; if (u && u.k === k) v *= u.v; } return v; }
+function upSpeed(){ let v = 1; for (const id in S.ups){ const u = UPI[id]; if (u && u.k === 'speed') v *= (1 - u.v); } return v; }
+function upBought(ti){ return UPT[ti].items.filter(u => S.ups[u.id]).length; }
+function upOpen(ti){ return ti === 0 || upBought(ti - 1) >= UPT[ti].need; }
+function upCanBuy(u, ti){ return !S.ups[u.id] && upOpen(ti) && (!u.req || S.res[u.req]) && S.cur >= u.cost * tierMult(); }
+function upAvailable(){ return UPT.some((t, ti) => t.items.some(u => upCanBuy(u, ti))); }
+function genRate(){ return 0.3 * upProd('gen') * tierMult() * catMult() * (boostOn() ? 2 : 1) * (1 + artPerk('income')); }
+const perk = k => !!(S.seed && HYB[S.seed] && HYB[S.seed].perk === k);
+function cycleTime(){ const base = CYCLE_BASE * Math.pow(TIER_CYCLE, S.tier) * (S.res.fast ? .75 : 1); return Math.max(base * .25, base * upSpeed()) * (perk('speed') ? .85 : 1) * (1 - artPerk('speed')); }
+function dropsPer(){ return 1 + upSum('yield') + (perk('drop') ? 1 : 0) + artPerk('drop'); }
+function valMult(){ return (1 + upSum('val')) * (perk('value') ? 1.5 : 1) * (1 + artPerk('value')); }
+function effLv(){ return S.lv + upSum('lv') + (perk('luck') ? 3 : 0) + artPerk('lv'); }
+function stock(r, i, t){ t = t === undefined ? S.tier : t; return Math.max(0, ((S.cat[t] || {})[`${r}-${i}`] || 0) - 1); }
+function story(){ if (!S.story[S.tier]) S.story[S.tier] = { step:0, brewing:null, brewed:false, log:[], done:false }; return S.story[S.tier]; }
+function curStep(){ const c = STORY[S.tier]; const st = story(); return c && !st.done ? c.steps[st.step] : null; }
+function haveAll(need){ return need.every(([r, i, q]) => stock(r, i) >= q); }
+function consume(need){ const c = S.cat[S.tier]; need.forEach(([r, i, q]) => { c[`${r}-${i}`] -= q; }); }
+function weights(L){
+  if (L <= KEYS[0][0]) return KEYS[0][1];
+  for (let i = 1; i < KEYS.length; i++){ if (L <= KEYS[i][0]){ const [a,wa] = KEYS[i-1], [b,wb] = KEYS[i]; const t = (L-a)/(b-a); return wa.map((w,j) => w + (wb[j]-w)*t); } }
+  return KEYS[KEYS.length-1][1];
+}
+function rollRarity(){ const w = weights(effLv()); let r = Math.random()*100; for (let i = 0; i < RAR.length; i++){ r -= w[i]; if (r < 0) return i; } return 0; }
+function rbarHtml(w, cls){ return `<div class="rbar ${cls || ''}">${w.map((v, r) => `<i style="width:${v}%;background:${RAR[r].col}"></i>`).join('')}</div>`; }
+function rlegHtml(w){ return w.map((v, r) => v >= .5 ? `<span><i style="background:${RAR[r].col}"></i>${RAR[r].n} ${v < 10 ? v.toFixed(1) : Math.round(v)}%</span>` : '').join(''); }
+const genCache = {};
+function tierDef(t){
+  const th = T; if (t < th.tiers.length) return th.tiers[t];
+  const key = th.skin + t; if (genCache[key]) return genCache[key];
+  const n = th.more[Math.min(t - th.tiers.length, th.more.length-1)];
+  const items = COUNTS.map((c, r) => Array.from({length:c}, (_, i) => { const h = (t*31 + r*7 + i*13); return sp(`${n} ${RAR[r].n.toLowerCase()} #${i+1}`, 'Not yet described.', {shape:SHAPES[h % SHAPES.length], col:PALETTE[h % PALETTE.length], col2:'#ffffff', eyes:2, fuzz:h%3===0?1:0, tail:h%4===1?1:0}, (r === 3 && i === 0) ? 2 : 0); }));
+  return genCache[key] = { n, items };
+}
+function item(t, r, i){ return tierDef(t).items[r][i]; }
+function found(t){ return Object.keys(S.cat[t] || {}).length; }
+function newDish(){ return { p:0, ready:false, drops:[] }; }
+function rollDrops(){
+  const n = dropsPer(); const out = [];
+  for (let k = 0; k < n; k++){
+    const r = rollRarity(); const i = Math.floor(Math.random()*COUNTS[r]); const it = item(S.tier, r, i);
+    const [px, py] = randPos();
+    let t0 = Math.random()*.55; if (it.danger) t0 = Math.min(t0, .3);
+    out.push({ r, i, x:px, y:py, t0, s: .75 + Math.random()*.5, seed: Math.random(), dead:false, contained: !!(it.danger && (S.res.wash || perk('guard'))), eatT:0, ate:0 });
+  }
+  return out;
+}
+function lvCost(){ return Math.round(15 * Math.pow(1.22, S.lv-1) * tierMult()); }
+function offlineCap(){ return OFFLINE_CAP * (S.res.storage ? 2 : 1); }
+function canAscend(){ if (STORY[S.tier]) return !!(S.story[S.tier] && S.story[S.tier].done) && found(S.tier) >= ASC_FOUND; return S.lv >= ASC_LV && found(S.tier) >= ASC_FOUND; }
+const spawned = (g, prog) => prog >= g.t0 + .06;
+
+// ---------- sim ----------
+function resolve(drops, summary){
+  const t = S.tier; S.cat[t] = S.cat[t] || {};
+  let gained = 0;
+  for (const d of drops){
+    if (d.dead) continue;
+    const key = `${d.r}-${d.i}`;
+    const isNew = !S.cat[t][key];
+    S.cat[t][key] = (S.cat[t][key] || 0) + 1;
+    if (isNew){ summary.finds.push({ t, r:d.r, i:d.i }); S.shelf = [{ t, r:d.r, i:d.i }, ...(S.shelf || [])].slice(0, 5); }
+    else { const v = VAL[d.r] * tierMult() * valMult(); gained += v; }
+    S.recent.unshift({ r:d.r, i:d.i, t, isNew });
+    summary.drops++;
+  }
+  S.recent.length = Math.min(S.recent.length, 8);
+  S.cur += gained; summary.cur += gained; summary.cycles++; S.cycles++;
+}
+// instant version of the eating rule for big time steps
+function dangerInstant(drops, ct, summary){
+  if (S.res.wash || perk('guard')) return;
+  for (const g of drops){
+    const dn = item(S.tier, g.r, g.i).danger; if (!dn || g.dead) continue;
+    const window = ct * (1 - g.t0) - EAT_FIRST[dn];
+    let kills = dn === 1 ? 1 : dn === 3 ? 99 : Math.max(1, 1 + Math.floor(window / EAT_EVERY[dn]));
+    for (const v of drops){ if (kills <= 0) break; if (v === g || v.dead || item(S.tier, v.r, v.i).danger) continue; v.dead = true; kills--; summary.eaten++; S.eaten++; }
+  }
+}
+function collect(i, summary){
+  const d = S.dishes[i]; if (!d.ready) return;
+  summary = summary || blankSummary();
+  resolve(d.drops, summary);
+  d.p = 0; d.ready = false; d.drops = rollDrops();
+  markDirty();
+  return summary;
+}
+function blankSummary(){ return { cur:0, drops:0, cycles:0, finds:[], secs:0, eaten:0 }; }
+function completeResearch(){ if (!S.active) return; S.res[S.active.id] = true; const id = S.active.id; S.active = null; if (id === 'dish2' || id === 'dish3') S.dishes.push(newDish()); if (id === 'wash') S.dishes.forEach(d => d.drops.forEach(g => { if (item(S.tier, g.r, g.i).danger) g.contained = true; })); toast(`${T.res[id][0]} complete`); markDirty(); }
+function simulate(secs){
+  const sum = blankSummary(); sum.secs = secs;
+  const bsec = Math.min(S.boost, secs); S.cur += genRate() * bsec; sum.cur += genRate() * bsec; S.boost -= bsec;
+  const rest = secs - bsec; S.cur += genRate() * rest; sum.cur += genRate() * rest;
+  const ct = cycleTime();
+  for (const d of S.dishes){
+    if (!d.drops.length) d.drops = rollDrops();
+    let time = (d.ready ? ct : d.p) + bsec*2 + rest;
+    if (d.ready){ resolve(d.drops, sum); d.ready = false; time -= ct; d.drops = rollDrops(); }
+    const n = Math.min(Math.floor(time/ct), 20000);
+    for (let k = 0; k < n; k++){ dangerInstant(d.drops, ct, sum); resolve(d.drops, sum); d.drops = rollDrops(); }
+    d.p = Math.min(time - n*ct, ct);
+    if (n >= 20000) d.p = 0;
+    // the cycle in progress: anything that would have been eaten by now already is
+    const prog = d.p/ct; for (const g of d.drops){ const dn = item(S.tier, g.r, g.i).danger; if (dn && !g.contained && spawned(g, prog)) g.eatT = Math.max(0, (prog - g.t0) * ct); }
+  }
+  if (S.active){ S.active.left -= secs; if (S.active.left <= 0) completeResearch(); }
+  const st = S.story[S.tier]; if (st && st.brewing){ st.brewing.left -= secs; if (st.brewing.left <= 0){ st.brewing = null; st.brewed = true; } }
+  if (S.splice){ S.splice.left -= secs; if (S.splice.left <= 0) finishSplice(); }
+  S.adCd = Math.max(0, S.adCd - secs);
+  return sum;
+}
+// ---- critter behaviour: wandering, meeting, fleeing, attacking ----
+const angDiff = (a, b) => ((a - b + Math.PI*3) % (Math.PI*2)) - Math.PI;
+const EMOTES = ['♥','♪','!','?','☺'];
+function moveTick(d, dt, now){
+  const prog = d.p/cycleTime(), drops = d.drops;
+  for (let a = 0; a < drops.length; a++){
+    const g = drops[a]; if (g.dead || !spawned(g, prog)) continue;
+    const dn = item(S.tier, g.r, g.i).danger;
+    if (g.sp === undefined){ if (g.hd === undefined) g.hd = Math.random()*Math.PI*2; g.sp = .6 + Math.random()*.7; g.cd = g.cd || 0; }
+    if (g.atk || g.frozen || g.contained) continue;
+    if (g.meet){ if (now > g.meet.until){ g.meet = null; g.cd = now + 3500 + Math.random()*3000; } continue; }
+    // friendly strains run from an uncontained biter
+    let fx = 0, fy = 0;
+    if (!dn) for (const o of drops){ if (o === g || o.dead || o.contained || !item(S.tier, o.r, o.i).danger || !spawned(o, prog)) continue; const dx = g.x-o.x, dy = g.y-o.y, dd = Math.hypot(dx, dy) || .001; if (dd < .2){ fx += dx/dd; fy += dy/dd; } }
+    let speed = .045 * g.sp;
+    if (fx || fy){ g.hd = Math.atan2(fy, fx); speed *= 2.4; g.flee = now + 250; }
+    else g.hd += (Math.random() - .5) * 3.5 * dt;
+    if (nearEdge(g)){ const B = bounds(); g.hd += angDiff(Math.atan2((B.minY+B.maxY)/2 - g.y, (B.minX+B.maxX)/2 - g.x), g.hd) * 5 * dt; }
+    g.x += Math.cos(g.hd) * speed * dt; g.y += Math.sin(g.hd) * speed * dt;
+    clampPos(g);
+    // two friendly strains bump into each other and say hi
+    if (!dn && now > g.cd) for (let b = a+1; b < drops.length; b++){
+      const o = drops[b]; if (o.dead || o.meet || o.contained || o.atk || o.frozen || now < o.cd || !spawned(o, prog) || item(S.tier, o.r, o.i).danger) continue;
+      if (Math.hypot(g.x-o.x, g.y-o.y) < .1){ const em = EMOTES[Math.floor(Math.random()*EMOTES.length)], until = now + 1400; g.meet = { until, em, dir: Math.atan2(o.y-g.y, o.x-g.x) }; o.meet = { until, em, dir: Math.atan2(g.y-o.y, g.x-o.x) }; g.hd = g.meet.dir + Math.PI; o.hd = o.meet.dir + Math.PI; break; }
+    }
+  }
+}
+function eatTick(d, dt, di, now){
+  const ct = cycleTime(), prog = d.p/ct;
+  for (const g of d.drops){
+    const it = item(S.tier, g.r, g.i), dn = it.danger;
+    if (!dn || g.dead || g.contained || !spawned(g, prog) || g.atk) continue;
+    if (dn === 1 && g.ate >= 1) continue;
+    g.eatT += dt;
+    const need = g.ate === 0 ? EAT_FIRST[dn] : EAT_EVERY[dn];
+    if (g.eatT < need) continue;
+    let best = -1, bd = 1e9;
+    d.drops.forEach((v, k) => { if (v === g || v.dead || v.frozen || item(S.tier, v.r, v.i).danger || !spawned(v, prog)) return; const dd = (v.x-g.x)**2 + (v.y-g.y)**2; if (dd < bd){ bd = dd; best = k; } });
+    if (best < 0){ g.eatT = need; continue; }
+    const v = d.drops[best]; v.frozen = true; v.meet = null;
+    g.atk = { phase:'wind', t0: now, vi: best, ox: g.x, oy: g.y }; g.meet = null;
+  }
+}
+function attackTick(d, now, di){
+  for (const g of d.drops){
+    const A = g.atk; if (!A) continue;
+    const v = d.drops[A.vi], it = item(S.tier, g.r, g.i), e = now - A.t0;
+    if (g.contained || g.dead || !v || v.dead){ if (v) v.frozen = false; g.atk = null; g.eatT = 0; continue; }
+    if (A.phase === 'wind'){ if (e > 600){ A.phase = 'lunge'; A.t0 = now; A.sx = g.x; A.sy = g.y; } }
+    else if (A.phase === 'lunge'){
+      const k = Math.min(1, e/240), ease = k*k;
+      g.x = A.sx + (v.x - A.sx)*ease*.8; g.y = A.sy + (v.y - A.sy)*ease*.8;
+      if (k >= 1){
+        v.dead = true; v.deadAt = now; v.frozen = false; g.ate++; g.eatT = 0; S.eaten++;
+        if (di === 0){ chomp(v.x*cv.width, v.y*cv.height, item(S.tier, v.r, v.i).look.col); toast(`${it.n} ate ${item(S.tier, v.r, v.i).n}! Tap it to quarantine.`, true); }
+        A.phase = 'back'; A.t0 = now; A.sx = g.x; A.sy = g.y;
+      }
+    }
+    else { const k = Math.min(1, e/500), ease = 1 - (1-k)*(1-k); g.x = A.sx + (A.ox - A.sx)*ease; g.y = A.sy + (A.oy - A.sy)*ease; if (k >= 1) g.atk = null; }
+  }
+}
+function chomp(x, y, col){
+  shakeT = performance.now();
+  ripples.push({ x, y, t: shakeT, col: '#ff2e4d', w: 7 });
+  for (let k = 0; k < 12; k++){ const a = Math.random()*Math.PI*2, sp = 60 + Math.random()*160; parts.push({ x, y, vx: Math.cos(a)*sp, vy: Math.sin(a)*sp - 60, t0: shakeT, col: k % 3 ? col : '#fff', r: 3 + Math.random()*4 }); }
+}
+function tick(dt, now){
+  S.cur += genRate() * dt;
+  const ct = cycleTime(), mul = boostOn() ? 2 : 1;
+  S.dishes.forEach((d, i) => {
+    if (!d.drops.length) d.drops = rollDrops();
+    moveTick(d, dt, now); attackTick(d, now, i);
+    if (d.ready || (i === 0 && S.ob)) return;
+    d.p += dt * mul + (i === 0 ? stirAcc : 0);
+    eatTick(d, dt * mul, i, now);
+    if (d.p >= ct){ d.p = ct; d.ready = true; if (S.res.auto){ const s = collect(i); flashFinds(s); } }
+  });
+  stirAcc = 0;
+  if (S.active){ S.active.left -= dt; if (S.active.left <= 0) completeResearch(); }
+  const st = S.story[S.tier]; if (st && st.brewing){ st.brewing.left -= dt; if (st.brewing.left <= 0){ st.brewing = null; st.brewed = true; toast(`${STORY[S.tier].steps[st.step].tonic} is ready to deliver`); markDirty(); } }
+  if (S.splice){ S.splice.left -= dt; if (S.splice.left <= 0) finishSplice(); }
+  if (S.ob) obTick(dt, now);
+  const today = new Date().toDateString(); if (S.tDay !== today){ S.tDay = today; S.tickets = TICKETS_PER_DAY; S.shopT = 0; markDirty(); }
+  if (S.boost > 0){ S.boost = Math.max(0, S.boost - dt); if (S.boost === 0) markDirty(); }
+  if (S.adCd > 0) S.adCd = Math.max(0, S.adCd - dt);
+}
+
+// ---------- actions ----------
+function buy(k){
+  if (k === 'lv'){ const c = lvCost(); if (S.cur < c) return; S.cur -= c; S.lv++; toast(`${T.up.lv[0]} ${S.lv}`); }
+  else { const u = UPI[k]; if (!u) return; const ti = UPT.findIndex(t => t.items.includes(u)); if (!upCanBuy(u, ti)) return; S.cur -= u.cost * tierMult(); S.ups[u.id] = true; toast(`${u.n}: ${u.d}`); if (ti + 1 < UPT.length && upBought(ti) === UPT[ti+1].need) toast(`Tier ${ti+2} unlocked: ${UPT[ti+1].n}`); }
+  renderAll(); save();
+}
+function startResearch(id){
+  const def = RES_DEF.find(r => r.id === id); if (!def || S.active || S.res[id] || S.cur < def.cost || (def.req && !S.res[def.req])) return;
+  S.cur -= def.cost; S.active = { id, left: def.time, total: def.time }; renderAll(); save();
+}
+function ascend(){
+  if (!canAscend()) return;
+  S.tier++; S.lv = 1; S.cur = 0; S.ups = {}; S.dishes = S.dishes.map(() => newDish()); S.recent = [];
+  toast(`${T.ascend}: ${tierDef(S.tier).n}. Everything ×${TIER_MULT}.`); closePanel(); renderAll(); save();
+}
+function flashFinds(s){ if (s && s.finds.length) toast(`New: ${s.finds.map(f => item(f.t, f.r, f.i).n).join(', ')}`); }
+function contain(g){ g.contained = true; toast(`${item(S.tier, g.r, g.i).n} ${T.contain.toLowerCase()}.`); }
+
+// ---------- ads ----------
+function ad(placement, onClaim){
+  if (adBusy || S.adCd > 0) return;
+  adBusy = true; let left = AD_LEN;
+  const render = () => { $('sheet').innerHTML = `<div class="eyebrow" style="color:var(--muted);text-shadow:none">Rewarded ad · ${placement}</div><h3>Advertisement</h3><p class="sub">In the real build this is an AdMob rewarded video. Here it is three seconds.</p><div class="adbox">YOUR AD HERE<div class="big">${left > 0 ? Math.ceil(left) : '✓'}</div><div class="cd">${left > 0 ? 'reward in ' + Math.ceil(left) + 's' : 'reward ready'}</div></div><div class="acts"><button class="btn primary" id="claim" ${left > 0 ? 'disabled' : ''}>Claim reward</button></div>`; if (left <= 0) $('claim').onclick = () => { adBusy = false; S.ads++; S.adUse[placement] = (S.adUse[placement] || 0) + 1; S.adCd = AD_CD; closeSheet(); onClaim(); save(); }; };
+  render(); openSheet();
+  const iv = setInterval(() => { left -= .1; if (left <= 0){ left = 0; clearInterval(iv); } render(); }, 100);
+}
+function adFinish(i){ ad('finish ' + T.dish, () => { const d = S.dishes[i]; d.p = cycleTime(); d.ready = true; if (S.res.auto) flashFinds(collect(i)); renderAll(); }); }
+function adResearch(){ if (!S.active) return; ad('finish research', () => { completeResearch(); renderAll(); }); }
+function adWarp(){ ad('time warp', () => { const s = simulate(WARP); showResults('Time warp', `One hour passed on everything.`, s, false); renderAll(); }); }
+function adBoost(){ if (boostOn()) return; ad('boost', () => { S.boost = BOOST_LEN; toast('2× for two minutes'); renderAll(); }); }
+
+// ---------- clinic, splicer, outbreak ----------
+function brew(){ const s = curStep(), st = story(); if (!s || s.outbreak || st.brewing || st.brewed || !haveAll(s.need)) return; consume(s.need); st.brewing = { left: BREW_TIME, total: BREW_TIME }; toast(`Brewing ${s.tonic}`); renderAll(); save(); }
+function deliver(){ const s = curStep(), st = story(); if (!s || !st.brewed) return; const pay = s.reward * tierMult(); S.cur += pay; st.log.push(s.after); st.brewed = false; if (s.gives === 'splicer') S.hasSplicer = true; st.step++;
+  const opened = Object.keys(UNLOCK).filter(k => UNLOCK[k][0] === S.tier && UNLOCK[k][1] === st.step);
+  if (st.step >= STORY[S.tier].steps.length){ st.done = true; toast(`Chapter complete! ${T.ascend} is open.`); } else if (opened.length) toast(`Unlocked: ${opened.map(unlockName).join(' and ')}!`); else toast(`+${fmt(pay)} ${T.cur}. ${STORY[S.tier].steps[st.step].who} is waiting.`);
+  renderAll(); save(); }
+function faceBloom(){ const s = curStep(); if (!s || !s.outbreak || S.ob) return; const hp = s.hp || OB_HP; S.ob = { hp, max: hp, dur: s.time || OB_TIME, t: 0, spore: 0, boss: s.boss || [0,3,0] }; closePanel(); toast('The Wipe is blooming. Tap it!', true); renderAll(); }
+function obTick(dt, now){
+  const o = S.ob; o.t += dt;
+  if (perk('guard')) o.hp -= 1.2 * dt;
+  o.spore += dt;
+  if (o.spore > 3){ o.spore = 0; const d = S.dishes[0]; const alive = d.drops.filter(g => !g.dead && spawned(g, d.p/cycleTime())); if (alive.length){ const v = alive[Math.floor(Math.random()*alive.length)]; v.dead = true; v.deadAt = now; chomp(v.x*cv.width, v.y*cv.height, '#22222c'); } }
+  if (o.hp <= 0) obWin(); else if (o.t >= (o.dur || OB_TIME)){ S.ob = null; toast('The bloom pulled back. It will return. Try again from the Clinic.', true); markDirty(); }
+}
+function obWin(){ S.ob = null; story().brewed = true; ripples.push({ x: cv.width*.5, y: cv.height*.45, t: performance.now(), col: '#fff', w: 10 }); deliver(); }
+function sideRefill(){ let guard = 0; while (S.side.length < 2 && guard++ < 20){ const used = S.side.map(x => x.k); const k = Math.floor(Math.random()*SIDE.length); if (!used.includes(k)) S.side.push({ k }); } }
+function doSide(idx){ const x = S.side[idx]; if (!x) return; const q = SIDE[x.k]; if (!haveAll(q.need)) return; consume(q.need); const pay = q.reward * tierMult(); S.cur += pay; toast(`${q.who}: "Much obliged." +${fmt(pay)}`); S.side.splice(idx, 1); sideRefill(); renderAll(); save(); }
+function spMatch(a, b){ if (!a || !b) return null; const eq = (p, q) => p[0] === q[0] && p[1] === q[1]; const h = HYBRIDS.find(h => (eq(h.par[0], a) && eq(h.par[1], b)) || (eq(h.par[0], b) && eq(h.par[1], a))); return h ? h.id : null; }
+function spReady(){ const [a, b] = S.sp; if (!S.hasSplicer || S.splice || S.spOut || !a || !b || S.cur < SPLICE_COST*tierMult()) return false; const same = a[0] === b[0] && a[1] === b[1]; return same ? stock(a[0], a[1], 0) >= 2 : stock(a[0], a[1], 0) >= 1 && stock(b[0], b[1], 0) >= 1; }
+function spWhy(){ const [a, b] = S.sp; if (!S.hasSplicer) return 'Doc Ferro still has it.'; if (S.splice) return 'Splicing.'; if (S.spOut) return 'Tap the chamber to collect.'; if (!a || !b) return 'Tap a tube to load a strain.'; if (S.cur < SPLICE_COST*tierMult()) return `Needs ${fmt(SPLICE_COST*tierMult())} ${T.cur.toLowerCase()}.`; if (!spReady()) return 'Not enough spares of that strain.'; return 'Pull the lever.'; }
+function splice(){ if (!spReady()){ toast(spWhy()); return; } const [a, b] = S.sp; S.cur -= SPLICE_COST*tierMult(); S.cat[0][`${a[0]}-${a[1]}`] -= 1; S.cat[0][`${b[0]}-${b[1]}`] -= 1; S.splice = { id: spMatch(a, b), a, b, left: SPLICE_TIME, total: SPLICE_TIME }; leverT = performance.now(); toast('Splicing…'); renderAll(); save(); }
+function finishSplice(){ if (!S.splice) return; const sp = S.splice; S.splice = null; S.sp = [null, null];
+  if (sp.id){ S.spOut = { id: sp.id, at: performance.now() }; toast('Something formed in the chamber. Tap it!'); spBurst('#ffffff'); }
+  else { S.cat[0][`${sp.a[0]}-${sp.a[1]}`] += 1; S.cat[0][`${sp.b[0]}-${sp.b[1]}`] += 1; S.cur += SPLICE_COST*tierMult()/2; toast('No reaction. The machine spat them back out.', true); spSmoke(); }
+  markDirty(); }
+function collectOut(){ if (!S.spOut) return; const id = S.spOut.id; S.spOut = null; S.hyb[id] = (S.hyb[id] || 0) + 1; S.recent.unshift({ h: id, isNew: true }); S.recent.length = Math.min(S.recent.length, 8); toast(`New hybrid: ${HYB[id].n}!`); spBurst(HYB[id].look.col); renderAll(); save(); }
+function pick(slot, r, i){ S.sp[slot] = [r, i]; closeSheet(); renderAll(); save(); }
+function openPicker(slot){
+  if (!S.hasSplicer){ toast('Doc Ferro still has the splicer. Help the Clinic.'); return; } if (S.splice || S.spOut) return;
+  const c = S.cat[0] || {}; const opts = []; COUNTS.forEach((n, r) => { for (let i = 0; i < n; i++) if (c[`${r}-${i}`]) opts.push([r, i]); });
+  $('sheet').innerHTML = `<div class="eyebrow" style="color:var(--muted);text-shadow:none">Splice-o-matic · tube ${slot ? 'B' : 'A'}</div><h3>Load a strain</h3><p class="sub">One spare copy goes in. Two that fit make a hybrid. Two that do not come back out, minus a little ${T.cur.toLowerCase()}.</p><div class="needs">${opts.map(([r, i]) => `<button class="chip" data-act="pick" data-slot="${slot}" data-r="${r}" data-i="${i}" ${stock(r, i, 0) < 1 ? 'disabled' : ''} style="font-size:12px;padding:5px 10px"><i style="background:${RAR[r].col}"></i>${item(0, r, i).n} · ${stock(r, i, 0)} spare</button>`).join('') || '<span class="sub">Nothing found yet.</span>'}</div><div class="acts"><button class="btn" data-act="pickNone" data-slot="${slot}">Empty the tube</button></div>`;
+  openSheet();
+}
+function seedHyb(id){ if (!S.hyb[id]) return; S.seed = S.seed === id ? null : id; toast(S.seed ? `${HYB[id].n} seeded in the ${T.dish}` : `${T.dish} unseeded`); renderAll(); save(); }
+function adBrew(){ const st = story(); if (!st.brewing) return; ad('finish brew', () => { st.brewing = null; st.brewed = true; renderAll(); }); }
+function adSplice(){ if (!S.splice) return; ad('finish splice', () => { finishSplice(); renderAll(); }); }
+function clinicHas(){ const s = curStep(), st = S.story[S.tier]; if (s){ if (st && st.brewed) return true; if (s.outbreak) return !S.ob; if (!(st && st.brewing) && haveAll(s.need)) return true; } return false; }
+// ---- what opens when: [tier, deliveries made in that tier's chapter] ----
+const UNLOCK = { quests:[0,1], shop:[0,1], tickets:[0,2], decor:[0,2], lab:[0,3], splicer:[0,4] };
+const UNLOCK_NAME = { quests:'Quests', shop:'the Shop', tickets:'Tickets', decor:'Decor', lab:'the Lab', splicer:'the Splice-o-matic' };
+function unlocked(k){ const u = UNLOCK[k]; if (!u) return true; if (S.tier > u[0]) return true; if (S.tier < u[0]) return false; return (S.story[S.tier] ? S.story[S.tier].step : 0) >= u[1] && (k !== 'splicer' || S.hasSplicer); }
+function unlockLabel(k){ const u = UNLOCK[k]; return u ? `${u[0]+1}-${u[1]}` : ''; }
+function unlockName(k){ return UNLOCK_NAME[k] || k; }
+function unlockHint(k){ const u = UNLOCK[k], ch = STORY[u[0]]; const s = ch && ch.steps[u[1]-1]; return s ? `Help ${s.who} at the Clinic.` : ''; }
+// the objective line under the vessel: chapter-step, who, what, and how close you are
+function goalHtml(){
+  if (S.ob) return '☠ Bloom in progress · tap it!';
+  const ch = STORY[S.tier]; if (!ch) return `<b class="stepno">${S.tier+1}</b> No chapter here yet · side quests only`;
+  const st = story(); if (st.done) return `<b class="stepno">${S.tier+1} ✓</b> Chapter done · ${T.ascend} is open`;
+  const s = ch.steps[st.step], no = `${S.tier+1}-${st.step+1}`;
+  if (s.outbreak) return `<b class="stepno">${no}</b> ${s.who}: face the bloom`;
+  if (st.brewed) return `<b class="stepno">${no}</b> Deliver ${s.tonic} to ${s.who}`;
+  if (st.brewing) return `<b class="stepno">${no}</b> Brewing ${s.tonic} · ${fmtDur(st.brewing.left)}`;
+  const needs = s.need.map(([r, i, q]) => { const h = Math.min(stock(r, i), q); return `<span class="${h >= q ? 'ok' : ''}"><i style="background:${RAR[r].col}"></i>${h}/${q} ${item(S.tier, r, i).n}</span>`; }).join('');
+  return `<b class="stepno">${no}</b><span>${s.tonic} for ${s.who}</span>${needs}`;
+}
+function questsHas(){ return (S.side || []).filter(x => SIDE[x.k] && haveAll(SIDE[x.k].need)).length; }
+function unplacedCount(){ let n = 0; for (const id in S.arts) n += Math.max(0, S.arts[id] - S.placed.filter(p => p === id).length); return n; }
+// ---- the pipette mini-game ----
+let mg = null;
+const mgPos = now => .5 + .5*Math.sin((now - mg.t0)/1000 * 3.4);
+function mgStart(){ if (S.tickets <= 0){ toast('No tickets left today. Watch an ad for one, or buy one in the Shop.'); return; } S.tickets--; mg = { t0: performance.now(), done: false }; renderAll(); save(); }
+function mgDrop(){ if (!mg || mg.done) return; const pos = mgPos(performance.now()), d = Math.abs(pos - .5)/.5; const grade = d <= .08 ? 3 : d <= .2 ? 2 : d <= .36 ? 1 : 0;
+  const W = [[85,15,0,0],[55,35,9,1],[25,45,25,5],[5,25,45,25]][grade]; let r = Math.random()*100, ri = 0; for (let k = 0; k < 4; k++){ r -= W[k]; if (r < 0){ ri = k; break; } }
+  const pool = ARTS.filter(a => a.r === ri), art = pool[Math.floor(Math.random()*pool.length)]; S.arts[art.id] = (S.arts[art.id] || 0) + 1;
+  mg.done = true; mg.result = { art, grade, pos }; toast(`${['Miss.','Close.','Nice!','Perfect!'][grade]} You found ${art.n}.`); renderAll(); save(); }
+function adTicket(){ ad('ticket', () => { S.tickets++; toast('+1 ticket'); renderAll(); }); }
+function buyShop(id){ const it = SHOP.find(x => x.id === id); if (!it) return; const c = it.cost(); if (S.cur < c){ toast(`Needs ${fmt(c)} ${T.cur.toLowerCase()}.`); return; } S.cur -= c;
+  if (id === 'ticket'){ S.tickets++; S.shopT = (S.shopT || 0) + 1; toast('+1 ticket'); }
+  else if (id === 'pebble'){ const pool = ARTS.filter(a => a.r === 0), a = pool[Math.floor(Math.random()*pool.length)]; S.arts[a.id] = (S.arts[a.id] || 0) + 1; toast(`Inside the pebble: ${a.n}`); }
+  else if (id === 'boost'){ S.boost = BOOST_LEN; toast('2× for two minutes'); }
+  renderAll(); save(); }
+function placeArt(id){ const a = ART[id]; if (!a || !S.arts[id]) return; const used = S.placed.filter(p => p === id).length; if (used >= S.arts[id]){ toast('All your copies are already placed.'); return; } const slot = S.placed.indexOf(null); if (slot < 0){ toast('All three slots are full. Remove one first.'); return; } S.placed[slot] = id; toast(`${a.n} placed: ${a.d}`); renderAll(); save(); }
+function unplaceArt(slot){ if (S.placed[slot] == null) return; S.placed[slot] = null; renderAll(); save(); }
+
+// ---------- results sheet ----------
+function showResults(title, subtitle, s, offerDouble){
+  const finds = s.finds.map(f => chip(f.r, item(f.t, f.r, f.i).n, true)).join('');
+  $('sheet').innerHTML = `<div class="eyebrow" style="color:var(--muted);text-shadow:none">${title}</div><h3>${fmtDur(s.secs)}</h3><p class="sub">${subtitle}</p>
+    <div class="kv"><span>${T.cur} from duplicates</span><span class="good">+${fmt(s.cur)}</span></div>
+    <div class="kv"><span>Cycles</span><span>${s.cycles}</span></div>
+    <div class="kv"><span>${cap(T.drops)} collected</span><span>${s.drops}</span></div>
+    ${s.eaten ? `<div class="kv"><span>Eaten by dangerous strains</span><span class="warn">${s.eaten}${S.res.wash ? '' : ' · research ' + T.res.wash[0]}</span></div>` : ''}
+    <div class="kv"><span>New finds</span><span>${s.finds.length}</span></div>
+    <div class="finds">${finds}</div>
+    <div class="acts">${offerDouble ? `<button class="btn ad" id="rsDouble"><span class="ico">▶</span>Double it</button>` : ''}<button class="btn primary" id="rsOk">OK</button></div>`;
+  $('rsOk').onclick = closeSheet;
+  if (offerDouble) $('rsDouble').onclick = () => { closeSheet(); setTimeout(() => ad('double offline', () => { S.cur += s.cur; toast(`+${fmt(s.cur)} ${T.cur} doubled`); renderAll(); }), 250); };
+  openSheet();
+}
+function checkOffline(){
+  const away = (Date.now() - S.last) / 1000;
+  if (away < 20) return;
+  const secs = Math.min(away, offlineCap());
+  const s = simulate(secs);
+  showResults('While you were away', away > offlineCap() ? `Capped at ${fmtDur(offlineCap())}. Storage research raises it.` : `The ${T.dish} kept going.`, s, true);
+}
+
+// ---------- rendering ----------
+const $ = id => document.getElementById(id);
+function fmt(n){ if (n < 1000) return n < 10 ? n.toFixed(1) : Math.floor(n).toString(); const u = ['k','M','B','T','q','Q']; let i = -1; while (n >= 1000 && i < u.length-1){ n /= 1000; i++; } return n.toFixed(n < 10 ? 2 : 1) + u[i]; }
+function fmtDur(s){ s = Math.round(s); if (s < 60) return s + 's'; if (s < 3600) return Math.floor(s/60) + 'm ' + (s%60) + 's'; return Math.floor(s/3600) + 'h ' + Math.floor((s%3600)/60) + 'm'; }
+function cap(s){ return s[0].toUpperCase() + s.slice(1); }
+function chip(r, name, isNew){ return `<span class="chip ${isNew ? 'new' : ''}"><i style="background:${RAR[r].col}"></i>${name}</span>`; }
+function adLabel(text){ return S.adCd > 0 ? `<span class="ico">▶</span>Ad in ${Math.ceil(S.adCd)}s` : `<span class="ico">▶</span>${text}`; }
+const setText = (el, s) => { if (el && el.textContent !== s) el.textContent = s; };
+const setHTML = (el, s) => { if (el && el.innerHTML !== s) el.innerHTML = s; };
+const setDis = (el, v) => { if (el && el.disabled !== v) el.disabled = v; };
+let dirty = true, recentKey = '', extraKey = '', shelfKey = '', rbarKey = '';
+function markDirty(){ dirty = true; }
+
+function renderTop(){
+  setText($('tierLabel'), `Tier ${S.tier+1} · ${tierDef(S.tier).n}`);
+  setText($('gameName'), T.name);
+  setText($('curIc'), T.ic);
+  setText($('skinPill'), S.theme === 'bio' ? 'Petri → Orbit' : 'Orbit → Petri');
+  const rk = `${S.cycles}|${S.tier}|${S.theme}|` + S.recent.map(x => x.h ? 'h:' + x.h : `${x.t}:${x.r}:${x.i}${x.isNew ? '*' : ''}`).join(',');
+  if (rk !== recentKey){ recentKey = rk;
+    // one jar per strain, most recent first, with a count when it came up more than once
+    const seen = new Map(); for (const f of S.recent){ const key = f.h ? 'h:' + f.h : `${f.t}:${f.r}:${f.i}`; const e = seen.get(key); if (e){ e.n++; e.isNew = e.isNew || !!f.isNew; } else seen.set(key, { ...f, n: 1, isNew: !!f.isNew }); }
+    const list = [...seen.values()].slice(0, 5);
+    const tags = f => `${f.isNew ? '<b class="newtag">NEW</b>' : ''}${f.n > 1 ? `<b class="cnt2">×${f.n}</b>` : ''}`;
+    $('shelf').innerHTML = list.length ? list.map(f => f.h
+      ? `<div class="jarwrap rh">${tags(f)}<div class="lid"></div><div class="jar"><canvas width="144" height="144" data-h="${f.h}"></canvas></div><span style="color:#1a9c7f">${HYB[f.h].n}</span></div>`
+      : `<div class="jarwrap r${f.r}">${tags(f)}<div class="lid"></div><div class="jar"><canvas width="144" height="144" data-t="${f.t}" data-r="${f.r}" data-i="${f.i}"></canvas></div><span style="${f.r ? 'color:' + RAR[f.r].col : ''}">${item(f.t, f.r, f.i).n}</span></div>`).join('')
+      : `<div class="empty">Harvests land here. Tap the ${T.dish} to stir it along.</div>`; }
+  const f = found(S.tier); setText($('catTxt'), `Catalog ${f}/${PER}`); $('catFill').style.width = (f/PER*100) + '%'; setText($('catBonus'), `+${Math.round((catMult()-1)*100)}%`);
+  const ek = S.dishes.length + '|' + S.theme;
+  if (ek !== extraKey){ extraKey = ek; $('extra').innerHTML = S.dishes.slice(1).map((x, j) => { const i = j+1; return `<div class="xd" id="xd${i}"><svg viewBox="0 0 28 28"><circle class="bg" cx="14" cy="14" r="11"/><circle class="fg" cx="14" cy="14" r="11" stroke-dasharray="69.1" stroke-dashoffset="69.1"/></svg><span><span class="xdl"></span> · <span class="xdd"></span></span><button class="btn primary" data-act="collect" data-i="${i}" hidden>${T.collect}</button></div>`; }).join(''); }
+  document.querySelectorAll('#tabs button').forEach(bt => { bt.setAttribute('aria-selected', bt.dataset.tab === tab); });
+}
+function drawShelf(now){
+  document.querySelectorAll('#shelf canvas').forEach((cv, k) => {
+    const t = +cv.dataset.t, r = +cv.dataset.r, i = +cv.dataset.i, it = cv.dataset.h ? HYB[cv.dataset.h] : item(t, r, i), c = cv.getContext('2d');
+    c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, 144, 144); c.setTransform(1.5, 0, 0, 1.5, 0, 0);
+    if (T.skin === 'space') drawFind(c, 48, 52, 14, it, now, { seed: k });
+    else drawCritter(c, 48, 58, 17, it.look, now, { seed: k*7 + 3, danger: it.danger, contained: !!it.danger });
+  });
+}
+
+function updateLive(){
+  setText($('cur'), fmt(S.cur));
+  setText($('rate'), `+${fmt(genRate())}/s${boostOn() ? ' · 2× ' + fmtDur(S.boost) : ''}`);
+  const d = S.dishes[0], ct = cycleTime();
+  $('ring').style.strokeDashoffset = ringLen * (1 - d.p/ct);
+  $('dishwrap').classList.toggle('ready', d.ready);
+  const w = weights(effLv());
+  const dangerIn = !d.ready && d.drops.some(g => { const dn = item(S.tier, g.r, g.i).danger; return dn && !g.contained && !g.dead && spawned(g, d.p/ct) && !(dn === 1 && g.ate >= 1); });
+  setHTML($('dstat'), S.ob ? `<b style="color:var(--bad)">☠ THE WIPE IS BLOOMING. Tap it, fast.</b>` : dangerIn ? `<b style="color:var(--bad)">⚠ Something is eating the ${T.dish}. Tap it.</b>` : `<b>Lv ${S.lv}</b> · ${dropsPer()} ${dropsPer() === 1 ? T.drop : T.drops} per cycle · ${ct.toFixed(0)}s`);
+  const wk = w.map(v => v.toFixed(1)).join(','); if (wk !== rbarKey){ rbarKey = wk; setHTML($('rbar'), w.map((v, r) => `<i style="width:${v}%;background:${RAR[r].col}"></i>`).join('')); setHTML($('rleg'), rlegHtml(w)); }
+  const c = $('collect'); c.hidden = !d.ready; $('incub').hidden = d.ready; setText(c, `${T.collect} ${d.drops.filter(g => !g.dead).length}`); setHTML($('incub'), goalHtml()); $('incub').classList.toggle('go', !S.ob && clinicHas());
+  S.dishes.slice(1).forEach((x, j) => {
+    const i = j+1, row = $('xd' + i); if (!row) return;
+    row.classList.toggle('ready', x.ready);
+    row.querySelector('.fg').style.strokeDashoffset = 69.1 * (1 - x.p/ct);
+    setText(row.querySelector('.xdl'), `${cap(T.dish)} ${i+1} · ${x.ready ? 'ready' : T.cycling.toLowerCase()}`);
+    setHTML(row.querySelector('.xdd'), x.drops.map(dr => `<i style="background:${dr.dead ? '#999' : RAR[dr.r].col}"></i>`).join(''));
+    setDis(row.querySelector('[data-act="collect"]'), !x.ready);
+    row.querySelector('[data-act="collect"]').hidden = !x.ready;
+  });
+  const warp = document.querySelector('[data-act="adWarp"]'); setHTML(warp, adLabel('Time warp +1 h')); setDis(warp, S.adCd > 0 || adBusy);
+  const b = $('boostBtn'); setHTML(b, boostOn() ? `<span class="ico">✦</span>2× · ${fmtDur(S.boost)}` : adLabel('2× for 2 min')); setDis(b, boostOn() || S.adCd > 0 || adBusy);
+  $('tabs').children[1].classList.toggle('has', !S.active && RES_DEF.some(r => !S.res[r.id] && S.cur >= r.cost && (!r.req || S.res[r.req])));
+  $('tabs').children[0].classList.toggle('has', upAvailable());
+  const sc = S.hasSplicer ? (S.spOut ? 1 : 0) : 0; $('sCnt').hidden = !sc; setText($('sCnt'), '!');
+  document.querySelectorAll('.sbtn[data-tab], #tabs button[data-tab]').forEach(b => { const k = b.dataset.tab; if (!UNLOCK[k]) return; const ok = unlocked(k); b.classList.toggle('locked', !ok); const lk = b.querySelector('.lk'); if (lk){ lk.hidden = ok; setText(lk, unlockLabel(k)); } });
+  if (tab === 'splicer'){ setHTML($('mstat'), S.splice ? `<b>Splicing</b> · ${fmtDur(S.splice.left)} · ${item(0, S.splice.a[0], S.splice.a[1]).n} + ${item(0, S.splice.b[0], S.splice.b[1]).n}` : S.spOut ? `<b>Something formed.</b> Tap the chamber to collect it.` : `<b>Splice-o-matic</b> · ${spWhy()}`); setDis($('spBtn'), !spReady()); const sa = $('spAd'); setHTML(sa, adLabel('Finish now')); setDis(sa, !S.splice || S.adCd > 0 || adBusy); }
+  $('tabs').children[2].classList.toggle('has', clinicHas());
+  const qn = questsHas(); $('qCnt').hidden = !qn; setText($('qCnt'), String(qn)); setText($('tCnt'), String(S.tickets)); $('tCnt').classList.toggle('ok', S.tickets > 0); const un = unplacedCount(); $('dCnt').hidden = !un; setText($('dCnt'), String(un));
+  if (tab === 'tickets'){ const m = $('mgMarker'); if (m && mg && !mg.done) m.style.left = (mgPos(performance.now())*100) + '%'; }
+  $('tabs').children[4].classList.toggle('has', canAscend());
+  setText($('devStat'), `ads watched ${S.ads}  ·  ${Object.entries(S.adUse).map(([k,v]) => k + ' ' + v).join(', ') || 'none yet'}\ncycles ${S.cycles}  ·  eaten ${S.eaten}  ·  catalog ×${catMult().toFixed(2)}  ·  tier ×${tierMult()}\nrarity @ lv ${effLv().toFixed(1)}: ${weights(effLv()).map(x => x.toFixed(0)).join(' / ')}`);
+  const el = $('tabbody');
+  if (tab === 'up'){
+    el.querySelectorAll('.r[data-k]').forEach(r => { if (r.classList.contains('locked') || r.classList.contains('done')) return; const k = r.dataset.k; const u = UPI[k]; r.classList.toggle('poor', S.cur < (k === 'lv' ? lvCost() : u ? u.cost * tierMult() : 0)); });
+  } else if (tab === 'lab'){
+    if (S.active){ setText(el.querySelector('[data-live="resLeft"]'), fmtDur(S.active.left)); const p = el.querySelector('[data-live="resProg"]'); if (p) p.style.width = ((1 - S.active.left/S.active.total)*100) + '%'; const ab = el.querySelector('[data-act="adResearch"]'); setHTML(ab, adLabel('Finish now')); setDis(ab, S.adCd > 0 || adBusy); }
+    el.querySelectorAll('.r[data-id]').forEach(r => { const def = RES_DEF.find(x => x.id === r.dataset.id); r.classList.toggle('poor', !!S.active || S.cur < def.cost); });
+  } else if (tab === 'clinic'){
+    const st = S.story[S.tier];
+    if (st && st.brewing){ setText(el.querySelector('[data-live="brLeft"]'), fmtDur(st.brewing.left)); const p = el.querySelector('[data-live="brProg"]'); if (p) p.style.width = ((1 - st.brewing.left/st.brewing.total)*100) + '%'; const ab = el.querySelector('[data-act="adBrew"]'); setHTML(ab, adLabel('Finish now')); setDis(ab, S.adCd > 0 || adBusy); }
+  } else if (tab === 'asc'){
+    const lv = el.querySelector('[data-live="ascLv"]'); if (lv){ setText(lv, `${S.lv} / ${ASC_LV}`); lv.className = S.lv >= ASC_LV ? 'good' : 'warn'; }
+    const fd = el.querySelector('[data-live="ascFound"]'); if (fd){ setText(fd, `${found(S.tier)} / ${ASC_FOUND}`); fd.className = found(S.tier) >= ASC_FOUND ? 'good' : 'warn'; }
+    setDis(el.querySelector('[data-act="ascend"]'), !canAscend());
+  }
+}
+
+function renderTab(){
+  const el = $('tabbody');
+  if (!tab){ el.innerHTML = ''; return; }
+  setText($('panelTitle'), {up:'Upgrades', lab:'Lab', clinic:'Clinic', cat:'Catalog', asc:T.ascend, quests:'Side quests', tickets:'Pipette drop', shop:'Shop', decor:'Decor', splicer:'Splice-o-matic', notes:'Notes'}[tab]);
+  const sideHtml = () => { sideRefill(); return S.side.map((x, idx) => { const q = SIDE[x.k]; const ok = haveAll(q.need); return `<div class="card req small"><div class="who"><span class="face">${q.face}</span><div><b>${q.who}</b><div class="sub" style="margin:0">${q.tonic} · pays ${fmt(q.reward*tierMult())}</div></div></div><p class="say">“${q.say}”</p><div class="needs">${q.need.map(([r, i, qq]) => `<span class="chip" style="${stock(r, i) >= qq ? '' : 'opacity:.55'}"><i style="background:${RAR[r].col}"></i>${item(S.tier, r, i).n} ${Math.min(stock(r, i), qq)}/${qq}</span>`).join('')}</div><div class="acts" style="display:flex;margin-top:8px"><button class="btn primary" data-act="side" data-i="${idx}" ${ok ? '' : 'disabled'}>Deliver now</button></div></div>`; }).join(''); };
+  if (tab === 'quests'){
+    el.innerHTML = `<p class="sub">Odd jobs from around town. Small recipes, small pay, instant delivery, and a fresh one turns up whenever you finish one. Good for spare commons.</p>` + sideHtml();
+  }
+  else if (tab === 'tickets'){
+    const res = mg && mg.done ? mg.result : null;
+    const bar = mg && !mg.done ? `<div class="mgbar"><div class="mid"></div><div class="mgm" id="mgMarker"></div></div><div class="acts" style="display:flex"><button class="btn primary" data-act="mgDrop" style="font-size:16px">DROP!</button></div>` : `<div class="mgbar" style="opacity:.6"><div class="mid"></div></div><div class="acts" style="display:flex;gap:8px"><button class="btn primary" data-act="mgStart" ${S.tickets > 0 ? '' : 'disabled'}>Play · 1 ticket</button><button class="btn ad" data-act="adTicket" ${S.adCd > 0 || adBusy ? 'disabled' : ''}>${adLabel('+1 ticket')}</button></div>`;
+    const resHtml = res ? `<div class="card"><div class="mgres"><div class="big">${res.art.e}</div><div><div class="eyebrow" style="color:${RAR[res.art.r].col};text-shadow:none">${['Miss','Close','Nice','Perfect'][res.grade]} · ${RAR[res.art.r].n}</div><h3 style="margin:0">${res.art.n}</h3><div class="sub" style="margin:0">${res.art.d}</div></div></div><div class="acts" style="display:flex;gap:8px;margin-top:10px"><button class="btn primary" data-act="placeArt" data-id="${res.art.id}">Place in the ${T.dish}</button><button class="btn" data-act="open" data-tab="decor">Decor</button></div></div>` : '';
+    el.innerHTML = `<div class="card"><h3>Pipette drop</h3><p class="sub" style="margin:0 0 4px">Stop the drop over the green. The closer to the middle, the rarer the artifact. Artifacts go in the ${T.dish} and change your odds.</p>${bar}</div>${resHtml}<div class="card"><div class="kv"><span>Tickets today</span><span class="${S.tickets ? 'good' : 'warn'}">${S.tickets} / ${TICKETS_PER_DAY}</span></div><div class="kv"><span>Refill</span><span>every day · +1 per ad · or the Shop</span></div><div class="kv"><span>Odds by grade</span><span>miss 85/15 · close 55/35/9/1 · nice 25/45/25/5 · perfect 5/25/45/25</span></div></div>`;
+  }
+  else if (tab === 'shop'){
+    el.innerHTML = `<p class="sub">Paid in ${T.cur.toLowerCase()}. Nothing here you can't also earn.</p>` + SHOP.map(it => { const c = it.cost(); return `<div class="r" style="cursor:default"><div class="rn">${it.e} ${it.n}</div><div class="rd">${it.d}</div><div class="rc">${fmt(c)}</div><div class="acts"><button class="btn primary" data-act="shop" data-id="${it.id}" ${S.cur >= c ? '' : 'disabled'}>Buy</button></div></div>`; }).join('');
+  }
+  else if (tab === 'decor'){
+    const slots = S.placed.map((id, k) => { const a = id && ART[id]; return a ? `<div class="slot full"><div class="e">${a.e}</div><div class="nm">${a.n}</div><div class="pd">${a.d}</div><button class="btn" data-act="unplace" data-i="${k}">Remove</button></div>` : `<div class="slot"><div class="e" style="opacity:.35">＋</div><div class="pd">Slot ${k+1}</div><div class="pd">empty</div></div>`; }).join('');
+    const owned = ARTS.filter(a => S.arts[a.id]);
+    const list = owned.length ? owned.map(a => { const spare = S.arts[a.id] - S.placed.filter(p => p === a.id).length; return `<div class="r" style="cursor:default"><div class="rn"><span class="artrow"><span class="e">${a.e}</span><span>${a.n} <span class="tag on" style="color:${RAR[a.r].col}">${RAR[a.r].n}</span></span></span></div><div class="rd">${a.d} · ×${S.arts[a.id]} owned, ${spare} spare</div><div class="acts"><button class="btn primary" data-act="placeArt" data-id="${a.id}" ${spare > 0 && S.placed.includes(null) ? '' : 'disabled'}>Place</button></div></div>`; }).join('') : `<div class="card"><p class="sub" style="margin:0">No artifacts yet. Win them at the pipette (Tickets) or buy a mystery pebble in the Shop.</p></div>`;
+    const tot = { lv: artPerk('lv'), speed: artPerk('speed'), value: artPerk('value'), income: artPerk('income'), drop: artPerk('drop') };
+    el.innerHTML = `<p class="sub">Three things can sit in the ${T.dish}. Only placed artifacts count.</p><div class="slots">${slots}</div><div class="card" style="margin-top:10px"><div class="kv"><span>From decor</span><span>+${tot.lv} lv · −${Math.round(tot.speed*100)}% cycle · +${Math.round(tot.value*100)}% value · +${Math.round(tot.income*100)}% income · +${tot.drop} ${T.drops}</span></div></div><h4 class="gh">Collection</h4>` + list;
+  }
+  if (tab === 'up'){
+    const rows = [];
+    const row = (k, name, desc, now, next, cost, locked, lockMsg, maxed) => rows.push(`<button class="r ${locked ? 'locked' : maxed ? 'done' : S.cur < cost ? 'poor' : ''}" data-act="buy" data-k="${k}"><div class="rn">${name} <span class="tag on">${now}</span></div><div class="rd">${locked ? lockMsg : maxed ? 'Maxed' : desc + ' → ' + next}</div><div class="rc">${locked ? '🔒' : maxed ? '—' : fmt(cost)}</div></button>`);
+    const w = weights(effLv()), w2 = weights(effLv()+1);
+    rows.push(`<button class="r ${S.cur < lvCost() ? 'poor' : ''}" data-act="buy" data-k="lv"><div class="rn">${T.up.lv[0]} <span class="tag on">lv ${S.lv}</span></div><div class="rd">${T.up.lv[1]}. Now → next:${rbarHtml(w, 'sm')}${rbarHtml(w2, 'sm')}</div><div class="rc">${fmt(lvCost())}</div></button>`);
+    const tiers = UPT.map((t, ti) => {
+      const open = upOpen(ti), got = upBought(ti), next = UPT[ti+1];
+      const head = `<div class="uptier"><h4>Tier ${ti+1} · ${t.n}</h4><span class="lk ${open ? 'on' : ''}">${open ? `${got}/${t.items.length} bought${next ? ` · ${Math.max(0, next.need - got)} more opens Tier ${ti+2}` : ''}` : `🔒 buy ${t.need - upBought(ti-1)} more in Tier ${ti}`}</span></div>`;
+      const items = t.items.map(u => { const cost = u.cost * tierMult(); const done = !!S.ups[u.id]; const lockedR = u.req && !S.res[u.req];
+        if (done) return `<div class="r done"><div class="rn">${u.n} <span class="tag on">owned</span></div><div class="rd">${u.d}</div><div class="rc">✓</div></div>`;
+        if (!open) return `<div class="r locked"><div class="rn">${u.n}</div><div class="rd">${u.d}</div><div class="rc">🔒</div></div>`;
+        if (lockedR) return `<div class="r locked"><div class="rn">${u.n}</div><div class="rd">${u.d} · needs research: ${T.res[u.req][0]}</div><div class="rc">🔒</div></div>`;
+        return `<button class="r ${S.cur < cost ? 'poor' : ''}" data-act="buy" data-k="${u.id}"><div class="rn">${u.n}</div><div class="rd">${u.d} · one time</div><div class="rc">${fmt(cost)}</div></button>`; }).join('');
+      return head + items; }).join('');
+    el.innerHTML = `<p class="sub">Now: ${dropsPer()} ${T.drops}/cycle · ${cycleTime().toFixed(1)}s · ${fmt(genRate())}/s · value ×${valMult().toFixed(2)}. Duplicates sell for ${fmt(VAL[0]*tierMult()*valMult())} / ${fmt(VAL[1]*tierMult()*valMult())} / ${fmt(VAL[2]*tierMult()*valMult())} / ${fmt(VAL[3]*tierMult()*valMult())} / ${fmt(VAL[4]*tierMult()*valMult())}.</p>` + rows.join('') + tiers;
+  }
+  else if (tab === 'splicer'){
+    const [a, b] = S.sp; const slot = (x, k) => `<button class="btn" data-act="pick${k ? 'B' : 'A'}" ${S.splice || S.spOut || !S.hasSplicer ? 'disabled' : ''}>Tube ${k ? 'B' : 'A'} · ${x ? item(0, x[0], x[1]).n : 'empty'}</button>`;
+    const owned = HYBRIDS.filter(h => S.hyb[h.id]);
+    el.innerHTML = `<div id="mwrap"></div><div class="dstat" id="mstat" style="color:var(--text);text-shadow:none"></div><div class="dbtns" style="margin-top:6px">${slot(a, 0)}${slot(b, 1)}</div><div class="dbtns" style="margin-top:8px"><button class="btn primary" id="spBtn" data-act="splice2">Pull the lever · ${fmt(SPLICE_COST*tierMult())} · ${fmtDur(SPLICE_TIME)}</button><button class="btn ad" id="spAd" data-act="adSplice"><span class="ico">▶</span>Finish now</button></div><h4 class="gh">Hybrids · ${owned.length}/${HYBRIDS.length}</h4><div class="card"><div class="chips" style="justify-content:flex-start">${owned.length ? owned.map(h => `<button class="chip ${S.seed === h.id ? 'new' : ''}" data-act="seed" data-id="${h.id}" title="${h.pd}">${S.seed === h.id ? '🌱 ' : ''}${h.n} ×${S.hyb[h.id]}</button>`).join('') : `<span style="font-size:11px;color:var(--faint);font-weight:700">No hybrids yet. Any two spare strains can go in; five pairs react. Hybrids sit in the jars; tap one to seed it in the ${T.dish}.</span>`}</div><p class="sub" style="margin:8px 0 0">${S.seed ? '🌱 ' + HYB[S.seed].n + ': ' + HYB[S.seed].pd : 'Nothing seeded. A seeded hybrid lives in the ' + T.dish + ' and gives its perk.'}</p></div>`;
+    mcv.hidden = false; $('mwrap').appendChild(mcv);
+  }
+  else if (tab === 'notes'){
+    const chapters = Object.keys(STORY).map(k => +k).filter(k => S.story[k] && (S.story[k].log.length || k === S.tier));
+    el.innerHTML = `<p class="sub">Doc Ferro's notebook. Everything that has happened so far.</p>` + (chapters.length ? chapters.map(k => { const st = S.story[k], ch = STORY[k]; return `<h4 class="gh">Chapter ${k+1} · ${ch.title}${st.done ? ' · complete' : ''}</h4><div class="card">${st.log.length ? st.log.map(l => `<p class="sub" style="margin:0 0 6px">${l}</p>`).join('') : `<p class="sub" style="margin:0">${ch.intro}</p>`}</div>`; }).join('') : `<div class="card"><p class="sub" style="margin:0">Nothing written yet. Help someone at the Clinic.</p></div>`);
+  }
+  else if (tab === 'lab'){
+    const sp = `<h4 class="gh">Splicer</h4><div class="card"><p class="sub" style="margin:0">${S.hasSplicer ? `The Splice-o-matic has its own button beside the ${T.dish}. Any two spare strains can go in; five pairs react.` : 'Doc Ferro has an old splicer. Help the Clinic and it is yours.'}</p></div>`;
+    el.innerHTML = `<h4 class="gh" style="margin-top:0">Research</h4><p class="sub">One at a time. Research survives ${T.ascend.toLowerCase()}. Every research timer can be finished with an ad.</p>` + RES_DEF.map(r => {
+      const [n, d] = T.res[r.id]; const done = S.res[r.id]; const act = S.active && S.active.id === r.id; const locked = r.req && !S.res[r.req];
+      if (done) return `<div class="r done"><div class="rn">${n} <span class="tag on">done</span></div><div class="rd">${d}</div><div class="rc">✓</div></div>`;
+      if (act) return `<div class="r"><div class="rn">${n} <span class="tag">researching</span></div><div class="rd">${d}</div><div class="rc" data-live="resLeft">${fmtDur(S.active.left)}</div><div class="prog"><b data-live="resProg" style="width:${(1 - S.active.left/S.active.total)*100}%"></b></div><div class="acts"><button class="btn ad" data-act="adResearch" ${S.adCd > 0 || adBusy ? 'disabled' : ''}>${adLabel('Finish now')}</button></div></div>`;
+      if (locked) return `<div class="r locked"><div class="rn">${n}</div><div class="rd">Needs ${T.res[r.req][0]}</div><div class="rc">🔒</div></div>`;
+      const can = !S.active && S.cur >= r.cost;
+      return `<button class="r ${can ? '' : 'poor'}" data-act="research" data-id="${r.id}"><div class="rn">${n}</div><div class="rd">${d} · ${fmtDur(r.time)}${S.active ? ' · bench busy' : ''}</div><div class="rc">${fmt(r.cost)}</div></button>`;
+    }).join('') + sp;
+  }
+  else if (tab === 'clinic'){
+    const ch = STORY[S.tier]; sideRefill();
+    if (!ch){ el.innerHTML = `<div class="card"><h3>Chapter ${S.tier+1}</h3><p class="sub" style="margin:0">Not written yet. Side quests still run from the button beside the ${T.dish}, and ${T.ascend.toLowerCase()} needs level ${ASC_LV} and ${ASC_FOUND} of ${PER}.</p></div>`; }
+    else {
+      const st = story(), s = curStep();
+      const dots = `<span class="dots">${ch.steps.map((_, k) => `<i style="background:${k < st.step || st.done ? 'var(--teal)' : k === st.step ? 'var(--accent1)' : 'transparent'}"></i>`).join('')}</span>`;
+      let main;
+      if (st.done) main = `<div class="card"><h3>Chapter complete</h3><p class="sub" style="margin:0 0 6px">${ch.steps[ch.steps.length-1].after}</p><p class="sub" style="margin:0">${STORY[S.tier+1] ? `<b>${T.ascend}</b> is open. Chapter ${S.tier+2}, <b>${STORY[S.tier+1].title}</b>, waits in the ${tierDef(S.tier+1).n}.` : `That is the end of the story so far. <b>${T.ascend}</b> is open and the ${tierDef(S.tier+1).n} is unwritten territory.`}</p></div>`;
+      else {
+        const needs = s.outbreak ? '' : `<div class="needs">${s.need.map(([r, i, q]) => { const have = stock(r, i); return `<span class="chip" style="${have >= q ? '' : 'opacity:.55'}"><i style="background:${RAR[r].col}"></i>${item(S.tier, r, i).n} ${Math.min(have, q)}/${q}</span>`; }).join('')}</div>`;
+        let act;
+        if (s.outbreak) act = S.ob ? `<button class="btn primary" disabled>Bloom in progress</button>` : `<button class="btn primary" data-act="face">Face the bloom</button>`;
+        else if (st.brewed) act = `<button class="btn primary" data-act="deliver">Deliver ${s.tonic}</button>`;
+        else if (st.brewing) act = `<span class="rc" data-live="brLeft" style="font-family:var(--display);font-weight:700;color:var(--warn)">${fmtDur(st.brewing.left)}</span><button class="btn ad" data-act="adBrew" ${S.adCd > 0 || adBusy ? 'disabled' : ''}>${adLabel('Finish now')}</button>`;
+        else act = `<button class="btn primary" data-act="brew" ${haveAll(s.need) ? '' : 'disabled'}>Brew ${s.tonic} · ${fmtDur(BREW_TIME)}</button>`;
+        main = `<div class="card req"><div class="who"><span class="face">${s.face}</span><div><b>${s.who}</b><div class="sub" style="margin:0">${s.outbreak ? 'needs you at the ' + T.dish : 'wants ' + s.tonic} · pays ${fmt(s.reward*tierMult())}</div></div></div><p class="say">“${s.say}”</p>${needs}${st.brewing ? `<div class="prog" style="height:8px;background:var(--raised);border:2px solid var(--ink);border-radius:6px;overflow:hidden;margin:8px 0 0"><b data-live="brProg" style="display:block;height:100%;background:var(--teal);width:${(1 - st.brewing.left/st.brewing.total)*100}%"></b></div>` : ''}<div class="acts" style="display:flex;gap:8px;align-items:center;margin-top:8px">${act}</div></div>`;
+      }
+      const log = st.log.length ? `<h4 class="gh">So far</h4><div class="card">${st.log.map(l => `<p class="sub" style="margin:0 0 6px">${l}</p>`).join('')}</div>` : `<div class="card"><p class="sub" style="margin:0">${ch.intro}</p></div>`;
+      const up = st.done ? '' : (() => { const next = ch.steps.slice(st.step + 1, st.step + 3); return next.length ? `<h4 class="gh">Coming up · start collecting</h4><div class="card">${next.map(s => `<div class="kv"><span>${s.who} · ${s.outbreak ? 'the bloom' : s.tonic}</span><span>${s.outbreak ? 'tap it hard' : s.need.map(([r, i, q]) => `${q} ${item(S.tier, r, i).n} <i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${RAR[r].col};border:1.5px solid var(--ink);vertical-align:-1px"></i>`).join(', ')}</span></div>`).join('')}</div>` : ''; })();
+      el.innerHTML = `<p class="sub" style="margin-bottom:6px"><b>Chapter ${S.tier+1} · ${ch.title}</b><br>${dots} ${st.done ? 'done' : (st.step+1) + ' of ' + ch.steps.length}</p>` + main + up + log;
+    }
+  }
+  else if (tab === 'cat'){
+    const t = S.tier, def = tierDef(t), c = S.cat[t] || {};
+    const groups = RAR.map((R, r) => `<div class="rgroup"><h4>${R.n} · ${def.items[r].filter((_, i) => c[`${r}-${i}`]).length}/${COUNTS[r]} · +${BONUS[r]*100}% each</h4><div class="items">${def.items[r].map((it, i) => c[`${r}-${i}`]
+      ? `<div class="it" data-r="${r}"><span class="band" style="background:${R.col}"></span>${it.danger ? `<span class="dg" title="Dangerous">⚠️</span>` : ''}<canvas class="pc" width="144" height="144" data-r="${r}" data-i="${i}"></canvas><div class="nm">${it.n}</div><div class="ds">${it.d}</div><small>×${c[`${r}-${i}`]} · ${fmt(VAL[r]*tierMult()*valMult())} each</small></div>`
+      : `<div class="it unk"><span class="band" style="background:${R.col}"></span><canvas class="pc" width="144" height="144" data-r="${r}" data-i="${i}" data-sil="1"></canvas><div class="nm">???</div><div class="ds">${it.danger ? 'Something with teeth.' : 'Not found yet.'}</div><small>${(weights(effLv())[r]/COUNTS[r]).toFixed(1)}% per ${T.drop}</small></div>`).join('')}</div></div>`).join('');
+    const earlier = Object.keys(S.cat).filter(k => +k < t).map(k => `${tierDef(+k).n} ${found(+k)}/${PER}`).join(' · ');
+    const hyb = T.skin === 'bio' ? `<div class="rgroup"><h4>Hybrids · ${HYBRIDS.filter(h => S.hyb[h.id]).length}/${HYBRIDS.length} · spliced, never rolled</h4><div class="items">${HYBRIDS.map(h => S.hyb[h.id]
+      ? `<div class="it"><span class="band" style="background:#37d3a8"></span>${S.seed === h.id ? '<span class="dg" title="Seeded">🌱</span>' : ''}<canvas class="pc" width="144" height="144" data-h="${h.id}"></canvas><div class="nm">${h.n}</div><div class="ds">${h.d}</div><small>×${S.hyb[h.id]} · ${h.pd}</small></div>`
+      : `<div class="it unk"><span class="band" style="background:#37d3a8"></span><canvas class="pc" width="144" height="144" data-h="${h.id}" data-sil="1"></canvas><div class="nm">???</div><div class="ds">${item(0, h.par[0][0], h.par[0][1]).n} + ${item(0, h.par[1][0], h.par[1][1]).n}</div><small>${S.hasSplicer ? 'splice it in the Lab' : 'needs the splicer'}</small></div>`).join('')}</div></div>` : '';
+    el.innerHTML = `<p class="sub"><b>${def.n}</b> · ${found(t)}/${PER} found · catalog bonus <b>+${Math.round((catMult()-1)*100)}%</b> income, kept forever. Spare copies are ingredients for the Clinic.${earlier ? '<br>Earlier: ' + earlier : ''}</p>` + groups + hyb;
+    drawPortraits(performance.now());
+  }
+  else if (tab === 'asc'){
+    const next = tierDef(S.tier+1); const ok = canAscend();
+    const ladder = []; const total = T.tiers.length + T.more.length; for (let i = 0; i < total; i++) ladder.push(`<div class="${i === S.tier ? 'cur' : i < S.tier ? 'done' : ''}">${i+1}. ${tierDef(i).n}${i < S.tier ? ' · ' + found(i) + '/${PER}' : ''}</div>`);
+    el.innerHTML = `<div class="card"><h3>${T.ascend}: ${next.n}</h3><p class="sub" style="margin:0 0 6px">Everything ×${TIER_MULT}. Cycle ×${TIER_CYCLE}. A new catalog of ${PER}. Level, upgrades and ${T.cur.toLowerCase()} reset; catalog and research stay.</p>
+      ${STORY[S.tier] ? `<div class="kv"><span>Chapter ${S.tier+1} complete</span><span class="${story().done ? 'good' : 'warn'}">${story().done ? 'yes' : story().step + ' / ' + STORY[S.tier].steps.length + ' requests'}</span></div>` : `<div class="kv"><span>${T.up.lv[0]} ${ASC_LV}</span><span data-live="ascLv" class="${S.lv >= ASC_LV ? 'good' : 'warn'}">${S.lv} / ${ASC_LV}</span></div>`}
+      <div class="kv"><span>Catalog ${ASC_FOUND} of ${PER}</span><span data-live="ascFound" class="${found(S.tier) >= ASC_FOUND ? 'good' : 'warn'}">${found(S.tier)} / ${ASC_FOUND}</span></div>
+      <div class="acts" style="display:flex;margin-top:10px"><button class="btn primary" data-act="ascend" ${ok ? '' : 'disabled'}>${T.ascend} to ${next.n}</button></div></div>
+      <div class="card"><h3>The ladder</h3><div class="ladder">${ladder.join('')}</div></div>`;
+  }
+}
+function renderAll(){ T = THEMES[S.theme]; $('phone').dataset.skin = T.skin; $('devSkin').textContent = 'Skin: ' + T.name; applyVessel(); renderTop(); renderTab(); updateLive(); dirty = false; }
+let ringLen = 596.9, vesselKey = '';
+function applyVessel(){
+  const V = T.skin === 'bio' ? vessel() : null, key = (V ? V.n : 'space');
+  if (key === vesselKey) return; vesselKey = key;
+  const ph = $('phone'); ['bg0','bg1','wood0','wood1','band'].forEach(k => V ? ph.style.setProperty('--' + k, V.vars[k]) : ph.style.removeProperty('--' + k));
+  const shape = V ? V.shape : 'circle';
+  const dPath = shape === 'rect' ? 'M100 5 H175 a20 20 0 0 1 20 20 V175 a20 20 0 0 1 -20 20 H25 a20 20 0 0 1 -20 -20 V25 a20 20 0 0 1 20 -20 Z' : shape === 'dome' ? 'M100 5 A95 95 0 0 1 195 100 V152 H5 V100 A95 95 0 0 1 100 5 Z' : 'M100 5 A95 95 0 1 1 99.99 5 Z';
+  $('ringBg').setAttribute('d', dPath); const r = $('ring'); r.setAttribute('d', dPath); ringLen = r.getTotalLength(); r.setAttribute('stroke-dasharray', ringLen);
+  $('dishwrap').dataset.shape = shape;
+}
+
+// ---------- critter drawing ----------
+function lighten(hex){ const n = parseInt(hex.slice(1), 16); const r = (n>>16)&255, g = (n>>8)&255, b = n&255; return `rgb(${r+(255-r)*.55|0},${g+(255-g)*.55|0},${b+(255-b)*.55|0})`; }
+function roundRectPath(c, x, y, w, h, r){ c.moveTo(x+r, y); c.lineTo(x+w-r, y); c.arcTo(x+w, y, x+w, y+r, r); c.lineTo(x+w, y+h-r); c.arcTo(x+w, y+h, x+w-r, y+h, r); c.lineTo(x+r, y+h); c.arcTo(x, y+h, x, y+h-r, r); c.lineTo(x, y+r); c.arcTo(x, y, x+r, y, r); c.closePath(); }
+function lobed(c, R, lobes, amp, t, seed){ c.beginPath(); for (let k = 0; k <= 36; k++){ const a = k/36*Math.PI*2; const rr = R*(1 + amp*Math.sin(a*lobes + seed*40) + amp*.5*Math.sin(a*(lobes+3) + t*2.5)); c[k ? 'lineTo' : 'moveTo'](Math.cos(a)*rr, Math.sin(a)*rr); } c.closePath(); }
+function body(c, look, R, t, seed, fill, ink){
+  c.fillStyle = fill; c.strokeStyle = ink; c.lineWidth = R*.16; c.lineJoin = 'round'; c.lineCap = 'round';
+  switch (look.shape){
+    case 'rod': c.beginPath(); roundRectPath(c, -R*1.25, -R*.6, R*2.5, R*1.2, R*.6); c.fill(); c.stroke(); break;
+    case 'ring': c.beginPath(); c.arc(0,0,R,0,7); c.moveTo(R*.45,0); c.arc(0,0,R*.45,0,7,true); c.fill('evenodd'); c.beginPath(); c.arc(0,0,R,0,7); c.stroke(); c.beginPath(); c.arc(0,0,R*.45,0,7); c.stroke(); break;
+    case 'dots': [[R*.75, R*.35, R*.5],[-R*.7, R*.25, R*.45],[0, -R*.05, R*.8]].forEach(([x,y,r]) => { c.beginPath(); c.arc(x,y,r,0,7); c.fill(); c.stroke(); }); break;
+    case 'spiral': { const pts = []; for (let k = 0; k <= 40; k++){ const u = k/40; const a = u*Math.PI*2*2.2 + t*.8; const rr = R*.15 + u*R*.95; pts.push([Math.cos(a)*rr, Math.sin(a)*rr]); } for (const [wd, st] of [[R*.62, ink],[R*.34, fill]]){ c.strokeStyle = st; c.lineWidth = wd; c.beginPath(); pts.forEach((p,k) => c[k ? 'lineTo' : 'moveTo'](p[0], p[1])); c.stroke(); } look._head = pts[pts.length-1]; break; }
+    case 'crystal': c.beginPath(); for (let k = 0; k < 6; k++){ const a = k/6*Math.PI*2 - Math.PI/2; const rr = R*(k%2 ? .95 : 1.1); c[k ? 'lineTo' : 'moveTo'](Math.cos(a)*rr, Math.sin(a)*rr); } c.closePath(); c.fill(); c.stroke(); c.strokeStyle = 'rgba(255,255,255,.55)'; c.lineWidth = R*.08; c.beginPath(); c.moveTo(-R*.5,-R*.2); c.lineTo(0,-R*.9); c.lineTo(R*.5,-R*.2); c.stroke(); break;
+    case 'star': c.beginPath(); for (let k = 0; k < 16; k++){ const a = k/16*Math.PI*2 + t*.3; const rr = R*(k%2 ? .72 : 1.15); c[k ? 'lineTo' : 'moveTo'](Math.cos(a)*rr, Math.sin(a)*rr); } c.closePath(); c.fill(); c.stroke(); break;
+    case 'amoeba': lobed(c, R, 5, .16, t, seed); c.fill(); c.stroke(); break;
+    default: lobed(c, R, 9, .05, t, seed); c.fill(); c.stroke();
+  }
+}
+function face(c, look, R, t, seed, st, ink){
+  if (look.shape === 'ring'){ c.translate(0, -R*.72); c.scale(.55, .55); }
+  else if (look.shape === 'dots'){ c.translate(0, -R*.05); c.scale(.8, .8); }
+  else if (look.shape === 'spiral' && look._head){ c.translate(look._head[0], look._head[1]); c.scale(.6, .6); }
+  else if (look.shape === 'rod'){ c.translate(R*.35, 0); c.scale(.85, .85); }
+  const eyes = look.eyes === undefined ? 2 : look.eyes;
+  const blink = !st.dead && ((t + seed*7) % 4.2) < .14;
+  const pos = eyes === 1 ? [[0, -R*.1, R*.32]] : eyes === 3 ? [[-R*.32, -R*.12, R*.2],[R*.32, -R*.12, R*.2],[0, -R*.5, R*.14]] : [[-R*.3, -R*.15, R*.22],[R*.3, -R*.15, R*.22]];
+  for (const [x, y, r] of pos){
+    if (st.dead){ c.strokeStyle = ink; c.lineWidth = R*.1; c.beginPath(); c.moveTo(x-r*.6,y-r*.6); c.lineTo(x+r*.6,y+r*.6); c.moveTo(x+r*.6,y-r*.6); c.lineTo(x-r*.6,y+r*.6); c.stroke(); continue; }
+    if (blink){ c.strokeStyle = ink; c.lineWidth = R*.1; c.beginPath(); c.moveTo(x-r,y); c.lineTo(x+r,y); c.stroke(); continue; }
+    c.fillStyle = '#fff'; c.strokeStyle = ink; c.lineWidth = R*.08; c.beginPath(); c.arc(x,y,r,0,7); c.fill(); c.stroke();
+    const px = x + Math.sin(t*1.3 + seed*9)*r*.25, py = y + Math.cos(t*1.1 + seed*5)*r*.2;
+    c.fillStyle = st.danger && !st.contained ? '#e0102a' : ink; c.beginPath(); c.arc(px, py, r*.48, 0, 7); c.fill();
+    c.fillStyle = '#fff'; c.beginPath(); c.arc(px - r*.15, py - r*.18, r*.14, 0, 7); c.fill();
+    if (st.danger){ c.strokeStyle = ink; c.lineWidth = R*.1; c.beginPath(); const s = x < 0 ? 1 : -1; c.moveTo(x - s*r*.9, y - r*1.25); c.lineTo(x + s*r*.9, y - r*.85); c.stroke(); }
+  }
+  // mouth
+  const my = R*.3;
+  c.strokeStyle = ink; c.lineWidth = R*.1; c.fillStyle = ink;
+  if (st.dead){ c.beginPath(); c.arc(0, my, R*.1, 0, 7); c.fill(); }
+  else if (look.teeth){
+    const open = st.contained ? .12 : (st.atk && st.atk.phase !== 'back') ? .6 : .28 + .12*Math.sin(t*6 + seed*8);
+    c.beginPath(); c.ellipse(0, my, R*.42, R*open*1.3, 0, 0, 7); c.fill();
+    c.fillStyle = '#fff'; for (let k = 0; k < 5; k++){ const x = -R*.34 + k*R*.17; c.beginPath(); c.moveTo(x, my - R*open*1.1); c.lineTo(x + R*.08, my - R*open*1.1); c.lineTo(x + R*.04, my - R*open*.3); c.closePath(); c.fill(); }
+  }
+  else if (st.contained){ c.beginPath(); c.arc(0, my + R*.25, R*.25, Math.PI*1.15, Math.PI*1.85); c.stroke(); }
+  else { c.beginPath(); c.arc(0, my - R*.05, R*.25, Math.PI*.15, Math.PI*.85); c.stroke(); }
+}
+function drawCritter(c, x, y, R, look, now, st){
+  if (!(R > 0.01)) return;
+  const t = now/1000, seed = st.seed || 0, ink = st.sil ? '#2b4a40' : INK;
+  c.save(); c.translate(x, y);
+  const bobA = st.meet ? .2 : st.ready ? .14 : .06, bobF = st.meet ? 9 : 3.2;
+  const bob = st.dead ? 0 : Math.sin(t*bobF + seed*10);
+  let sx = 1 + bobA*.6*bob, sy = 1 - bobA*.6*bob, dx = 0, dy = 0;
+  const A = st.atk;
+  if (A){ const e = now - A.t0; if (A.phase === 'wind'){ const k = Math.min(1, e/600); sx *= 1 + .3*k; sy *= 1 + .3*k; dx = (Math.random()-.5)*R*.3*k; dy = (Math.random()-.5)*R*.3*k; } else if (A.phase === 'lunge'){ sx *= 1.4; sy *= .8; } else { sx *= .94; sy *= 1.06; } }
+  if (st.frozen){ dx = (Math.random()-.5)*R*.16; sy *= .9; sx *= 1.08; }
+  c.translate(dx, st.dead ? R*.15 : dy - bob*R*bobA);
+  if (st.rot !== undefined){ if (Math.cos(st.rot) < 0){ c.scale(-1, 1); c.rotate(Math.PI - st.rot); } else c.rotate(st.rot); }
+  else if (st.flip) c.scale(-1, 1);
+  c.scale(sx, sy);
+  if (st.sil){ body(c, look, R, 0, seed, '#3b5a4e', ink); c.restore(); return; }
+  const col = st.dead ? '#a3aba7' : look.col, col2 = st.dead ? '#cfd5d2' : (look.col2 || lighten(look.col));
+  if (look.glow && !st.dead){ const g = c.createRadialGradient(0,0,R*.4,0,0,R*2.3); g.addColorStop(0, look.col + '77'); g.addColorStop(1, look.col + '00'); c.fillStyle = g; c.beginPath(); c.arc(0,0,R*2.3,0,7); c.fill(); }
+  if (look.halo && !st.dead){ c.strokeStyle = '#fff3b0'; c.lineWidth = R*.14; c.beginPath(); c.arc(0,0,R*1.5,0,7); c.stroke(); }
+  if (look.sparkle && !st.dead){ for (let k = 0; k < 5; k++){ const a = t*1.4 + k*1.2566, sx = Math.cos(a)*R*1.75, sy = Math.sin(a)*R*1.75*.6 - R*.2, s = R*(.16 + .08*Math.sin(t*5 + k)); c.fillStyle = k%2 ? '#fff' : '#ffd23f'; c.beginPath(); c.moveTo(sx, sy - s); c.quadraticCurveTo(sx, sy, sx + s, sy); c.quadraticCurveTo(sx, sy, sx, sy + s); c.quadraticCurveTo(sx, sy, sx - s, sy); c.quadraticCurveTo(sx, sy, sx, sy - s); c.fill(); } }
+  if (st.danger && !st.dead && !st.contained){ const g = c.createRadialGradient(0,0,R*.7,0,0,R*2); g.addColorStop(0,'rgba(180,0,60,.35)'); g.addColorStop(1,'rgba(180,0,60,0)'); c.fillStyle = g; c.beginPath(); c.arc(0,0,R*2,0,7); c.fill(); }
+  if (look.tail && !st.dead){ c.strokeStyle = ink; c.lineWidth = R*.16; c.lineCap = 'round'; c.beginPath(); const x0 = look.shape === 'rod' ? -R*1.2 : -R*.9; c.moveTo(x0, 0); for (let k = 1; k <= 8; k++){ const u = k/8; c.lineTo(x0 - u*R*1.3, Math.sin(u*6 + t*9 + seed*5)*R*.3); } c.stroke(); }
+  if (look.fuzz){ c.strokeStyle = ink; c.lineWidth = R*.1; c.lineCap = 'round'; for (let k = 0; k < 18; k++){ const a = k/18*Math.PI*2; const w = Math.sin(t*7 + k*1.7 + seed*3)*.25; c.beginPath(); c.moveTo(Math.cos(a)*R*.95, Math.sin(a)*R*.95); c.lineTo(Math.cos(a+w)*R*1.3, Math.sin(a+w)*R*1.3); c.stroke(); } }
+  body(c, look, R, t, seed, col, ink);
+  if (!['ring','spiral','dots'].includes(look.shape)){ c.fillStyle = col2; c.globalAlpha = .75; c.beginPath(); c.ellipse(look.shape === 'rod' ? -R*.3 : 0, R*.38, look.shape === 'rod' ? R*.7 : R*.5, R*.26, 0, 0, 7); c.fill(); c.globalAlpha = 1; }
+  if (look.spots){ c.fillStyle = 'rgba(31,61,51,.35)'; [[-.45,-.35],[.4,-.5],[.15,.05]].forEach(([px,py]) => { c.beginPath(); c.arc(px*R, py*R, R*.12, 0, 7); c.fill(); }); }
+  face(c, look, R, t, seed, st, ink);
+  c.restore();
+  const em = st.meet ? st.meet.em : st.frozen ? '!' : null;
+  if (em && !st.dead){ c.save(); c.translate(x, y - R*2 - Math.abs(Math.sin(t*7))*R*.25); c.font = `700 ${R*1.15}px Fredoka, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.lineWidth = R*.24; c.lineJoin = 'round'; c.strokeStyle = INK; c.strokeText(em, 0, 0); c.fillStyle = st.frozen ? '#ff2e4d' : em === '♥' ? '#ff6b9d' : '#fff'; c.fillText(em, 0, 0); c.restore(); }
+  if (st.contained && !st.dead){ c.save(); c.translate(x, y); c.setLineDash([R*.25, R*.18]); c.lineDashOffset = -now/60; c.strokeStyle = '#fff'; c.lineWidth = R*.14; c.beginPath(); c.arc(0,0,R*1.7,0,7); c.stroke(); c.strokeStyle = INK; c.lineWidth = R*.06; c.beginPath(); c.arc(0,0,R*1.7,0,7); c.stroke(); c.restore(); }
+}
+function drawPortraits(now){
+  document.querySelectorAll('canvas.pc').forEach(cv => {
+    const r = +cv.dataset.r, i = +cv.dataset.i, it = cv.dataset.h ? HYB[cv.dataset.h] : item(S.tier, r, i), c = cv.getContext('2d');
+    c.clearRect(0, 0, 144, 144);
+    if (T.skin === 'space'){ drawFind(c, 72, 72, 22, it, now, {seed:i, sil:!!cv.dataset.sil}); return; }
+    drawCritter(c, 72, 78, 30, it.look, now, { seed: i + r*3, sil: !!cv.dataset.sil, danger: it.danger });
+  });
+}
+function drawFind(c, x, y, R, it, now, st){
+  const col = st.sil ? '#3a4470' : it.look.col;
+  const gl = c.createRadialGradient(x, y, 0, x, y, R*2.4); gl.addColorStop(0, col); gl.addColorStop(.35, col + '88'); gl.addColorStop(1, col + '00');
+  c.fillStyle = gl; c.beginPath(); c.arc(x, y, R*2.4, 0, 7); c.fill();
+  if (it.danger && !st.sil){ c.strokeStyle = st.contained ? '#5de1ff' : '#ff2e4d'; c.lineWidth = 2; c.setLineDash([4,4]); c.lineDashOffset = -now/40; c.beginPath(); c.arc(x, y, R*1.4, 0, 7); c.stroke(); c.setLineDash([]); c.fillStyle = '#12061a'; c.beginPath(); c.arc(x, y, R*.55, 0, 7); c.fill(); }
+  else { c.fillStyle = st.sil ? '#556' : '#fff'; c.beginPath(); c.arc(x, y, R*.35, 0, 7); c.fill(); }
+}
+
+// ---------- dish canvas ----------
+const cv = $('dish'), cx = cv.getContext('2d');
+// ---------- vessels: one look per tier ----------
+const lcg = s => () => (s = (s * 1664525 + 1013904223) % 4294967296) / 4294967296;
+function rrect(c, x, y, w, h, r){ c.beginPath(); roundRectPath(c, x, y, w, h, r); }
+const CIRC = { type:'circle', r:.4, minX:.1, maxX:.9, minY:.1, maxY:.9 };
+const VESSELS = [
+  { n:'Petri dish', shape:'circle', bounds:CIRC, seedY:.8, slots:[[.2,.7],[.5,.9],[.8,.7]], vars:{ bg0:'#4fc39a', bg1:'#1f8b6f', wood0:'#c88347', wood1:'#8a4f25', band:'#2f7d74' },
+    draw(c, W, H){ const R = W/2; const g = c.createRadialGradient(R*.7, R*.6, R*.1, R, R, R); g.addColorStop(0, '#ffd9c7'); g.addColorStop(1, '#f4a988'); c.fillStyle = g; c.fillRect(0, 0, W, H); c.fillStyle = 'rgba(255,255,255,.35)'; c.beginPath(); c.ellipse(R*.62, R*.5, R*.42, R*.2, -.6, 0, 7); c.fill(); c.fillStyle = 'rgba(255,255,255,.18)'; c.beginPath(); c.arc(R*1.35, R*1.4, R*.12, 0, 7); c.fill(); },
+    frame(c, W, H){ const R = W/2; c.strokeStyle = '#7a4a12'; c.lineWidth = 11; c.beginPath(); c.arc(R, R, R-6, 0, 7); c.stroke(); c.strokeStyle = '#e0a53a'; c.lineWidth = 6; c.beginPath(); c.arc(R, R, R-6, 0, 7); c.stroke(); c.strokeStyle = 'rgba(255,240,200,.85)'; c.lineWidth = 3; c.lineCap = 'round'; c.beginPath(); c.arc(R, R, R-6, Math.PI*1.1, Math.PI*1.45); c.stroke(); } },
+  { n:'Aquarium', shape:'rect', bounds:{ type:'rect', minX:.12, maxX:.88, minY:.2, maxY:.78 }, seedY:.76, slots:[[.18,.82],[.5,.86],[.84,.82]], vars:{ bg0:'#3aa0c8', bg1:'#0f4d78', wood0:'#a4794c', wood1:'#5e4224', band:'#1f5f8a' },
+    draw(c, W, H, now){ const t = now/1000; const g = c.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#c9f2ff'); g.addColorStop(.2, '#7fd3f2'); g.addColorStop(1, '#1d6fa3'); c.fillStyle = g; c.fillRect(0, 0, W, H);
+      c.fillStyle = 'rgba(255,255,255,.1)'; for (let k = 0; k < 3; k++){ const x0 = W*(.1 + k*.28) + Math.sin(t*.5 + k)*14; c.beginPath(); c.moveTo(x0, 0); c.lineTo(x0 + 40, 0); c.lineTo(x0 + 150, H); c.lineTo(x0 + 70, H); c.closePath(); c.fill(); }
+      const sy = H*.13; c.fillStyle = '#eafbff'; c.beginPath(); c.moveTo(0, 0); c.lineTo(W, 0); c.lineTo(W, sy); for (let x = W; x >= 0; x -= 12) c.lineTo(x, sy + Math.sin(x/28 + t*2)*3); c.closePath(); c.fill(); c.strokeStyle = 'rgba(255,255,255,.8)'; c.lineWidth = 2; c.beginPath(); for (let x = 0; x <= W; x += 12){ const y = sy + Math.sin(x/28 + t*2)*3; c[x ? 'lineTo' : 'moveTo'](x, y); } c.stroke();
+      const gy = H*.85; c.fillStyle = '#d9b877'; c.beginPath(); c.moveTo(0, gy + 6); for (let x = 0; x <= W; x += 20) c.lineTo(x, gy + Math.sin(x/17)*4); c.lineTo(W, H); c.lineTo(0, H); c.closePath(); c.fill();
+      this.peb = this.peb || Array.from({length: 26}, (_, k) => { const r = lcg(k*7 + 1); return { x: r(), y: r(), s: 4 + r()*5, col: ['#b98c55','#e0c08a','#8d6b3f','#c4a3d1','#9fb7c9'][k%5] }; });
+      for (const p of this.peb){ c.fillStyle = p.col; c.strokeStyle = 'rgba(60,40,20,.5)'; c.lineWidth = 1.5; c.beginPath(); c.ellipse(p.x*W, gy + 8 + p.y*(H - gy - 10), p.s, p.s*.7, 0, 0, 7); c.fill(); c.stroke(); }
+      for (const [px, h, ph] of [[.2, .42, 0], [.78, .34, 2], [.3, .25, 4]]){ const bx = W*px, by = gy + 4, sw = Math.sin(t*1.2 + ph)*18; c.strokeStyle = '#2e8b57'; c.lineWidth = 7; c.lineCap = 'round'; c.beginPath(); c.moveTo(bx, by); c.bezierCurveTo(bx + sw*.3, by - H*h*.4, bx + sw, by - H*h*.7, bx + sw*1.2, by - H*h); c.stroke(); c.fillStyle = '#3fae6e'; for (let k = 1; k <= 4; k++){ const u = k/4, lx = bx + sw*u*u, ly = by - H*h*u; c.beginPath(); c.ellipse(lx + (k%2 ? 14 : -14), ly, 16, 7, (k%2 ? -.5 : .5) + sw*.01, 0, 7); c.fill(); } }
+      this.bub = this.bub || Array.from({length: 10}, (_, k) => { const r = lcg(k*13 + 5); return { x: r(), s: 2 + r()*3, o: r(), v: .08 + r()*.1 }; });
+      for (const b of this.bub){ const u = ((t*b.v + b.o) % 1), y = gy - u*(gy - sy - 10); c.fillStyle = 'rgba(255,255,255,.5)'; c.strokeStyle = 'rgba(255,255,255,.85)'; c.lineWidth = 1; c.beginPath(); c.arc(b.x*W + Math.sin(u*10)*4, y, b.s, 0, 7); c.fill(); c.stroke(); } },
+    frame(c, W, H){ c.strokeStyle = '#1b3f4a'; c.lineWidth = 10; rrect(c, 5, 5, W-10, H-10, 26); c.stroke(); c.strokeStyle = '#e0a53a'; c.lineWidth = 3; rrect(c, 9, 9, W-18, H-18, 22); c.stroke(); c.fillStyle = '#e0a53a'; c.strokeStyle = INK; c.lineWidth = 2; for (const [x, y] of [[18,18],[W-18,18],[18,H-18],[W-18,H-18]]){ rrect(c, x-9, y-9, 18, 18, 5); c.fill(); c.stroke(); } } },
+  { n:'Terrarium', shape:'rect', bounds:{ type:'rect', minX:.12, maxX:.88, minY:.16, maxY:.72 }, seedY:.7, slots:[[.22,.74],[.5,.76],[.8,.74]], vars:{ bg0:'#8fbf5a', bg1:'#3f6b2a', wood0:'#a5602c', wood1:'#5a3216', band:'#4c7a2c' },
+    draw(c, W, H, now){ const t = now/1000; const g = c.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#fbf6de'); g.addColorStop(1, '#d7e8bd'); c.fillStyle = g; c.fillRect(0, 0, W, H);
+      const sun = c.createRadialGradient(W*.8, H*.12, 4, W*.8, H*.12, W*.5); sun.addColorStop(0, 'rgba(255,240,170,.85)'); sun.addColorStop(1, 'rgba(255,240,170,0)'); c.fillStyle = sun; c.fillRect(0, 0, W, H);
+      c.fillStyle = 'rgba(70,130,60,.45)'; for (const [x, y, r] of [[.15,.62,.16],[.4,.66,.14],[.7,.6,.18],[.9,.68,.12]]){ c.beginPath(); c.arc(W*x, H*y, W*r, 0, 7); c.fill(); }
+      const sy = H*.78; c.fillStyle = '#5a3a1e'; c.beginPath(); c.moveTo(0, sy + 4); for (let x = 0; x <= W; x += 18) c.lineTo(x, sy + Math.sin(x/23)*4); c.lineTo(W, H); c.lineTo(0, H); c.closePath(); c.fill(); c.strokeStyle = '#8a5a2a'; c.lineWidth = 4; c.beginPath(); for (let x = 0; x <= W; x += 18){ const y = sy + Math.sin(x/23)*4; c[x ? 'lineTo' : 'moveTo'](x, y); } c.stroke();
+      c.strokeStyle = 'rgba(40,20,5,.5)'; c.lineWidth = 2; for (const rx of [.22, .55, .8]){ c.beginPath(); c.moveTo(W*rx, sy + 10); c.quadraticCurveTo(W*rx - 10, sy + 40, W*rx + 8, sy + 70); c.stroke(); }
+      for (const [x, s] of [[.35, 10], [.62, 7], [.12, 8]]){ c.fillStyle = '#9c9a92'; c.strokeStyle = '#5c5a52'; c.lineWidth = 1.5; c.beginPath(); c.ellipse(W*x, sy + 2, s, s*.6, 0, 0, 7); c.fill(); c.stroke(); }
+      for (const [x, w] of [[.08, .14], [.45, .12], [.72, .16], [.92, .1]]){ c.fillStyle = '#6fbf5a'; c.strokeStyle = '#3f7d2a'; c.lineWidth = 2; c.beginPath(); c.ellipse(W*x, sy + 2, W*w/2, 10, 0, Math.PI, 0); c.fill(); c.stroke(); }
+      const fx = W*.2, fy = sy, sw = Math.sin(t*1.1)*6; c.strokeStyle = '#3f8f3a'; c.lineWidth = 4; c.lineCap = 'round'; c.beginPath(); c.moveTo(fx, fy); c.quadraticCurveTo(fx + sw, fy - H*.2, fx + sw*2, fy - H*.42); c.stroke(); c.fillStyle = '#55b04a'; for (let k = 1; k <= 6; k++){ const u = k/6, lx = fx + sw*2*u*u, ly = fy - H*.42*u; for (const s of [-1, 1]){ c.beginPath(); c.ellipse(lx + s*12*(1 - u*.5), ly, 14*(1 - u*.4), 5, s*.6, 0, 7); c.fill(); } }
+      this.pol = this.pol || Array.from({length: 14}, (_, k) => { const r = lcg(k*3 + 9); return { x: r(), y: r(), v: r()*.02 + .01, ph: r()*7 }; });
+      for (const p of this.pol){ const x = ((p.x + t*p.v) % 1)*W, y = (p.y*.7 + .05)*H + Math.sin(t*.8 + p.ph)*8; c.fillStyle = 'rgba(255,230,120,.85)'; c.beginPath(); c.arc(x, y, 2.2, 0, 7); c.fill(); } },
+    frame(c, W, H){ c.strokeStyle = 'rgba(255,255,255,.7)'; c.lineWidth = 3; rrect(c, 11, 11, W-22, H-22, 18); c.stroke(); c.strokeStyle = '#6b4a2a'; c.lineWidth = 9; rrect(c, 5, 5, W-10, H-10, 22); c.stroke(); c.fillStyle = '#8a5a2a'; c.strokeStyle = INK; c.lineWidth = 2; rrect(c, W*.3, 0, W*.4, 12, 4); c.fill(); c.stroke(); } },
+  { n:'Biome dome', shape:'dome', bounds:{ type:'dome', r:.42, minX:.1, maxX:.9, minY:.1, maxY:.62 }, seedY:.66, slots:[[.22,.67],[.5,.69],[.78,.67]], vars:{ bg0:'#3b3f8a', bg1:'#141a3d', wood0:'#8d9bb5', wood1:'#4f5a70', band:'#3c4f9c' },
+    draw(c, W, H, now){ const t = now/1000; const g = c.createLinearGradient(0, 0, 0, H*.72); g.addColorStop(0, '#cdeffc'); g.addColorStop(1, '#eaf8ff'); c.fillStyle = g; c.fillRect(0, 0, W, H);
+      c.strokeStyle = 'rgba(60,90,130,.18)'; c.lineWidth = 1.5; const s = 26; for (let row = 0; row < H/(s*.87) + 1; row++){ for (let col = 0; col < W/(s*1.5) + 1; col++){ const x = col*s*1.5 + (row%2 ? s*.75 : 0), y = row*s*.87; c.beginPath(); for (let k = 0; k < 6; k++){ const a = k*Math.PI/3; c[k ? 'lineTo' : 'moveTo'](x + Math.cos(a)*s*.5, y + Math.sin(a)*s*.5); } c.closePath(); c.stroke(); } }
+      const gy = H*.72; c.fillStyle = '#6fbf5a'; c.fillRect(0, gy, W, H - gy); c.fillStyle = '#4f9a40'; c.fillRect(0, gy + 22, W, H); c.fillStyle = '#8fd77a'; c.beginPath(); c.moveTo(0, gy); for (let x = 0; x <= W; x += 16) c.lineTo(x, gy - 4 + Math.sin(x/19)*3); c.lineTo(W, gy + 6); c.lineTo(0, gy + 6); c.closePath(); c.fill();
+      for (const [x, h] of [[.18,.16],[.3,.11],[.72,.18],[.84,.12]]){ c.fillStyle = '#5a3a1e'; c.fillRect(W*x - 3, gy - H*h*.3, 6, H*h*.3 + 4); c.fillStyle = '#2f8f4a'; c.strokeStyle = '#1f5f30'; c.lineWidth = 2; for (let k = 0; k < 3; k++){ const yy = gy - H*h*.3 - k*H*h*.25, ww = W*.05*(1 - k*.25); c.beginPath(); c.moveTo(W*x - ww, yy); c.lineTo(W*x, yy - H*h*.35); c.lineTo(W*x + ww, yy); c.closePath(); c.fill(); c.stroke(); } }
+      for (let k = 0; k < 3; k++){ const x = ((t*.03 + k*.33) % 1)*W*1.4 - W*.2; c.fillStyle = 'rgba(255,255,255,.35)'; c.beginPath(); c.ellipse(x, gy - 6 - k*8, 70, 9, 0, 0, 7); c.fill(); } },
+    frame(c, W, H){ const R = W/2; c.strokeStyle = '#3a4a5a'; c.lineWidth = 9; c.beginPath(); c.arc(R, R, R-5, Math.PI, 0); c.stroke(); c.strokeStyle = 'rgba(255,255,255,.6)'; c.lineWidth = 3; c.lineCap = 'round'; c.beginPath(); c.arc(R, R, R-12, Math.PI*1.15, Math.PI*1.4); c.stroke(); c.fillStyle = '#3a4a5a'; c.strokeStyle = INK; c.lineWidth = 2; rrect(c, 0, H*.72 - 4, W, 14, 6); c.fill(); c.stroke(); c.fillStyle = '#8d9bb5'; rrect(c, 8, H*.72 + 10, W-16, 10, 5); c.fill(); c.stroke(); } },
+  { n:'Living planet', shape:'circle', bounds:CIRC, seedY:.8, slots:[[.2,.7],[.5,.9],[.8,.7]], vars:{ bg0:'#1b2350', bg1:'#070a1c', wood0:'#7f8fb5', wood1:'#3a4466', band:'#5b3f9c' },
+    draw(c, W, H, now){ const t = now/1000, R = W/2; const g = c.createRadialGradient(R*.7, R*.6, R*.1, R, R, R); g.addColorStop(0, '#5aa7ff'); g.addColorStop(1, '#123f8a'); c.fillStyle = g; c.fillRect(0, 0, W, H);
+      this.land = this.land || Array.from({length: 6}, (_, k) => { const r = lcg(k*11 + 3); return { x: .15 + r()*.7, y: .15 + r()*.7, s: .09 + r()*.12, seed: r() }; });
+      for (const L of this.land){ c.save(); c.translate(L.x*W, L.y*H); c.fillStyle = '#e9d59a'; lobed(c, L.s*W*1.12, 6, .22, 0, L.seed*40); c.fill(); c.fillStyle = '#5cb85c'; lobed(c, L.s*W, 6, .22, 0, L.seed*40); c.fill(); c.restore(); }
+      this.cl = this.cl || Array.from({length: 7}, (_, k) => { const r = lcg(k*5 + 2); return { y: .1 + r()*.8, s: .05 + r()*.06, v: .01 + r()*.02, o: r(), seed: r() }; });
+      c.fillStyle = 'rgba(255,255,255,.75)'; for (const cl of this.cl){ const x = ((cl.o + t*cl.v) % 1.3 - .15)*W; c.save(); c.translate(x, cl.y*H); lobed(c, cl.s*W, 4, .3, t, cl.seed*30); c.fill(); c.restore(); }
+      const a = c.createRadialGradient(R, R, R*.82, R, R, R); a.addColorStop(0, 'rgba(140,200,255,0)'); a.addColorStop(1, 'rgba(140,200,255,.75)'); c.fillStyle = a; c.fillRect(0, 0, W, H); },
+    frame(c, W, H){ const R = W/2; c.strokeStyle = 'rgba(160,210,255,.9)'; c.lineWidth = 6; c.beginPath(); c.arc(R, R, R-4, 0, 7); c.stroke(); } },
+  { n:'Cosmos', shape:'circle', bounds:CIRC, seedY:.8, slots:[[.2,.7],[.5,.9],[.8,.7]], vars:{ bg0:'#2a1140', bg1:'#06030f', wood0:'#6b5b8f', wood1:'#2e2647', band:'#7b3fd1' },
+    draw(c, W, H, now){ const t = now/1000, R = W/2; const g = c.createRadialGradient(R, R, R*.1, R, R, R); g.addColorStop(0, '#3a1f6e'); g.addColorStop(1, '#0a0618'); c.fillStyle = g; c.fillRect(0, 0, W, H);
+      for (const [x, y, col] of [[.3,.4,'rgba(255,90,160,.35)'],[.7,.6,'rgba(90,160,255,.35)'],[.5,.75,'rgba(255,200,90,.25)']]){ const n = c.createRadialGradient(x*W, y*H, 0, x*W, y*H, W*.35); n.addColorStop(0, col); n.addColorStop(1, 'rgba(0,0,0,0)'); c.fillStyle = n; c.fillRect(0, 0, W, H); }
+      for (let arm = 0; arm < 2; arm++){ for (let k = 0; k < 70; k++){ const u = k/70, a = u*Math.PI*3 + arm*Math.PI + t*.15, r = R*.1 + u*R*.85; c.fillStyle = `rgba(255,255,255,${.25 + .6*(1 - u)})`; c.beginPath(); c.arc(R + Math.cos(a)*r, R + Math.sin(a)*r*.8, 1.2 + (1 - u)*2, 0, 7); c.fill(); } }
+      c.fillStyle = 'rgba(255,255,255,.9)'; c.beginPath(); c.arc(R, R, 8, 0, 7); c.fill(); },
+    frame(c, W, H){ const R = W/2; c.strokeStyle = 'rgba(200,160,255,.7)'; c.lineWidth = 5; c.beginPath(); c.arc(R, R, R-4, 0, 7); c.stroke(); } },
+];
+function vessel(){ return VESSELS[Math.min(S.tier, VESSELS.length - 1)]; }
+function vesselPath(c, shape, W, H){ c.beginPath(); if (shape === 'circle') c.arc(W/2, H/2, W/2 - 2, 0, 7); else if (shape === 'rect') roundRectPath(c, 6, 6, W-12, H-12, 26); else { const R = W/2; c.moveTo(2, H*.72 + 10); c.lineTo(2, R); c.arc(R, R, R-2, Math.PI, 0); c.lineTo(W-2, H*.72 + 10); c.closePath(); } }
+function bounds(){ return T.skin === 'bio' ? vessel().bounds : CIRC; }
+function randPos(){ const B = bounds(); if (B.type === 'rect') return [B.minX + Math.random()*(B.maxX - B.minX), B.minY + Math.random()*(B.maxY - B.minY)]; const a = Math.random()*Math.PI*2, d = Math.sqrt(Math.random())*B.r*.9; const x = .5 + Math.cos(a)*d; let y = .5 + Math.sin(a)*d; if (B.type === 'dome') y = Math.min(y, B.maxY); return [x, y]; }
+function clampPos(g){ const B = bounds(); if (B.type === 'rect'){ g.x = Math.min(B.maxX, Math.max(B.minX, g.x)); g.y = Math.min(B.maxY, Math.max(B.minY, g.y)); return; } const rx = g.x - .5, ry = g.y - .5, rr = Math.hypot(rx, ry); if (rr > B.r){ g.x = .5 + rx/rr*B.r; g.y = .5 + ry/rr*B.r; } if (B.type === 'dome') g.y = Math.min(g.y, B.maxY); }
+function nearEdge(g){ const B = bounds(); if (B.type === 'rect') return g.x < B.minX + .06 || g.x > B.maxX - .06 || g.y < B.minY + .06 || g.y > B.maxY - .06; const rr = Math.hypot(g.x - .5, g.y - .5); return rr > B.r*.85 || (B.type === 'dome' && g.y > B.maxY - .05); }
+const mcv = $('machine'), mx = mcv.getContext('2d');
+// ---------- the Splice-o-matic ----------
+const ML = { body:{x:16,y:24,w:672,h:508}, tubeA:{x:56,y:120,w:104,h:220}, tubeB:{x:544,y:120,w:104,h:220}, ch:{x:352,y:236,r:104}, lever:{x:588,y:352,w:100,h:170}, gA:{x:108,y:74,r:24}, gB:{x:596,y:74,r:24}, lights:{x:214,y:76,n:9,dx:34}, pipeA:{x1:160,y1:236,x2:250,y2:236}, pipeB:{x1:544,y1:236,x2:454,y2:236}, jars: Array.from({length:5}, (_, k) => ({x:56 + k*104, y:396, w:88, h:116})) };
+function gauge(c, g, v, col){ v = Math.max(0, Math.min(1, v)); c.fillStyle = '#fff6dc'; c.strokeStyle = INK; c.lineWidth = 4; c.beginPath(); c.arc(g.x, g.y, g.r, 0, 7); c.fill(); c.stroke(); const a0 = Math.PI*.75, a = a0 + Math.PI*1.5*v; c.strokeStyle = col; c.lineWidth = 5; c.beginPath(); c.arc(g.x, g.y, g.r-8, a0, a); c.stroke(); c.strokeStyle = INK; c.lineWidth = 3; c.beginPath(); c.moveTo(g.x, g.y); c.lineTo(g.x + Math.cos(a)*(g.r-6), g.y + Math.sin(a)*(g.r-6)); c.stroke(); c.fillStyle = INK; c.beginPath(); c.arc(g.x, g.y, 4, 0, 7); c.fill(); }
+function tube(c, r, par, now, p, k){
+  const t = now/1000;
+  c.fillStyle = 'rgba(190,235,250,.55)'; c.strokeStyle = INK; c.lineWidth = 5; c.beginPath(); roundRectPath(c, r.x, r.y, r.w, r.h, 26); c.fill(); c.stroke();
+  const col = par ? item(0, par[0], par[1]).look.col : '#9fdcd3'; const lvl = r.y + r.h*.35 + Math.sin(t*2 + k)*3;
+  c.save(); c.beginPath(); roundRectPath(c, r.x+3, r.y+3, r.w-6, r.h-6, 24); c.clip(); c.fillStyle = col + 'aa'; c.fillRect(r.x, lvl, r.w, r.h);
+  for (let b = 0; b < 5; b++){ const u = ((t*.4 + b*.23 + k*.5) % 1); const bx = r.x + 16 + ((b*37 + k*11) % (r.w-32)), by = r.y + r.h - 8 - u*(r.h - (lvl - r.y) - 8); c.fillStyle = 'rgba(255,255,255,.7)'; c.beginPath(); c.arc(bx, by, 3 + b%3, 0, 7); c.fill(); }
+  c.restore();
+  c.fillStyle = 'rgba(255,255,255,.55)'; c.beginPath(); roundRectPath(c, r.x+10, r.y+12, 10, r.h-24, 5); c.fill();
+  c.fillStyle = '#c96d4a'; c.strokeStyle = INK; c.lineWidth = 4; c.beginPath(); roundRectPath(c, r.x-6, r.y-14, r.w+12, 26, 10); c.fill(); c.stroke();
+  if (par){ let sc = 1, dy = 0; if (p >= 0){ sc = Math.max(0, 1 - p/.22); dy = (1 - sc)*40; } if (sc > .03) drawCritter(c, r.x + r.w/2, r.y + r.h*.6 + dy, 30*sc, item(0, par[0], par[1]).look, now, { seed: 7 + k }); }
+  else { c.fillStyle = 'rgba(31,61,51,.55)'; c.font = '700 14px Fredoka, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('TAP', r.x + r.w/2, r.y + r.h*.58); c.font = '600 12px Fredoka, sans-serif'; c.fillText('to load', r.x + r.w/2, r.y + r.h*.58 + 17); }
+}
+function chamber(c, ch, now, sp, p){
+  const t = now/1000;
+  c.fillStyle = '#2a6b64'; c.strokeStyle = INK; c.lineWidth = 5; c.beginPath(); roundRectPath(c, ch.x-84, ch.y+ch.r-18, 168, 46, 14); c.fill(); c.stroke();
+  c.fillStyle = 'rgba(200,240,255,.5)'; c.beginPath(); c.arc(ch.x, ch.y, ch.r, 0, 7); c.fill();
+  c.save(); c.beginPath(); c.arc(ch.x, ch.y, ch.r-3, 0, 7); c.clip();
+  const lvl = ch.y + ch.r*.35 + Math.sin(t*1.5)*3; c.fillStyle = 'rgba(159,220,211,.6)'; c.fillRect(ch.x-ch.r, lvl, ch.r*2, ch.r);
+  if (sp){
+    const ca = item(0, sp.a[0], sp.a[1]).look.col, cb = item(0, sp.b[0], sp.b[1]).look.col; c.globalAlpha = .3 + .55*Math.min(1, p*1.5);
+    for (let k = 0; k < 8; k++){ const a0 = t*(2 + p*5) + k*Math.PI/4; c.fillStyle = k%2 ? ca : cb; c.beginPath(); c.moveTo(ch.x, ch.y); c.arc(ch.x, ch.y, ch.r*(.92 - .12*Math.sin(t*3 + k)), a0, a0 + .5); c.closePath(); c.fill(); }
+    c.globalAlpha = 1;
+    if (p > .08){ const n = 1 + Math.floor(p*3); for (let k = 0; k < n; k++){ if (Math.random() < .55) continue; c.strokeStyle = k%2 ? '#fff' : '#ffe066'; c.lineWidth = 3; c.lineJoin = 'round'; c.beginPath(); let x = ch.x + (k%2 ? 38 : -38), y = ch.y - ch.r + 6; c.moveTo(x, y); for (let s = 0; s < 6; s++){ x += (Math.random()-.5)*56; y += 18 + Math.random()*12; c.lineTo(x, y); } c.stroke(); } }
+    if (p > .88){ c.fillStyle = `rgba(255,255,255,${(p-.88)/.12*.9})`; c.fillRect(ch.x-ch.r, ch.y-ch.r, ch.r*2, ch.r*2); }
+  } else if (S.spOut){
+    const h = HYB[S.spOut.id]; const k = Math.min(1, (now - S.spOut.at)/600); const g = c.createRadialGradient(ch.x, ch.y, 10, ch.x, ch.y, ch.r); g.addColorStop(0, h.look.col + '99'); g.addColorStop(1, h.look.col + '00'); c.fillStyle = g; c.fillRect(ch.x-ch.r, ch.y-ch.r, ch.r*2, ch.r*2);
+    drawCritter(c, ch.x, ch.y + 8, 42*easeBack(k), h.look, now, { seed: 5, ready: true });
+    c.fillStyle = '#fff'; c.strokeStyle = INK; c.lineWidth = 4; c.lineJoin = 'round'; c.font = '700 15px Fredoka, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; const ty = ch.y + ch.r - 24 + Math.sin(t*6)*3; c.strokeText('TAP TO COLLECT', ch.x, ty); c.fillText('TAP TO COLLECT', ch.x, ty);
+  } else { for (let b = 0; b < 6; b++){ const u = ((t*.3 + b*.17) % 1); c.fillStyle = 'rgba(255,255,255,.6)'; c.beginPath(); c.arc(ch.x - 60 + b*24, ch.y + ch.r - 10 - u*(ch.r*.6), 3 + b%3, 0, 7); c.fill(); } }
+  c.restore();
+  c.strokeStyle = INK; c.lineWidth = 5; c.beginPath(); c.arc(ch.x, ch.y, ch.r, 0, 7); c.stroke();
+  c.strokeStyle = 'rgba(255,255,255,.6)'; c.lineWidth = 8; c.lineCap = 'round'; c.beginPath(); c.arc(ch.x, ch.y, ch.r-16, Math.PI*1.15, Math.PI*1.45); c.stroke();
+  [[ch.x-38, ch.y-ch.r-6],[ch.x+38, ch.y-ch.r-6]].forEach(([x, y]) => { c.fillStyle = '#c9d3d0'; c.strokeStyle = INK; c.lineWidth = 4; c.beginPath(); roundRectPath(c, x-10, y-24, 20, 30, 6); c.fill(); c.stroke(); if (sp){ c.fillStyle = '#ffe066'; c.beginPath(); c.arc(x, y+8, 5 + Math.random()*3, 0, 7); c.fill(); } });
+}
+function spBurst(col){ const ch = ML.ch, t0 = performance.now(); for (let k = 0; k < 26; k++){ const a = Math.random()*7, sp = 80 + Math.random()*240; mParts.push({ x: ch.x, y: ch.y, vx: Math.cos(a)*sp, vy: Math.sin(a)*sp, t0, life: 900, col: k%3 ? col : '#fff', r: 4 + Math.random()*6 }); } }
+function spSmoke(){ const ch = ML.ch, t0 = performance.now(); for (let k = 0; k < 14; k++){ mParts.push({ x: ch.x + (Math.random()-.5)*90, y: ch.y - 50, vx: (Math.random()-.5)*60, vy: -50 - Math.random()*70, t0, life: 1400, col: 'rgba(90,90,100,.75)', r: 8 + Math.random()*10, grow: true }); } }
+function drawMachine(now){
+  const c = mx, W = mcv.width, H = mcv.height, L = ML, t = now/1000, locked = !S.hasSplicer, sp = S.splice, p = sp ? 1 - sp.left/sp.total : 0;
+  c.clearRect(0, 0, W, H);
+  c.save(); if (locked) c.globalAlpha = .4;
+  c.fillStyle = '#3a8f86'; c.strokeStyle = INK; c.lineWidth = 6; c.beginPath(); roundRectPath(c, L.body.x, L.body.y, L.body.w, L.body.h, 36); c.fill(); c.stroke();
+  c.fillStyle = 'rgba(255,255,255,.08)'; c.beginPath(); roundRectPath(c, L.body.x+14, L.body.y+14, L.body.w-28, 110, 24); c.fill();
+  c.fillStyle = 'rgba(0,0,0,.16)'; c.beginPath(); roundRectPath(c, L.body.x+14, 378, L.body.w-28, 146, 24); c.fill();
+  c.fillStyle = INK; [[40,48],[W-40,48],[40,H-44],[W-40,H-44]].forEach(([x, y]) => { c.beginPath(); c.arc(x, y, 5, 0, 7); c.fill(); });
+  c.fillStyle = '#ffd166'; c.strokeStyle = INK; c.lineWidth = 4; c.beginPath(); roundRectPath(c, 258, 28, 188, 34, 10); c.fill(); c.stroke(); c.fillStyle = INK; c.font = '700 17px Fredoka, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('SPLICE-O-MATIC', 352, 46);
+  gauge(c, L.gA, sp ? .35 + .5*p + .1*Math.sin(t*22) : .08 + .05*Math.sin(t*2), '#ff6b6b');
+  gauge(c, L.gB, sp ? p : S.spOut ? 1 : 0, '#22d3b0');
+  for (let k = 0; k < L.lights.n; k++){ const on = sp ? ((Math.floor(t*10) + k) % 3 === 0) : S.spOut ? (Math.floor(t*4) % 2 === k % 2) : (Math.floor(t*2) % L.lights.n === k); c.fillStyle = on ? ['#ffd166','#22d3b0','#ff6b9d'][k%3] : '#173a34'; c.strokeStyle = INK; c.lineWidth = 3; c.beginPath(); c.arc(L.lights.x + k*L.lights.dx, L.lights.y, 8, 0, 7); c.fill(); c.stroke(); }
+  c.lineCap = 'round'; for (const pp of [L.pipeA, L.pipeB]){ c.strokeStyle = INK; c.lineWidth = 30; c.beginPath(); c.moveTo(pp.x1, pp.y1); c.lineTo(pp.x2, pp.y2); c.stroke(); c.strokeStyle = '#6fb3aa'; c.lineWidth = 20; c.beginPath(); c.moveTo(pp.x1, pp.y1); c.lineTo(pp.x2, pp.y2); c.stroke(); }
+  if (sp && p < .3){ for (const [pp, par] of [[L.pipeA, sp.a],[L.pipeB, sp.b]]){ const col = item(0, par[0], par[1]).look.col; for (let k = 0; k < 3; k++){ const u = ((t*1.6 + k*.33) % 1); c.fillStyle = col; c.strokeStyle = INK; c.lineWidth = 2; c.beginPath(); c.arc(pp.x1 + (pp.x2-pp.x1)*u, pp.y1 + Math.sin(u*9 + k)*4, 7, 0, 7); c.fill(); c.stroke(); } } }
+  tube(c, L.tubeA, S.sp[0] || (sp && sp.a), now, sp ? p : -1, 0);
+  tube(c, L.tubeB, S.sp[1] || (sp && sp.b), now, sp ? p : -1, 1);
+  chamber(c, L.ch, now, sp, p);
+  const pulled = sp ? 1 : Math.max(0, 1 - (now - leverT)/500);
+  c.save(); c.translate(636, 470); c.fillStyle = '#2a6b64'; c.strokeStyle = INK; c.lineWidth = 4; c.beginPath(); c.arc(0, 0, 18, 0, 7); c.fill(); c.stroke(); c.rotate(-.35 + .9*pulled); c.strokeStyle = INK; c.lineWidth = 16; c.lineCap = 'round'; c.beginPath(); c.moveTo(0, 0); c.lineTo(0, -96); c.stroke(); c.strokeStyle = '#c9d3d0'; c.lineWidth = 8; c.beginPath(); c.moveTo(0, -4); c.lineTo(0, -92); c.stroke(); c.fillStyle = '#ff6b6b'; c.strokeStyle = INK; c.lineWidth = 4; c.beginPath(); c.arc(0, -100, 16, 0, 7); c.fill(); c.stroke(); c.restore();
+  c.fillStyle = '#fff'; c.font = '700 11px Fredoka, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('PULL', 636, 512);
+  const owned = HYBRIDS.filter(h => S.hyb[h.id]);
+  L.jars.forEach((j, k) => { const h = owned[k]; c.fillStyle = h ? 'rgba(200,240,255,.55)' : 'rgba(0,0,0,.15)'; c.strokeStyle = INK; c.lineWidth = 4; if (!h) c.setLineDash([8, 6]); c.beginPath(); roundRectPath(c, j.x, j.y, j.w, j.h, 14); c.fill(); c.stroke(); c.setLineDash([]);
+    if (h){ if (S.seed === h.id){ c.strokeStyle = '#22d3b0'; c.lineWidth = 5; c.beginPath(); roundRectPath(c, j.x-5, j.y-5, j.w+10, j.h+10, 18); c.stroke(); } c.fillStyle = 'rgba(255,255,255,.5)'; c.fillRect(j.x+8, j.y+10, 8, 46); drawCritter(c, j.x + j.w/2, j.y + j.h*.52, 24, h.look, now, { seed: k*3 }); c.fillStyle = '#fff'; c.strokeStyle = INK; c.lineWidth = 3; c.lineJoin = 'round'; c.font = '700 12px Fredoka, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.strokeText(h.n, j.x + j.w/2, j.y + j.h - 14); c.fillText(h.n, j.x + j.w/2, j.y + j.h - 14); if (S.seed === h.id){ c.font = '14px sans-serif'; c.fillText('🌱', j.x + j.w - 14, j.y + 14); } }
+    else { c.fillStyle = 'rgba(255,255,255,.35)'; c.font = '700 28px Fredoka, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('?', j.x + j.w/2, j.y + j.h/2); } });
+  mParts = mParts.filter(q => now - q.t0 < q.life);
+  for (const q of mParts){ const k = (now - q.t0)/q.life; c.globalAlpha = (1 - k) * (locked ? .4 : 1); c.fillStyle = q.col; c.beginPath(); c.arc(q.x + q.vx*k, q.y + q.vy*k + (q.grow ? 0 : 140*k*k), q.r*(q.grow ? 1 + k*2.5 : 1 - k*.5), 0, 7); c.fill(); }
+  c.restore();
+  if (locked){ c.fillStyle = 'rgba(20,50,44,.55)'; c.beginPath(); roundRectPath(c, L.body.x, L.body.y, L.body.w, L.body.h, 36); c.fill(); c.textAlign = 'center'; c.textBaseline = 'middle'; c.font = '64px sans-serif'; c.fillStyle = '#fff'; c.fillText('🔒', 352, 226); c.lineJoin = 'round'; c.lineWidth = 6; c.strokeStyle = INK; c.font = '700 24px Fredoka, sans-serif'; c.strokeText("Doc Ferro's Splice-o-matic", 352, 300); c.fillText("Doc Ferro's Splice-o-matic", 352, 300); c.font = '600 15px Fredoka, sans-serif'; c.strokeText('Help the Clinic and it is yours.', 352, 332); c.fillText('Help the Clinic and it is yours.', 352, 332); }
+}
+const stars = Array.from({length: 60}, () => ({ x: Math.random(), y: Math.random(), s: Math.random() }));
+const easeBack = u => { const s = 1.7; u = Math.min(1, Math.max(0, u)); return Math.max(0.001, 1 + (s+1)*Math.pow(u-1,3) + s*Math.pow(u-1,2)); };
+function dropSize(dr, W){ return (T.skin === "space" ? .028 : .058) * W * dr.s * (1 + dr.r*.28); }
+function draw(now){
+  const W = cv.width, H = cv.height, R = W/2, d = S.dishes[0], ct = cycleTime(), prog = d.p/ct, st = T.style;
+  cx.clearRect(0, 0, W, H);
+  cx.save(); if (now - shakeT < 240){ const k = 1 - (now - shakeT)/240; cx.translate((Math.random()-.5)*12*k, (Math.random()-.5)*12*k); }
+  if (T.skin === 'space'){
+    const g = cx.createRadialGradient(R*.7, R*.6, R*.1, R, R, R); g.addColorStop(0, st.bg0); g.addColorStop(1, st.bg1);
+    cx.fillStyle = g; cx.beginPath(); cx.arc(R, R, R-2, 0, 7); cx.fill();
+    for (const s of stars){ const tw = .5 + .5*Math.sin(now/600 + s.s*20); cx.fillStyle = `rgba(255,255,255,${.15 + .35*tw*s.s})`; cx.fillRect(s.x*W, s.y*H, 1.5, 1.5); }
+    cx.strokeStyle = 'rgba(120,140,200,.25)'; cx.lineWidth = 1; cx.beginPath(); cx.moveTo(R, 14); cx.lineTo(R, 34); cx.moveTo(R, H-14); cx.lineTo(R, H-34); cx.moveTo(14, R); cx.lineTo(34, R); cx.moveTo(W-14, R); cx.lineTo(W-34, R); cx.stroke();
+    if (!d.ready){ const a = (now/1500) % 7; cx.beginPath(); cx.moveTo(R,R); cx.arc(R, R, R-2, a-.6, a); cx.closePath(); cx.fillStyle = 'rgba(93,214,232,.08)'; cx.fill(); }
+  } else { const V = vessel(); cx.save(); vesselPath(cx, V.shape, W, H); cx.clip(); V.draw(cx, W, H, now);
+    S.placed.forEach((id, k) => { const a = id && ART[id]; if (!a) return; const [px, py] = V.slots[k]; cx.fillStyle = 'rgba(0,0,0,.18)'; cx.beginPath(); cx.ellipse(px*W, py*H + 12, 16, 6, 0, 0, 7); cx.fill(); cx.font = '28px sans-serif'; cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.fillText(a.e, px*W, py*H + Math.sin(now/600 + k)*2); }); }
+  if (T.skin === 'bio' && S.seed && HYB[S.seed]){ const sy = H*vessel().seedY; cx.strokeStyle = 'rgba(255,255,255,.55)'; cx.lineWidth = 3; cx.setLineDash([6,5]); cx.lineDashOffset = -now/80; cx.beginPath(); cx.arc(W*.5, sy, W*.08, 0, 7); cx.stroke(); cx.setLineDash([]); drawCritter(cx, W*.5, sy, W*.05, HYB[S.seed].look, now, { seed: 42, ready: d.ready }); }
+  const order = d.drops.slice().sort((a, b) => a.y - b.y);
+  for (const dr of order){
+    const life = Math.max(0, Math.min(1, (prog - dr.t0) / .12));
+    if (life <= 0) continue;
+    const it = item(S.tier, dr.r, dr.i), px = dr.x*W, py = dr.y*H;
+    let size = dropSize(dr, W) * easeBack(life);
+    let alpha = 1;
+    if (dr.dead){ const k = Math.min(1, (now - (dr.deadAt || 0)) / 1500); alpha = 1 - .65*k; size *= 1 - .3*k; }
+    cx.globalAlpha = alpha;
+    if (T.skin === 'space'){
+      drawFind(cx, px, py, size, it, now, { contained: dr.contained });
+      if (dr.dead){ cx.strokeStyle = '#ff5c7a'; cx.lineWidth = 2; cx.beginPath(); cx.moveTo(px-6,py-6); cx.lineTo(px+6,py+6); cx.moveTo(px+6,py-6); cx.lineTo(px-6,py+6); cx.stroke(); }
+    } else {
+      let rot, flip = false; const turns = it.look.shape === 'rod' || it.look.shape === 'spiral';
+      if (dr.meet){ if (turns) rot = dr.meet.dir; else flip = Math.cos(dr.meet.dir) < 0; }
+      else if (dr.hd !== undefined && !dr.contained && !dr.dead){ if (turns) rot = dr.hd; else flip = Math.cos(dr.hd) < 0; }
+      drawCritter(cx, px, py, size, it.look, now, { seed: dr.seed, dead: dr.dead, contained: dr.contained, danger: it.danger, atk: dr.atk, frozen: dr.frozen, meet: dr.meet, rot, flip, ready: d.ready });
+    }
+    cx.globalAlpha = 1;
+  }
+  if (S.ob){
+    const o = S.ob, pulse = 1 + .06*Math.sin(now/120), hit = o.hitAt && now - o.hitAt < 120, bx = W*.5, by = H*.45, bs = W*.16 * pulse * (hit ? .88 : 1);
+    const g2 = cx.createRadialGradient(bx, by, bs*.5, bx, by, bs*2.6); g2.addColorStop(0, 'rgba(60,0,40,.55)'); g2.addColorStop(1, 'rgba(60,0,40,0)'); cx.fillStyle = g2; cx.beginPath(); cx.arc(bx, by, bs*2.6, 0, 7); cx.fill();
+    const bl = o.boss || [0,3,0]; drawCritter(cx, bx, by, bs, item(bl[0], bl[1], bl[2]).look, now, { seed: 9, danger: 3, atk: { phase: 'wind', t0: now - 600 } });
+    const bw = W*.5, bh = 16, x0 = bx - bw/2, y0 = by + bs*2.1;
+    cx.fillStyle = '#fff'; cx.strokeStyle = INK; cx.lineWidth = 3; cx.beginPath(); roundRectPath(cx, x0, y0, bw, bh, 8); cx.fill(); cx.stroke();
+    cx.fillStyle = '#ff2e4d'; cx.beginPath(); roundRectPath(cx, x0+2, y0+2, Math.max(0, (bw-4)*o.hp/o.max), bh-4, 6); cx.fill();
+    cx.font = '700 24px Fredoka, sans-serif'; cx.textAlign = 'center'; cx.lineWidth = 6; cx.lineJoin = 'round'; cx.strokeStyle = INK; cx.fillStyle = '#fff'; const tl = `${Math.max(0, (o.dur || OB_TIME) - o.t).toFixed(0)}s · TAP IT`; cx.strokeText(tl, bx, y0 + 44); cx.fillText(tl, bx, y0 + 44);
+  }
+  parts = parts.filter(p => now - p.t0 < 700);
+  for (const p of parts){ const k = (now - p.t0)/1000; const x = p.x + p.vx*k, y = p.y + p.vy*k + 220*k*k; cx.globalAlpha = Math.max(0, 1 - k/.7); cx.fillStyle = p.col; cx.strokeStyle = INK; cx.lineWidth = 1.5; cx.beginPath(); cx.arc(x, y, p.r, 0, 7); cx.fill(); cx.stroke(); }
+  cx.globalAlpha = 1;
+  ripples = ripples.filter(r => now - r.t < 500);
+  for (const r of ripples){ const k = (now - r.t)/500; cx.globalAlpha = .75*(1-k); cx.strokeStyle = r.col || '#fff'; cx.lineWidth = r.w || 3; cx.beginPath(); cx.arc(r.x, r.y, 10 + k*(r.w ? 90 : 60), 0, 7); cx.stroke(); }
+  cx.globalAlpha = 1;
+  if (T.skin === 'bio'){ cx.restore(); const V = vessel(); V.frame(cx, W, H, now); vesselPath(cx, V.shape, W, H); cx.strokeStyle = INK; cx.lineWidth = 3; cx.lineJoin = 'round'; cx.stroke(); }
+  else { cx.strokeStyle = st.rim; cx.lineWidth = 6; cx.beginPath(); cx.arc(R, R, R-4, 0, 7); cx.stroke(); cx.strokeStyle = INK; cx.lineWidth = 3; cx.beginPath(); cx.arc(R, R, R-1.5, 0, 7); cx.stroke(); }
+  cx.restore();
+}
+
+// ---------- events ----------
+$('phone').addEventListener('click', e => {
+  const b = e.target.closest('[data-act]'); if (!b || b.disabled) return;
+  const act = b.dataset.act, i = +b.dataset.i;
+  if (act === 'collect'){ flashFinds(collect(i)); renderAll(); save(); }
+  else if (act === 'adFinish') adFinish(i);
+  else if (act === 'adWarp') adWarp();
+  else if (act === 'adBoost') adBoost();
+  else if (act === 'adResearch') adResearch();
+  else if (act === 'buy') buy(b.dataset.k);
+  else if (act === 'research') startResearch(b.dataset.id);
+  else if (act === 'ascend') ascend();
+  else if (act === 'brew') brew();
+  else if (act === 'deliver') deliver();
+  else if (act === 'face') faceBloom();
+  else if (act === 'adBrew') adBrew();
+  else if (act === 'side') doSide(i);
+  else if (act === 'splice2') splice();
+  else if (act === 'pickA') openPicker(0);
+  else if (act === 'pickB') openPicker(1);
+  else if (act === 'pick') pick(+b.dataset.slot, +b.dataset.r, +b.dataset.i);
+  else if (act === 'pickNone'){ S.sp[+b.dataset.slot] = null; closeSheet(); renderAll(); save(); }
+  else if (act === 'machine'){
+    const rect = mcv.getBoundingClientRect(); const x = (e.clientX - rect.left)/rect.width*mcv.width, y = (e.clientY - rect.top)/rect.height*mcv.height; const L = ML;
+    const inR = r => x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h;
+    if (inR(L.tubeA)) openPicker(0);
+    else if (inR(L.tubeB)) openPicker(1);
+    else if (Math.hypot(x - L.ch.x, y - L.ch.y) < L.ch.r + 10){ if (S.spOut) collectOut(); else if (S.splice) toast(`${fmtDur(S.splice.left)} to go`); else toast(spWhy()); }
+    else if (inR(L.lever)){ if (S.hasSplicer) splice(); else toast('Doc Ferro still has the splicer.'); }
+    else { const k = L.jars.findIndex(j => inR(j)); if (k >= 0){ const owned = HYBRIDS.filter(h => S.hyb[h.id]); if (owned[k]) seedHyb(owned[k].id); else if (S.hasSplicer) toast('An empty jar. Make a hybrid to fill it.'); } }
+  }
+  else if (act === 'adSplice') adSplice();
+  else if (act === 'seed') seedHyb(b.dataset.id);
+  else if (act === 'open') openPanel(b.dataset.tab);
+  else if (act === 'mgStart') mgStart();
+  else if (act === 'mgDrop') mgDrop();
+  else if (act === 'adTicket') adTicket();
+  else if (act === 'shop') buyShop(b.dataset.id);
+  else if (act === 'placeArt') placeArt(b.dataset.id);
+  else if (act === 'unplace') unplaceArt(i);
+  else if (act === 'stir'){
+    const d = S.dishes[0];
+    const rect = cv.getBoundingClientRect(); const x = (e.clientX - rect.left)/rect.width*cv.width, y = (e.clientY - rect.top)/rect.height*cv.height;
+    if (S.ob){ const o = S.ob; if (Math.hypot(x - cv.width*.5, y - cv.height*.45) < cv.width*.3){ o.hp -= 1; o.hitAt = performance.now(); ripples.push({ x, y, t: o.hitAt, col: '#ff2e4d', w: 4 }); for (let k = 0; k < 4; k++){ const a = Math.random()*7, sp = 80 + Math.random()*120; parts.push({ x, y, vx: Math.cos(a)*sp, vy: Math.sin(a)*sp - 80, t0: o.hitAt, col: k % 2 ? '#22222c' : '#ff2e4d', r: 3 + Math.random()*3 }); } if (o.hp <= 0) obWin(); } return; }
+    if (d.ready){ flashFinds(collect(0)); renderAll(); save(); return; }
+    const prog = d.p/cycleTime();
+    let hit = null, hd = 1e9;
+    for (const g of d.drops){ if (!item(S.tier, g.r, g.i).danger || g.dead || g.contained || !spawned(g, prog)) continue; const dd = Math.hypot(g.x*cv.width - x, g.y*cv.height - y); const lim = dropSize(g, cv.width)*2.2; if (dd < lim && dd < hd){ hd = dd; hit = g; } }
+    if (hit){ contain(hit); ripples.push({ x, y, t: performance.now() }); return; }
+    stirAcc = Math.min(stirAcc + .4, 2); ripples.push({ x, y, t: performance.now() });
+  }
+});
+$('tabs').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; if (tab === b.dataset.tab) closePanel(); else openPanel(b.dataset.tab); });
+let animT, openedAt = 0;
+function openPanel(t){
+  if (!unlocked(t)){ toast(`🔒 ${unlockName(t)} opens after ${unlockLabel(t)}. ${unlockHint(t)}`); return; }
+  tab = t; openedAt = performance.now(); renderTop(); renderTab(); updateLive();
+  const p = $('panel'); p.classList.remove('anim'); void p.offsetWidth; p.classList.add('open', 'anim'); $('mapscrim').classList.add('on'); $('tabbody').scrollTop = 0;
+  clearTimeout(animT); animT = setTimeout(() => p.classList.remove('anim'), 900);
+}
+function closePanel(){ tab = null; $('panel').classList.remove('open', 'anim'); $('mapscrim').classList.remove('on'); renderTop(); }
+$('mapscrim').onclick = () => { if (performance.now() - openedAt > 350) closePanel(); }; $('panelClose').onclick = closePanel;
+$('skinPill').onclick = $('devSkin').onclick = () => { S.theme = S.theme === 'bio' ? 'space' : 'bio'; renderAll(); save(); };
+$('devSpeed').onclick = e => { simSpeed = simSpeed === 1 ? 10 : 1; e.currentTarget.setAttribute('aria-pressed', simSpeed === 10); };
+$('devAway').onclick = () => { const s = simulate(3600); showResults('While you were away', 'Simulated one hour offline.', s, true); renderAll(); };
+$('devCur').onclick = () => { S.cur += 1000 * tierMult(); renderAll(); };
+$('devLv').onclick = () => { S.lv += 5; renderAll(); };
+$('devTix').onclick = () => { S.tickets += 3; renderAll(); };
+$('devStock').onclick = () => { const c = S.cat[S.tier] = S.cat[S.tier] || {}; COUNTS.forEach((n, r) => { for (let i = 0; i < n; i++) c[`${r}-${i}`] = (c[`${r}-${i}`] || 0) + 4; }); markDirty(); renderAll(); };
+$('devReset').onclick = () => { if (!confirm('Reset the save?')) return; localStorage.removeItem(SAVE); S = fresh(); closePanel(); renderAll(); save(); };
+function openSheet(){ $('scrim').classList.add('on'); $('sheet').classList.add('open'); }
+function closeSheet(){ $('scrim').classList.remove('on'); $('sheet').classList.remove('open'); }
+$('scrim').onclick = () => { if (!adBusy) closeSheet(); };
+let toastT; function toast(m, bad){ const t = $('toast'); t.textContent = m; t.classList.toggle('bad', !!bad); t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 2400); }
+document.addEventListener('visibilitychange', () => { if (document.hidden) save(); else { lastFrame = performance.now(); checkOffline(); renderAll(); } });
+window.addEventListener('beforeunload', save);
+
+// ---------- loop ----------
+function frame(now){
+  const real = Math.min(.25, (now - lastFrame)/1000); lastFrame = now;
+  if (!adBusy) tick(real * simSpeed, now);
+  try {
+    draw(now);
+    if (tab === 'splicer') drawMachine(now);
+    if (tab === 'cat') drawPortraits(now);
+    if (!tab) drawShelf(now);
+    if (dirty) renderAll();
+    uiAcc += real; if (uiAcc > .15){ uiAcc = 0; updateLive(); }
+  } catch (err) { console.error(err); }
+  requestAnimationFrame(frame);
+}
+setInterval(save, 3000);
+// installable web app: register the service worker when served over http(s)
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('./sw.js').catch(() => {});
+// on a phone the notes panel is hidden, so five taps on the title sign open the dev tools
+let signTaps = 0, signT;
+document.querySelector('.sign').addEventListener('click', () => { signTaps++; clearTimeout(signT); signT = setTimeout(() => signTaps = 0, 1500); if (signTaps >= 5){ signTaps = 0; openDev(); } });
+function openDev(){
+  $('sheet').innerHTML = `<div class="eyebrow" style="color:var(--muted);text-shadow:none">Dev tools</div><h3>Playtest cheats</h3><p class="sub">Hidden behind five taps on the sign. None of this ships.</p><div class="needs">${[['skin','Skin: ' + T.name],['speed','Sim ×10: ' + (simSpeed === 10 ? 'on' : 'off')],['away','Simulate 1 h away'],['cur','+1000'],['lv','+5 levels'],['stock','+4 of everything'],['tix','+3 tickets'],['ads','Reset ad cooldown'],['reset','Reset save']].map(([k, n]) => `<button class="chip" data-dev="${k}" style="font-size:12px;padding:6px 10px">${n}</button>`).join('')}</div><div class="acts"><button class="btn primary" id="devClose">Close</button></div>`;
+  $('devClose').onclick = closeSheet; openSheet();
+}
+$('sheet').addEventListener('click', e => { const b = e.target.closest('[data-dev]'); if (!b) return; const k = b.dataset.dev;
+  if (k === 'skin') $('devSkin').click(); else if (k === 'speed') $('devSpeed').click(); else if (k === 'away'){ closeSheet(); $('devAway').click(); return; } else if (k === 'cur') $('devCur').click(); else if (k === 'lv') $('devLv').click(); else if (k === 'stock') $('devStock').click(); else if (k === 'tix') $('devTix').click(); else if (k === 'ads'){ S.adCd = 0; renderAll(); } else if (k === 'reset'){ localStorage.removeItem(SAVE); S = fresh(); closePanel(); renderAll(); save(); }
+  openDev(); });
+if (!S.dishes[0].drops.length) S.dishes[0].drops = rollDrops();
+renderAll(); checkOffline(); requestAnimationFrame(frame);
+</script>
+</body>
+</html>
