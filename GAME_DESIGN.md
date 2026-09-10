@@ -245,21 +245,38 @@ count minus the one you keep. Tonics and splices consume stock. You can never lo
 entry, only spares. This gives every duplicate a second use without touching the income
 curve, and it means the Clinic is what tells you which strain to hunt.
 
+### Medicines and the Apothecary
+
+Samples are material, not currency. Spare strains brew into **medicines**, and requests
+want medicines in quantity. That is the chain: harvest strains, brew medicines, deliver.
+
+- Every tonic in the story and the side pool is a medicine with a recipe of strains and a
+  brew time (20 to 50 s in the mockup, minutes in the real game). Fizz-Fix is two Blubb;
+  Hush syrup is two Fuzzwald and a Dotto; Contained sample is a Gulp, a Glowbert and three
+  Blubb. Recipes are `[rarity, index, quantity]` against the tier's catalog, so a chapter's
+  ingredients climb the rarity ladder: commons first, then an uncommon, then rares, then the
+  biter itself.
+- The **Apothecary** sits at the top of the Clinic: each relevant medicine (needed now, needed
+  next, wanted by a side quest, or already on the shelf) shows its recipe with your stock, how
+  many you have ready, and a Brew button. One brew at a time; the timer has an ad.
+- **Batches** are the scaling lever. Batch size starts at 1 and research raises it to 3 (Bigger
+  cauldron) and 6 (Vat cauldron); Hot cauldron halves brew time. A batch of n takes √n times
+  a single brew. So the first medicines are a wait, and the last dozen of a chapter go fast.
+
 ### Requests
 
 Two kinds sit on the board:
 
-- **Story requests**, one at a time in chapter order. Each names a character, a problem, a
-  tonic with a recipe, and a payout. Brewing takes 45 s in the mockup (10 to 30 minutes in
-  the real game, and the timer has an ad). Delivering pays, logs a line of story, and opens
-  the next request. Some deliveries hand you something: Doc Ferro lends you the splicer.
-- **Side requests**, two at a time, repeatable, drawn from a pool. Small recipes, small pay,
-  delivered instantly. They keep the board alive between story beats and give commons a use.
-  The pool is indexed by rarity and slot, so it works in every tier without rewriting.
-
-Recipes are `[rarity, index, quantity]` against the current tier's catalog, so the story's
-ingredients climb the rarity ladder with the chapter: commons first, then an uncommon, then
-rares, then the biter itself.
+- **Story requests**, one at a time in chapter order. Each names a character, a problem, the
+  medicines they want, and a payout. Quantities climb through the chapter and are generated
+  from the step order: a step wants 2, 3, 3, 4, 5 then 3 of its own medicine, plus the
+  previous step's medicine (1, 2, 2, 3, 4) and from step five the one before that (1, 2).
+  So 1-1 is two Fizz-Fix; 1-2 is three Hush syrup and one Fizz-Fix; 1-5 is five Mirror wash,
+  three Bitters and one Dimmer drops. Delivering pays, logs a line of story, and opens the
+  next request. Some deliveries hand you something: Doc Ferro lends you the splicer.
+- **Side requests**, two at a time, repeatable, drawn from a pool. One or two of a simple
+  medicine, small pay, delivered instantly. They keep the board alive between story beats and
+  give commons a use. The pool is indexed by rarity and slot, so it works in every tier.
 
 ### Chapter 1: Something in the water
 
@@ -513,6 +530,9 @@ Timed, one at a time, costs currency, skippable by ad. Research persists across 
 | Cold storage / Deep storage | 1 h | offline cap 4 h → 8 h |
 | Fast incubator / Fast scanner | 2 h | −25% base cycle time |
 | Third dish / Third field | 4 h | a third dish |
+| Bigger cauldron | 15 min | brew 3 medicines at once |
+| Hot cauldron | 30 min | medicines brew in half the time |
+| Vat cauldron | 1 h | brew 6 medicines at once |
 | Long warp | 3 h | time warp gives 2 h (later 4 h) |
 
 Order matters: auto-harvest before the second dish, so the player never has three things
