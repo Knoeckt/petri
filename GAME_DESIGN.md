@@ -40,7 +40,7 @@ place.
 
 **Genre:** classic idle. Portrait, one thumb, one screen.
 **The screen:** the vessel is the whole screen, flanked by six brass side buttons (Quests,
-Tickets and Splicer on the left; Shop, Decor and Notes on the right), with its buttons and
+Tickets and Splicer on the left; Shop, Decor and Brewery on the right), with its buttons and
 the ad row on a wooden board under it and a specimen shelf below that. Upgrades, Lab
 (research), Clinic, Catalog and Scale up are the bottom tabs; tabs and side buttons alike
 open panels that slide up with overshoot and cover about 65% of the screen, rows staggering
@@ -256,9 +256,15 @@ want medicines in quantity. That is the chain: harvest strains, brew medicines, 
   Blubb. Recipes are `[rarity, index, quantity]` against the tier's catalog, so a chapter's
   ingredients climb the rarity ladder: commons first, then an uncommon, then rares, then the
   biter itself.
-- The **Apothecary** sits at the top of the Clinic: each relevant medicine (needed now, needed
-  next, wanted by a side quest, or already on the shelf) shows its recipe with your stock, how
-  many you have ready, and a Brew button. One brew at a time; the timer has an ad.
+- The **Apothecary** is its own area behind the Brewery side button, built like the splicer:
+  the **Copper Kettle**, a cauldron over a brick hearth with a live fire, liquid tinted by
+  whatever is brewing with bubbles and rising steam, a copper pipe into a spiral condenser
+  with drips travelling it into a bottle that fills with the brew's progress, a thermometer
+  that climbs, and a rack of six bottles for the medicines that matter right now (needed now,
+  needed next, wanted by a side quest, or already on the shelf) with counts. Tap a rack bottle
+  to put it on the fire, press Brew, tap the fire to hurry a brew by a fraction of a second.
+  Under the kettle each medicine lists its recipe against your stock. One brew at a time; the
+  timer has an ad. The Clinic keeps a button through to it.
 - **Batches** are the scaling lever. Batch size starts at 1 and research raises it to 3 (Bigger
   cauldron) and 6 (Vat cauldron); Hot cauldron halves brew time. A batch of n takes √n times
   a single brew. So the first medicines are a wait, and the last dozen of a chapter go fast.
@@ -365,7 +371,9 @@ tapping it says who to help. The delivery that opens something announces it.
 | 1-2 (Ida) | Tickets, Decor |
 | 1-3 (Pip) | Lab (research) |
 | 1-4 (Doc Ferro) | Splicer |
-| always | Upgrades, Clinic, Catalog, Scale up, Notes |
+| always | Upgrades, Clinic, Brewery, Catalog, Scale up |
+
+The story log lives at the bottom of the Clinic, so there is no separate Notes button.
 
 | Button | What it is |
 |---|---|
@@ -374,7 +382,7 @@ tapping it says who to help. The delivery that opens something announces it.
 | **Splicer** (left) | the Splice-o-matic, its own area. Badge when a hybrid is waiting in the chamber. |
 | **Shop** (right) | paid in biomass, nothing you can't also earn: an extra ticket (price climbs each purchase, resets daily), a mystery pebble (random common artifact), a 2× boost without the ad. |
 | **Decor** (right) | place up to three artifacts in the enclosure. Only placed ones count. A badge counts unplaced artifacts. |
-| **Notes** (right) | Doc Ferro's notebook: every story line so far, by chapter. |
+| **Brewery** (right) | the Apothecary's Copper Kettle, its own area. Badge when something can be brewed. Open from the start, since 1-1 needs it. |
 
 ### Tickets and the pipette
 

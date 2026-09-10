@@ -78,7 +78,7 @@
   .pager{display:flex; overflow-x:auto; scroll-snap-type:x mandatory; scrollbar-width:none; overscroll-behavior-x:contain}
   .pager::-webkit-scrollbar{display:none}
   .page{flex:0 0 100%; display:flex; justify-content:center; align-items:center; min-height:270px}
-  #machine{width:100%; max-width:352px; height:auto; aspect-ratio:704/552; display:block; margin:0 auto 10px; cursor:pointer}
+  #machine, #brewer{width:100%; max-width:352px; height:auto; aspect-ratio:704/552; display:block; margin:0 auto 10px; cursor:pointer}
   .uptier{margin:12px 0 6px; display:flex; justify-content:space-between; align-items:center} .uptier h4{margin:0; font-family:var(--display); font-size:13px; letter-spacing:.04em; text-transform:uppercase; color:var(--text)} .uptier .lk{font:700 11px var(--display); color:var(--muted)} .uptier .lk.on{color:#1a9c7f}
   .pdots{display:flex; justify-content:center; gap:7px; margin:4px 0 0; cursor:pointer} .pdots i{width:9px; height:9px; border-radius:50%; border:2px solid var(--ink); background:transparent; display:block} .pdots i.on{background:#fff}
   .parr{position:absolute; top:50%; transform:translateY(-50%); width:34px; height:34px; border-radius:50%; border:3px solid var(--brass-edge); background:linear-gradient(180deg, var(--brass0), var(--brass1)); box-shadow:0 3px 0 var(--brass-edge), inset 0 2px 0 rgba(255,255,255,.6); font:700 18px var(--display); color:var(--brass-ink); cursor:pointer; z-index:2; display:flex; align-items:center; justify-content:center; padding:0 0 2px} .parr.left{left:8px} .parr.right{right:8px}
@@ -286,7 +286,7 @@
       </div>
       <canvas id="machine" width="704" height="552" data-act="machine" hidden></canvas>
       <div class="sideL"><button class="sbtn" data-act="open" data-tab="quests"><span>📜</span><i>Quests</i><b class="cnt ok" id="qCnt" hidden></b><b class="lk" hidden></b></button><button class="sbtn" data-act="open" data-tab="tickets"><span>🎟️</span><i>Tickets</i><b class="cnt" id="tCnt">3</b><b class="lk" hidden></b></button><button class="sbtn" data-act="open" data-tab="splicer"><span>🧬</span><i>Splicer</i><b class="cnt ok" id="sCnt" hidden></b><b class="lk" hidden></b></button></div>
-      <div class="sideR"><button class="sbtn" data-act="open" data-tab="shop"><span>🛒</span><i>Shop</i><b class="lk" hidden></b></button><button class="sbtn" data-act="open" data-tab="decor"><span>🏺</span><i>Decor</i><b class="cnt ok" id="dCnt" hidden></b><b class="lk" hidden></b></button><button class="sbtn" data-act="open" data-tab="notes"><span>📓</span><i>Notes</i></button></div>
+      <div class="sideR"><button class="sbtn" data-act="open" data-tab="shop"><span>🛒</span><i>Shop</i><b class="lk" hidden></b></button><button class="sbtn" data-act="open" data-tab="decor"><span>🏺</span><i>Decor</i><b class="cnt ok" id="dCnt" hidden></b><b class="lk" hidden></b></button><button class="sbtn" data-act="open" data-tab="brew"><span>⚗️</span><i>Brewery</i><b class="cnt ok" id="bCnt" hidden></b></button></div>
     </div>
     <div class="board">
       <div class="bp" id="board1">
@@ -349,7 +349,7 @@
       <li><b>Rarity</b> comes from the dish level only (plus luck). Level 1 is all common; level 10 is 85 / 12 / 3; level 20 adds epics; 35 adds legendaries.</li>
       <li><b>Long timers have an ad.</b> Finish research, a brew or a splice; warp an hour; boost; double what came in while you were away. The dish itself has no skip: the ring shows the cycle and a Harvest button appears when it is done.</li>
       <li><b>Side buttons.</b> Quests holds the odd jobs (the Clinic is story only now, with a "coming up" list so you can hunt ahead). Tickets is the pipette mini-game: three a day, stop the drop near the middle for a rarer artifact. Decor places up to three artifacts in the enclosure; only placed ones count. Shop sells a ticket, a mystery pebble and a paid boost.</li>
-      <li><b>Splicer button</b> opens the Splice-o-matic once Doc Ferro hands it over. Tap a tube to load a strain, pull the lever, tap the chamber to collect, tap a jar to seed it. Any two strains can go in; only five pairs react. Notes is Doc Ferro's notebook.</li>
+      <li><b>Brewery button</b> opens the Copper Kettle: pick a medicine from the rack, press Brew, tap the fire to hurry it. <b>Splicer button</b> opens the Splice-o-matic once Doc Ferro hands it over. Tap a tube to load a strain, pull the lever, tap the chamber to collect, tap a jar to seed it. Any two strains can go in; only five pairs react. Notes is Doc Ferro's notebook.</li>
       <li><b>Upgrades</b> are one-time, in four tiers of five. Buy enough in a tier to open the next. Dish level stays repeatable. The Upgrades tab gets a red dot when you can afford one.</li>
       <li><b>Scale up</b> needs the chapter finished and 10 of 13 found. Everything ×5, cycle ×1.5, catalog and research kept.</li>
     </ul>
@@ -359,7 +359,7 @@
 <script>
 'use strict';
 // ---------- constants ----------
-const VERSION = '0.3.0';
+const VERSION = '0.4.0';
 const RAR = [
   {k:'c', n:'Common',    col:'#d6c59a'},
   {k:'u', n:'Uncommon',  col:'#4ade80'},
@@ -945,7 +945,7 @@ function adLabel(text){ return S.adCd > 0 ? `<span class="ico">▶</span>Ad in $
 const setText = (el, s) => { if (el && el.textContent !== s) el.textContent = s; };
 const setHTML = (el, s) => { if (el && el.innerHTML !== s) el.innerHTML = s; };
 const setDis = (el, v) => { if (el && el.disabled !== v) el.disabled = v; };
-let dirty = true, recentKey = '', extraKey = '', shelfKey = '', rbarKey = '';
+let dirty = true, recentKey = '', extraKey = '', shelfKey = '', rbarKey = '', lastBrewSeen = null;
 function markDirty(){ dirty = true; }
 
 function renderTop(){
@@ -1002,6 +1002,7 @@ function updateLive(){
   $('tabs').children[1].classList.toggle('has', !S.active && RES_DEF.some(r => !S.res[r.id] && S.cur >= r.cost && (!r.req || S.res[r.req])));
   $('tabs').children[0].classList.toggle('has', upAvailable());
   const sc = S.hasSplicer ? (S.spOut ? 1 : 0) : 0; $('sCnt').hidden = !sc; setText($('sCnt'), '!');
+  const bc = !S.brew && medsRelevant().some(m => batchesAffordable(m) >= 1); $('bCnt').hidden = !bc; setText($('bCnt'), '!');
   document.querySelectorAll('.sbtn[data-tab], #tabs button[data-tab]').forEach(b => { const k = b.dataset.tab; if (!UNLOCK[k]) return; const ok = unlocked(k); b.classList.toggle('locked', !ok); const lk = b.querySelector('.lk'); if (lk){ lk.hidden = ok; setText(lk, unlockLabel(k)); } });
   if (tab === 'splicer'){ setHTML($('mstat'), S.splice ? `<b>Splicing</b> · ${fmtDur(S.splice.left)} · ${item(0, S.splice.a[0], S.splice.a[1]).n} + ${item(0, S.splice.b[0], S.splice.b[1]).n}` : S.spOut ? `<b>Something formed.</b> Tap the chamber to collect it.` : `<b>Splice-o-matic</b> · ${spWhy()}`); setDis($('spBtn'), !spReady()); const sa = $('spAd'); setHTML(sa, adLabel('Finish now')); setDis(sa, !S.splice || S.adCd > 0 || adBusy); }
   $('tabs').children[2].classList.toggle('has', clinicHas());
@@ -1016,9 +1017,13 @@ function updateLive(){
     if (S.active){ setText(el.querySelector('[data-live="resLeft"]'), fmtDur(S.active.left)); const p = el.querySelector('[data-live="resProg"]'); if (p) p.style.width = ((1 - S.active.left/S.active.total)*100) + '%'; const ab = el.querySelector('[data-act="adResearch"]'); setHTML(ab, adLabel('Finish now')); setDis(ab, S.adCd > 0 || adBusy); }
     el.querySelectorAll('.r[data-id]').forEach(r => { const def = RES_DEF.find(x => x.id === r.dataset.id); r.classList.toggle('poor', !!S.active || S.cur < def.cost); });
   } else if (tab === 'clinic'){
-    if (S.brew){ setText(el.querySelector('[data-live="brLeft"]'), fmtDur(S.brew.left)); const p = el.querySelector('[data-live="brProg"]'); if (p) p.style.width = ((1 - S.brew.left/S.brew.total)*100) + '%'; const ab = el.querySelector('[data-act="adBrew"]'); setHTML(ab, adLabel('Finish now')); setDis(ab, S.adCd > 0 || adBusy); }
-    else if (el.querySelector('[data-live="brLeft"]')) markDirty();
+    if (S.brew !== lastBrewSeen){ lastBrewSeen = S.brew; markDirty(); }
+  } else if (tab === 'brew'){
+    const sel = S.brewSel && med(S.brewSel);
+    setHTML($('bstat'), S.brew ? `<b>Brewing ${S.brew.n} ${S.brew.id}</b> · ${fmtDur(S.brew.left)} · tap the fire to hurry it` : sel ? `<b>${sel.n}</b> on the fire · ${fmtDur(brewTime(sel, Math.max(1, batchesAffordable(sel))))} for ×${Math.max(1, batchesAffordable(sel))}` : `<b>Copper Kettle</b> · pick a medicine`);
+    setDis($('bwBtn'), !sel || !!S.brew || batchesAffordable(sel) < 1); const ba = $('bwAd'); setHTML(ba, adLabel('Finish now')); setDis(ba, !S.brew || S.adCd > 0 || adBusy);
     el.querySelectorAll('[data-act="brew"]').forEach(b => { const m = med(b.dataset.id); setDis(b, !m || !!S.brew || batchesAffordable(m) < 1); });
+    if (S.brew !== lastBrewSeen){ lastBrewSeen = S.brew; markDirty(); }
   } else if (tab === 'asc'){
     const lv = el.querySelector('[data-live="ascLv"]'); if (lv){ setText(lv, `${S.lv} / ${ASC_LV}`); lv.className = S.lv >= ASC_LV ? 'good' : 'warn'; }
     const fd = el.querySelector('[data-live="ascFound"]'); if (fd){ setText(fd, `${found(S.tier)} / ${ASC_FOUND}`); fd.className = found(S.tier) >= ASC_FOUND ? 'good' : 'warn'; }
@@ -1029,7 +1034,7 @@ function updateLive(){
 function renderTab(){
   const el = $('tabbody');
   if (!tab){ el.innerHTML = ''; return; }
-  setText($('panelTitle'), {up:'Upgrades', lab:'Lab', clinic:'Clinic', cat:'Catalog', asc:T.ascend, quests:'Side quests', tickets:'Pipette drop', shop:'Shop', decor:'Decor', splicer:'Splice-o-matic', notes:'Notes'}[tab]);
+  setText($('panelTitle'), {up:'Upgrades', lab:'Lab', clinic:'Clinic', cat:'Catalog', asc:T.ascend, quests:'Side quests', tickets:'Pipette drop', shop:'Shop', decor:'Decor', splicer:'Splice-o-matic', brew:'Apothecary', notes:'Notes'}[tab]);
   const medChips = list => `<div class="needs">${list.map(([id, q]) => { const h = Math.min(medHave(id), q); return `<span class="chip" style="${h >= q ? '' : 'opacity:.55'}">💊 ${id} ${h}/${q}</span>`; }).join('')}</div>`;
   const recipeChips = m => m.need.map(([r, i, q]) => `<span class="chip" style="font-size:10px;padding:1px 6px;${stock(r, i) >= q ? '' : 'opacity:.55'}"><i style="background:${RAR[r].col}"></i>${q} ${item(S.tier, r, i).n} <small style="color:var(--muted)">(${stock(r, i)})</small></span>`).join('');
   const sideHtml = () => { sideRefill(); return S.side.map((x, idx) => { const q = SIDE[x.k]; const ok = medsOk(sideMeds(q)); return `<div class="card req small"><div class="who"><span class="face">${q.face}</span><div><b>${q.who}</b><div class="sub" style="margin:0">wants ${sideMeds(q)[0][1]} ${q.tonic} · pays ${fmt(q.reward*tierMult())}</div></div></div><p class="say">“${q.say}”</p>${medChips(sideMeds(q))}<div class="acts" style="display:flex;margin-top:8px"><button class="btn primary" data-act="side" data-i="${idx}" ${ok ? '' : 'disabled'}>Deliver now</button></div></div>`; }).join(''); };
@@ -1079,6 +1084,13 @@ function renderTab(){
     el.innerHTML = `<div id="mwrap"></div><div class="dstat" id="mstat" style="color:var(--text);text-shadow:none"></div><div class="dbtns" style="margin-top:6px">${slot(a, 0)}${slot(b, 1)}</div><div class="dbtns" style="margin-top:8px"><button class="btn primary" id="spBtn" data-act="splice2">Pull the lever · ${fmt(SPLICE_COST*tierMult())} · ${fmtDur(SPLICE_TIME)}</button><button class="btn ad" id="spAd" data-act="adSplice"><span class="ico">▶</span>Finish now</button></div><h4 class="gh">Hybrids · ${owned.length}/${HYBRIDS.length}</h4><div class="card"><div class="chips" style="justify-content:flex-start">${owned.length ? owned.map(h => `<button class="chip ${S.seed === h.id ? 'new' : ''}" data-act="seed" data-id="${h.id}" title="${h.pd}">${S.seed === h.id ? '🌱 ' : ''}${h.n} ×${S.hyb[h.id]}</button>`).join('') : `<span style="font-size:11px;color:var(--faint);font-weight:700">No hybrids yet. Any two spare strains can go in; five pairs react. Hybrids sit in the jars; tap one to seed it in the ${T.dish}.</span>`}</div><p class="sub" style="margin:8px 0 0">${S.seed ? '🌱 ' + HYB[S.seed].n + ': ' + HYB[S.seed].pd : 'Nothing seeded. A seeded hybrid lives in the ' + T.dish + ' and gives its perk.'}</p></div>`;
     mcv.hidden = false; $('mwrap').appendChild(mcv);
   }
+  else if (tab === 'brew'){
+    const list = medsRelevant(); if (!S.brewSel || !list.find(m => m.id === S.brewSel)) S.brewSel = list.length ? list[0].id : null;
+    const sel = S.brewSel && med(S.brewSel); const n = sel ? batchesAffordable(sel) : 0;
+    const rows = list.map(m => { const k = batchesAffordable(m); return `<div class="r ${m.id === S.brewSel ? '' : 'poor'}" style="cursor:pointer" data-act="brewSel" data-id="${m.id}"><div class="rn">${m.n} <span class="tag on">×${medHave(m.id)} ready</span></div><div class="rd">${recipeChips(m)}<div style="margin-top:3px">${fmtDur(brewTime(m, 1))} each · up to ${batchSize()} at once${m.id === S.brewSel ? ' · <b>selected</b>' : ''}</div></div><div class="rc"></div><div class="acts"><button class="btn primary" data-act="brew" data-id="${m.id}" ${k ? '' : 'disabled'}>Brew ×${Math.max(1, k)}</button></div></div>`; }).join('');
+    el.innerHTML = `<div id="bwrap"></div><div class="dstat" id="bstat" style="color:var(--text);text-shadow:none"></div><div class="dbtns" style="margin-top:6px"><button class="btn primary" id="bwBtn" data-act="brew" data-id="${S.brewSel || ''}" ${sel && n && !S.brew ? '' : 'disabled'}>Brew ${sel ? '×' + Math.max(1, n) + ' ' + sel.n : ''}</button><button class="btn ad" id="bwAd" data-act="adBrew"><span class="ico">▶</span>Finish now</button></div><h4 class="gh">Medicines · tap one to put it on the fire</h4>${rows || `<div class="card"><p class="sub" style="margin:0">Nothing to brew yet. The Clinic will ask for something soon.</p></div>`}`;
+    bcv.hidden = false; $('bwrap').appendChild(bcv);
+  }
   else if (tab === 'notes'){
     const chapters = Object.keys(STORY).map(k => +k).filter(k => S.story[k] && (S.story[k].log.length || k === S.tier));
     el.innerHTML = `<p class="sub">Doc Ferro's notebook. Everything that has happened so far.</p>` + (chapters.length ? chapters.map(k => { const st = S.story[k], ch = STORY[k]; return `<h4 class="gh">Chapter ${k+1} · ${ch.title}${st.done ? ' · complete' : ''}</h4><div class="card">${st.log.length ? st.log.map(l => `<p class="sub" style="margin:0 0 6px">${l}</p>`).join('') : `<p class="sub" style="margin:0">${ch.intro}</p>`}</div>`; }).join('') : `<div class="card"><p class="sub" style="margin:0">Nothing written yet. Help someone at the Clinic.</p></div>`);
@@ -1096,7 +1108,7 @@ function renderTab(){
   }
   else if (tab === 'clinic'){
     const ch = STORY[S.tier]; sideRefill();
-    if (!ch){ el.innerHTML = `<div class="card"><h3>Chapter ${S.tier+1}</h3><p class="sub" style="margin:0">Not written yet. Side quests still run from the button beside the ${T.dish}, and ${T.ascend.toLowerCase()} needs level ${ASC_LV} and ${ASC_FOUND} of ${PER}.</p></div><h4 class="gh">Apothecary</h4>` + apothecary(); }
+    if (!ch){ el.innerHTML = `<div class="card"><h3>Chapter ${S.tier+1}</h3><p class="sub" style="margin:0">Not written yet. Side quests still run from the button beside the ${T.dish}, and ${T.ascend.toLowerCase()} needs level ${ASC_LV} and ${ASC_FOUND} of ${PER}.</p></div>`; }
     else {
       const st = story(), s = curStep();
       const dots = `<span class="dots">${ch.steps.map((_, k) => `<i style="background:${k < st.step || st.done ? 'var(--teal)' : k === st.step ? 'var(--accent1)' : 'transparent'}"></i>`).join('')}</span>`;
@@ -1112,7 +1124,7 @@ function renderTab(){
       }
       const log = st.log.length ? `<h4 class="gh">So far</h4><div class="card">${st.log.map(l => `<p class="sub" style="margin:0 0 6px">${l}</p>`).join('')}</div>` : `<div class="card"><p class="sub" style="margin:0">${ch.intro}</p></div>`;
       const up = st.done ? '' : (() => { const next = []; for (let k = st.step + 1; k < ch.steps.length && next.length < 2; k++) next.push(k); return next.length ? `<h4 class="gh">Coming up</h4><div class="card">${next.map(k => { const s = ch.steps[k]; return `<div class="kv"><span>${S.tier+1}-${k+1} · ${s.who}</span><span>${s.outbreak ? 'the bloom' : stepMeds(S.tier, k).map(([id, q]) => `${q} ${id}`).join(', ')}</span></div>`; }).join('')}</div>` : ''; })();
-      const apo = st.done ? '' : `<h4 class="gh">Apothecary · brew medicines from spare strains</h4>` + apothecary();
+      const apo = st.done ? '' : `<div class="acts" style="display:flex;margin:2px 0 4px"><button class="btn" data-act="open" data-tab="brew">⚗️ Brew medicines at the Apothecary${S.brew ? ' · ' + fmtDur(S.brew.left) : ''}</button></div>`;
       el.innerHTML = `<p class="sub" style="margin-bottom:6px"><b>Chapter ${S.tier+1} · ${ch.title}</b><br>${dots} ${st.done ? 'done' : (st.step+1) + ' of ' + ch.steps.length}</p>` + main + apo + up + log;
     }
   }
@@ -1305,6 +1317,59 @@ function randPos(){ const B = bounds(); if (B.type === 'rect') return [B.minX + 
 function clampPos(g){ const B = bounds(); if (B.type === 'rect'){ g.x = Math.min(B.maxX, Math.max(B.minX, g.x)); g.y = Math.min(B.maxY, Math.max(B.minY, g.y)); return; } const rx = g.x - .5, ry = g.y - .5, rr = Math.hypot(rx, ry); if (rr > B.r){ g.x = .5 + rx/rr*B.r; g.y = .5 + ry/rr*B.r; } if (B.type === 'dome') g.y = Math.min(g.y, B.maxY); }
 function nearEdge(g){ const B = bounds(); if (B.type === 'rect') return g.x < B.minX + .06 || g.x > B.maxX - .06 || g.y < B.minY + .06 || g.y > B.maxY - .06; const rr = Math.hypot(g.x - .5, g.y - .5); return rr > B.r*.85 || (B.type === 'dome' && g.y > B.maxY - .05); }
 const mcv = $('machine'), mx = mcv.getContext('2d');
+// ---------- the Apothecary: a cauldron over a fire, a copper coil, a bottle rack ----------
+const bcv = document.createElement('canvas'); bcv.width = 704; bcv.height = 552; bcv.id = 'brewer'; bcv.dataset.act = 'brewer'; const bx2 = bcv.getContext('2d');
+const BL = { hearth:{x:190,y:372,w:220,h:76}, potBox:{x:180,y:200,w:240,h:170}, rack: Array.from({length:6}, (_, k) => ({x:36 + k*106, y:456, w:90, h:86})), therm:{x:70,y:120,h:230}, bottle:{x:552,y:322,w:64,h:104} };
+let stokeT = 0, stokes = [];
+function medCol(id){ let h = 0; for (const ch of id) h = (h*31 + ch.charCodeAt(0)) % 360; return `hsl(${h},72%,58%)`; }
+function bottleIcon(c, x, y, w, h, col, fill, ink){ c.fillStyle = 'rgba(200,235,250,.55)'; c.strokeStyle = ink; c.lineWidth = 3; c.beginPath(); roundRectPath(c, x, y + h*.22, w, h*.78, 10); c.fill(); c.stroke(); c.save(); c.beginPath(); roundRectPath(c, x + 2, y + h*.22 + 2, w - 4, h*.78 - 4, 8); c.clip(); c.fillStyle = col; c.fillRect(x, y + h - (h*.78 - 6)*fill - 4, w, h); c.restore(); c.fillStyle = '#c96d4a'; c.beginPath(); roundRectPath(c, x + w*.3, y, w*.4, h*.26, 4); c.fill(); c.stroke(); c.fillStyle = 'rgba(255,255,255,.55)'; c.fillRect(x + 6, y + h*.3, 5, h*.5); }
+function drawBrewery(now){
+  const c = bx2, W = bcv.width, H = bcv.height, t = now/1000, L = BL, b = S.brew, p = b ? 1 - b.left/b.total : 0, selId = b ? b.id : S.brewSel, col = selId ? medCol(selId) : '#9fdcd3';
+  c.clearRect(0, 0, W, H);
+  // body: dark wood back wall with a brass plate
+  c.fillStyle = '#5a3a1e'; c.strokeStyle = INK; c.lineWidth = 6; c.beginPath(); roundRectPath(c, 16, 24, W-32, H-48, 36); c.fill(); c.stroke();
+  c.fillStyle = 'rgba(255,255,255,.06)'; for (let y = 60; y < H-40; y += 46){ c.fillRect(24, y, W-48, 2); }
+  c.fillStyle = '#ffd166'; c.strokeStyle = INK; c.lineWidth = 4; c.beginPath(); roundRectPath(c, 252, 28, 200, 34, 10); c.fill(); c.stroke(); c.fillStyle = INK; c.font = '700 17px Fredoka, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('COPPER KETTLE Mk II', 352, 46);
+  // thermometer
+  c.fillStyle = '#fff6dc'; c.strokeStyle = INK; c.lineWidth = 4; c.beginPath(); roundRectPath(c, L.therm.x - 10, L.therm.y, 20, L.therm.h, 10); c.fill(); c.stroke(); c.beginPath(); c.arc(L.therm.x, L.therm.y + L.therm.h + 4, 16, 0, 7); c.fill(); c.stroke();
+  const lvl = b ? .15 + .8*p : .08 + .03*Math.sin(t*2); c.fillStyle = '#e63946'; c.beginPath(); c.arc(L.therm.x, L.therm.y + L.therm.h + 4, 11, 0, 7); c.fill(); c.fillRect(L.therm.x - 5, L.therm.y + L.therm.h - lvl*L.therm.h, 10, lvl*L.therm.h + 4);
+  c.strokeStyle = INK; c.lineWidth = 2; for (let k = 0; k < 6; k++){ const y = L.therm.y + 16 + k*(L.therm.h - 32)/5; c.beginPath(); c.moveTo(L.therm.x + 12, y); c.lineTo(L.therm.x + 20, y); c.stroke(); }
+  // hearth
+  c.fillStyle = '#7a3b2a'; c.strokeStyle = INK; c.lineWidth = 4; c.beginPath(); roundRectPath(c, L.hearth.x, L.hearth.y, L.hearth.w, L.hearth.h, 12); c.fill(); c.stroke();
+  c.strokeStyle = 'rgba(0,0,0,.25)'; c.lineWidth = 3; for (let r = 0; r < 4; r++){ const y = L.hearth.y + 16 + r*18; c.beginPath(); c.moveTo(L.hearth.x + 4, y); c.lineTo(L.hearth.x + L.hearth.w - 4, y); c.stroke(); for (let k = 0; k < 6; k++){ const x = L.hearth.x + (k + (r%2)*.5)*36 + 10; c.beginPath(); c.moveTo(x, y - 18); c.lineTo(x, y); c.stroke(); } }
+  c.fillStyle = '#2a1408'; c.beginPath(); roundRectPath(c, L.hearth.x + 30, L.hearth.y - 34, L.hearth.w - 60, 78, 30); c.fill();
+  // logs and fire
+  c.strokeStyle = '#4a2a12'; c.lineWidth = 12; c.lineCap = 'round'; c.beginPath(); c.moveTo(250, 428); c.lineTo(350, 418); c.moveTo(262, 418); c.lineTo(340, 430); c.stroke();
+  const heat = b ? 1 : .55; const glow = c.createRadialGradient(300, 400, 10, 300, 400, 120*heat); glow.addColorStop(0, `rgba(255,150,40,${.45*heat})`); glow.addColorStop(1, 'rgba(255,150,40,0)'); c.fillStyle = glow; c.fillRect(150, 280, 300, 180);
+  for (let k = 0; k < 5; k++){ const fx = 262 + k*19, fl = Math.random(); const h = (34 + 26*heat)*(.7 + .5*Math.sin(t*9 + k*2) + .2*fl); c.fillStyle = k%2 ? '#ff9f1c' : '#ffd166'; c.beginPath(); c.moveTo(fx - 12, 424); c.quadraticCurveTo(fx - 14, 424 - h*.5, fx + (Math.random()-.5)*6, 424 - h); c.quadraticCurveTo(fx + 14, 424 - h*.5, fx + 12, 424); c.closePath(); c.fill(); c.fillStyle = '#ff5c3a'; c.beginPath(); c.moveTo(fx - 6, 424); c.quadraticCurveTo(fx - 7, 424 - h*.3, fx, 424 - h*.5); c.quadraticCurveTo(fx + 7, 424 - h*.3, fx + 6, 424); c.closePath(); c.fill(); }
+  stokes = stokes.filter(s => now - s.t < 500); for (const s of stokes){ const k = (now - s.t)/500; c.fillStyle = `rgba(255,220,120,${.8*(1-k)})`; for (let i = 0; i < 6; i++){ c.beginPath(); c.arc(300 + (i-2.5)*22, 400 - k*90 - i*7, 4 - k*3, 0, 7); c.fill(); } }
+  // cauldron
+  c.fillStyle = '#2b2b30'; c.strokeStyle = INK; c.lineWidth = 5; c.beginPath(); c.moveTo(196, 262); c.quadraticCurveTo(190, 372, 300, 372); c.quadraticCurveTo(410, 372, 404, 262); c.closePath(); c.fill(); c.stroke();
+  c.fillStyle = '#3a3a42'; c.beginPath(); c.ellipse(300, 262, 112, 26, 0, 0, 7); c.fill(); c.stroke();
+  c.save(); c.beginPath(); c.ellipse(300, 262, 100, 20, 0, 0, 7); c.clip(); c.fillStyle = col; c.fillRect(190, 230, 220, 60);
+  c.fillStyle = 'rgba(255,255,255,.35)'; c.beginPath(); c.ellipse(270, 256, 40, 8, 0, 0, 7); c.fill();
+  if (b){ for (let k = 0; k < 8; k++){ const u = ((t*.7 + k*.13) % 1); const bx = 215 + ((k*53) % 170), by = 268 - u*10; c.fillStyle = 'rgba(255,255,255,.75)'; c.beginPath(); c.arc(bx, by, 3 + (k%3) - u*2, 0, 7); c.fill(); } }
+  c.restore();
+  c.strokeStyle = INK; c.lineWidth = 5; c.beginPath(); c.ellipse(300, 262, 112, 26, 0, 0, 7); c.stroke();
+  // handles + legs
+  c.strokeStyle = INK; c.lineWidth = 8; c.lineCap = 'round'; c.beginPath(); c.moveTo(184, 270); c.lineTo(168, 250); c.moveTo(416, 270); c.lineTo(432, 250); c.stroke(); c.fillStyle = '#2b2b30'; for (const lx of [236, 300, 364]){ c.beginPath(); roundRectPath(c, lx - 8, 366, 16, 24, 5); c.fill(); c.stroke(); }
+  // steam
+  if (b){ for (let k = 0; k < 6; k++){ const u = ((t*.35 + k*.17) % 1); c.fillStyle = `rgba(255,255,255,${.5*(1-u)})`; c.beginPath(); c.arc(240 + k*24 + Math.sin(u*6 + k)*10, 240 - u*110, 8 + u*16, 0, 7); c.fill(); } }
+  // copper pipe and coil to the bottle
+  const path = [[400, 236],[440, 212],[470, 212],[470, 250],[560, 250],[500, 272],[560, 294],[500, 316],[560, 316]];
+  c.lineCap = 'round'; c.lineJoin = 'round'; c.strokeStyle = INK; c.lineWidth = 16; c.beginPath(); path.forEach((pt, k) => c[k ? 'lineTo' : 'moveTo'](pt[0], pt[1])); c.stroke(); c.strokeStyle = '#d98b45'; c.lineWidth = 9; c.beginPath(); path.forEach((pt, k) => c[k ? 'lineTo' : 'moveTo'](pt[0], pt[1])); c.stroke(); c.strokeStyle = 'rgba(255,230,190,.55)'; c.lineWidth = 3; c.beginPath(); path.forEach((pt, k) => c[k ? 'lineTo' : 'moveTo'](pt[0], pt[1] - 2)); c.stroke();
+  if (b){ const segs = []; let total = 0; for (let k = 1; k < path.length; k++){ const d = Math.hypot(path[k][0]-path[k-1][0], path[k][1]-path[k-1][1]); segs.push([total, d]); total += d; } for (let d = 0; d < 3; d++){ let u = ((t*.45 + d*.33) % 1)*total; let k = 0; while (k < segs.length - 1 && u > segs[k][0] + segs[k][1]) k++; const f = Math.min(1, (u - segs[k][0]) / segs[k][1]); const x = path[k][0] + (path[k+1][0]-path[k][0])*f, y = path[k][1] + (path[k+1][1]-path[k][1])*f; c.fillStyle = col; c.strokeStyle = INK; c.lineWidth = 2; c.beginPath(); c.arc(x, y, 6, 0, 7); c.fill(); c.stroke(); }
+    if (((t*2) % 1) < .5){ c.fillStyle = col; c.beginPath(); c.arc(578, 330 + ((t*2) % .5)*40, 4, 0, 7); c.fill(); } }
+  // the bottle being filled
+  bottleIcon(c, L.bottle.x, L.bottle.y, L.bottle.w, L.bottle.h, col, b ? p : 0, INK);
+  c.fillStyle = '#fff'; c.strokeStyle = INK; c.lineWidth = 3; c.lineJoin = 'round'; c.font = '700 12px Fredoka, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; const lbl = b ? `${b.n} × ${b.id}` : selId ? selId : 'nothing on the fire'; c.strokeText(lbl, L.bottle.x + L.bottle.w/2, L.bottle.y + L.bottle.h + 14); c.fillText(lbl, L.bottle.x + L.bottle.w/2, L.bottle.y + L.bottle.h + 14);
+  // bottle rack
+  const list = medsRelevant();
+  c.fillStyle = '#8a4f25'; c.strokeStyle = INK; c.lineWidth = 4; c.beginPath(); roundRectPath(c, 24, 448, W-48, 6, 3); c.fill(); c.stroke();
+  L.rack.forEach((s, k) => { const m = list[k]; const selected = m && m.id === selId; c.fillStyle = selected ? 'rgba(255,209,102,.35)' : 'rgba(0,0,0,.18)'; c.strokeStyle = selected ? '#ffd166' : INK; c.lineWidth = selected ? 5 : 3; if (!m) c.setLineDash([8, 6]); c.beginPath(); roundRectPath(c, s.x, s.y, s.w, s.h, 12); c.fill(); c.stroke(); c.setLineDash([]);
+    if (m){ const have = medHave(m.id); bottleIcon(c, s.x + s.w/2 - 16, s.y + 6, 32, 52, medCol(m.id), have ? 1 : .15, INK); c.fillStyle = '#fff'; c.strokeStyle = INK; c.lineWidth = 3; c.font = '700 11px Fredoka, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; const nm = m.n.length > 12 ? m.n.slice(0, 11) + '…' : m.n; c.strokeText(nm, s.x + s.w/2, s.y + s.h - 12); c.fillText(nm, s.x + s.w/2, s.y + s.h - 12); if (have){ c.fillStyle = '#22d3b0'; c.strokeStyle = INK; c.lineWidth = 2; c.beginPath(); c.arc(s.x + s.w - 12, s.y + 12, 11, 0, 7); c.fill(); c.stroke(); c.fillStyle = INK; c.font = '700 11px Fredoka, sans-serif'; c.fillText('×' + have, s.x + s.w - 12, s.y + 12); } }
+    else { c.fillStyle = 'rgba(255,255,255,.3)'; c.font = '700 24px Fredoka, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('?', s.x + s.w/2, s.y + s.h/2); } });
+}
 // ---------- the Splice-o-matic ----------
 const ML = { body:{x:16,y:24,w:672,h:508}, tubeA:{x:56,y:120,w:104,h:220}, tubeB:{x:544,y:120,w:104,h:220}, ch:{x:352,y:236,r:104}, lever:{x:588,y:352,w:100,h:170}, gA:{x:108,y:74,r:24}, gB:{x:596,y:74,r:24}, lights:{x:214,y:76,n:9,dx:34}, pipeA:{x1:160,y1:236,x2:250,y2:236}, pipeB:{x1:544,y1:236,x2:454,y2:236}, jars: Array.from({length:5}, (_, k) => ({x:56 + k*104, y:396, w:88, h:116})) };
 function gauge(c, g, v, col){ v = Math.max(0, Math.min(1, v)); c.fillStyle = '#fff6dc'; c.strokeStyle = INK; c.lineWidth = 4; c.beginPath(); c.arc(g.x, g.y, g.r, 0, 7); c.fill(); c.stroke(); const a0 = Math.PI*.75, a = a0 + Math.PI*1.5*v; c.strokeStyle = col; c.lineWidth = 5; c.beginPath(); c.arc(g.x, g.y, g.r-8, a0, a); c.stroke(); c.strokeStyle = INK; c.lineWidth = 3; c.beginPath(); c.moveTo(g.x, g.y); c.lineTo(g.x + Math.cos(a)*(g.r-6), g.y + Math.sin(a)*(g.r-6)); c.stroke(); c.fillStyle = INK; c.beginPath(); c.arc(g.x, g.y, 4, 0, 7); c.fill(); }
@@ -1451,6 +1516,15 @@ $('phone').addEventListener('click', e => {
   else if (act === 'pickB') openPicker(1);
   else if (act === 'pick') pick(+b.dataset.slot, +b.dataset.r, +b.dataset.i);
   else if (act === 'pickNone'){ S.sp[+b.dataset.slot] = null; closeSheet(); renderAll(); save(); }
+  else if (act === 'brewSel'){ S.brewSel = b.dataset.id; renderAll(); }
+  else if (act === 'brewer'){
+    const rect = bcv.getBoundingClientRect(); const x = (e.clientX - rect.left)/rect.width*bcv.width, y = (e.clientY - rect.top)/rect.height*bcv.height; const L = BL;
+    const inR = r => x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h;
+    const k = L.rack.findIndex(s => inR(s)); const list = medsRelevant();
+    if (k >= 0){ if (list[k]){ S.brewSel = list[k].id; renderAll(); } else toast('An empty shelf. The Clinic will ask for more soon.'); }
+    else if (inR(L.hearth)){ if (S.brew){ const nowT = performance.now(); if (nowT - stokeT > 250){ stokeT = nowT; S.brew.left = Math.max(0.01, S.brew.left - .4); stokes.push({ t: nowT }); } } else toast('Pick a medicine, then brew. Tapping the fire hurries a brew along.'); }
+    else if (inR(L.potBox)){ toast(S.brew ? `${S.brew.n} ${S.brew.id} · ${fmtDur(S.brew.left)} to go` : (S.brewSel ? `Ready to brew ${S.brewSel}. Press Brew.` : 'Nothing on the fire.')); }
+  }
   else if (act === 'machine'){
     const rect = mcv.getBoundingClientRect(); const x = (e.clientX - rect.left)/rect.width*mcv.width, y = (e.clientY - rect.top)/rect.height*mcv.height; const L = ML;
     const inR = r => x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h;
@@ -1514,7 +1588,7 @@ function frame(now){
   try {
     // draw at 30 fps (15 while a panel covers the vessel); jars and portraits at 12 fps. The sim still ticks every frame.
     const drawGap = tab ? 66 : 33;
-    if (now - lastDraw >= drawGap){ lastDraw = now; draw(now); if (tab === 'splicer') drawMachine(now); }
+    if (now - lastDraw >= drawGap){ lastDraw = now; draw(now); if (tab === 'splicer') drawMachine(now); if (tab === 'brew') drawBrewery(now); }
     if (now - lastSlow >= 83){ lastSlow = now; if (tab === 'cat') drawPortraits(now); if (!tab) drawShelf(now); }
     if (dirty) renderAll();
     uiAcc += real; if (uiAcc > .15){ uiAcc = 0; updateLive(); }
