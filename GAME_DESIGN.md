@@ -91,13 +91,20 @@ shows a "now" bar and a "next" bar so a level is a visible change, not a number.
 | Level | Common | Uncommon | Rare | Very rare | Exotic | Mythic |
 |------:|-------:|---------:|-----:|----------:|-------:|-------:|
 | 1     | 100    | 0        | 0    | 0         | 0      | 0 |
-| 10    | 85     | 12       | 3    | 0         | 0      | 0 |
-| 20    | 68     | 20       | 9    | 3         | 0      | 0 |
-| 35    | 50     | 25       | 14   | 7         | 3      | 1 |
-| 50    | 34     | 26       | 18   | 11        | 7      | 4 |
+| 15    | 94     | 6        | 0    | 0         | 0      | 0 |
+| 30    | 82     | 14       | 3.5  | 0.5       | 0      | 0 |
+| 50    | 66     | 22       | 8    | 3         | 1      | 0 |
+| 75    | 50     | 25       | 13   | 7         | 4      | 1 |
+| 100   | 34     | 26       | 18   | 11        | 7      | 4 |
 
 Weights interpolate between rows. Effective level is dish level plus everything that adds
-to it (tiered rarity upgrades, a seeded Glowfuzz, placed artifacts).
+to it (tiered rarity upgrades, a seeded Glowfuzz, placed artifacts, studies, research).
+
+**Each vessel has a reach.** Tier 1 can only use the table up to level 40 (about 0.8%
+exotic, no mythic), and every scale-up raises the reach by 15, so the Cosmos reaches the
+level-100 row. Levels past the reach still count for nothing; the dish-level row says so
+and points at Scale up. Early tiers are therefore mostly commons and uncommons with the odd
+rare, and the top of the table is a late-ladder thing.
 
 ### Per-rarity numbers (tier 1; ×5 per tier)
 
@@ -244,8 +251,11 @@ it is the system the game leans on hardest.
 ### Stock
 
 A duplicate still sells for biomass at harvest, and it also counts as **stock**: the catalog
-count minus the one you keep. Tonics and splices consume stock. You can never lose a found
-entry, only spares. This gives every duplicate a second use without touching the income
+count minus the one you keep. Medicines, splices and studies consume stock. You can never
+lose a found entry, only spares. The **shelf** holds 5 spares of each strain; anything past
+that still sells but is not kept, so idling never piles up hundreds. Sample fridge research
+adds 5 per rank (ten ranks) and Cold storage doubles the shelf. Stock is a managed
+resource: a request for two Mirror wash means a trip to the dish, not a rummage. This gives every duplicate a second use without touching the income
 curve, and it means the Clinic is what tells you which strain to hunt.
 
 ### Medicines and the Apothecary
@@ -538,7 +548,7 @@ back, no penalty beyond the eaten colonies, and you can try again from the board
 
 ## 4. Upgrades
 
-**Dish level** stays repeatable (cost × 1.22 per level) and is the main sink: it shifts the
+**Dish level** stays repeatable (cost × 1.25 per level) and is the main sink: it shifts the
 rarity table. Everything else is a **one-time upgrade in a tier**, Egg Inc style: five per
 tier, each a bigger version of the classic lever, and buying enough in a tier opens the next.
 Upgrades reset on scale-up. The Upgrades tab shows a red dot whenever one is affordable.
@@ -550,7 +560,10 @@ Upgrades reset on scale-up. The Upgrades tab shows a red dot whenever one is aff
 | 3 Precision | 4 of tier 2 | Triple agar +2 (1,200) | Cryo-timer −18% (1,500) | Industrial vats ×2.5 (1,000) | Rare lens +3 lv (1,800) | Collector's market +40% (1,400) |
 | 4 Legendary gear | all of tier 3 | Endless agar +2 (8,000) | Time dilation −20% (10,000) | Vat empire ×3 (7,000) | Golden lens +5 lv (12,000) | Museum deal +60% (9,000) |
 
-Costs are tier-1 mockup numbers and scale ×5 per dish tier. Fully bought, that is 8
+Costs are tier-1 mockup numbers and scale **×8 per dish tier** while income scales ×5, so
+each tier's set takes 1.6× longer than the last and the Cosmos set about ten times as long
+as the Petri set. Genome perks and studies are what claw that back on later runs. Fully
+bought, that is 8
 colonies a cycle, cycle time at half, income ×22.5, +11 effective levels and value ×3.5.
 Yield adds, speed and income multiply, rarity adds, value adds. Every row shows its effect
 and cost and greys when unaffordable; locked tiers say how many more to buy.
@@ -602,8 +615,9 @@ scale-ups and reset at Genesis (section 7b), which is what makes the Lab replaya
 | Selective medium / Spectral filter | 10 min | the luck upgrade |
 | Auto-harvest / Auto-catalog | 20 min | cycles collect themselves online |
 | Antibiotic wash / Debris shield (repeatable, 20 ranks) | 10 min, +3 min per rank | each rank adds a 5% chance a biter is quarantined on arrival, online and offline; cost ×1.3 per rank |
+| Sample fridge (repeatable, 10 ranks) | 12 min, +3 min per rank | the shelf holds 5 more spares of each strain per rank |
 | Second dish / Second field | 45 min | a second dish |
-| Cold storage / Deep storage | 1 h | offline cap 4 h → 8 h |
+| Cold storage / Deep storage | 1 h | offline cap 4 h → 8 h, shelf ×2 |
 | Fast incubator / Fast scanner | 2 h | −25% base cycle time |
 | Third dish / Third field | 4 h | a third dish |
 | Bigger cauldron | 15 min | brew 3 medicines at once (needs the Apothecary) |
