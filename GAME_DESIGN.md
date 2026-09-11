@@ -472,6 +472,20 @@ are deliberately the strongest, since rarity is what the player asked the mini-g
 
 ---
 
+### Merging
+
+Artifacts have levels, 1 to 5. Three spare copies of one artifact at the same level merge
+into one copy a level higher, from the Decor collection list, and the perk is the base
+value times the level: a Wind chime is +10% income at level 1, +20% at 2, +50% at 5. A
+Lucky pebble at level 5 is +5 effective levels, which is close to a Golden bell. Placed
+copies never merge, so nothing vanishes from the enclosure. Level shows as a pill in the
+list and as gold pips under the artifact in the vessel. The Decor badge counts spares plus
+merges you can make. Genesis keeps the artifact in slot 1 at its level.
+
+A full level-5 needs 81 level-1 copies of the same artifact, so with three tickets a day
+this is the long-term sink for the pipette, and the reason to keep playing it after every
+artifact has been seen once.
+
 ## 3c. The Splicer (supporting)
 
 Doc Ferro's splicer arrives with request 4. It is a place, not a list: the **Splicer** side

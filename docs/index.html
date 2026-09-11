@@ -214,6 +214,7 @@
   /* locked buttons: dim, padlock on the medallion, and the chapter-step that opens them */
   .sbtn.locked span, .tabs button.locked span.i{filter:grayscale(1) brightness(.72) !important; background:linear-gradient(180deg,#d8cfbd,#a89d86) !important}
   .sbtn.locked i, .tabs button.locked{opacity:.7}
+  .alv{font-size:11px; background:var(--ink); color:#ffd43b; border-radius:6px; padding:1px 5px; margin-left:2px; vertical-align:1px}
   .card.gen{background:linear-gradient(180deg,#e9fbe4,#cfeec6)} .card.gen h3{margin-top:0}
   .r .sw{display:inline-block; width:10px; height:10px; border-radius:50%; border:2px solid var(--ink); margin-right:6px; vertical-align:-1px}
   .qprog{display:flex; align-items:center; gap:10px; margin-top:8px} .qprog .bar{flex:1; height:10px; border-radius:6px; background:rgba(0,0,0,.18); border:2px solid var(--ink); overflow:hidden} .qprog .bar i{display:block; height:100%; background:linear-gradient(180deg,#ffe066,#e6a800); transition:width .4s} .qprog b{font-size:13px; min-width:34px; text-align:right}
@@ -372,7 +373,7 @@
 <script>
 'use strict';
 // ---------- constants ----------
-const VERSION = '0.7.3';
+const VERSION = '0.7.4';
 const RAR = [
   {k:'c', n:'Common',    col:'#d6c59a'},
   {k:'u', n:'Uncommon',  col:'#4ade80'},
@@ -641,7 +642,7 @@ const UPT = [
 ];
 const UPI = Object.fromEntries(UPT.flatMap(t => t.items).map(u => [u.id, u]));
 function fresh(){ return { theme:'bio', cur:0, tier:0, lv:1, ups:{}, res:{}, active:null, cat:{}, dishes:[newDish()], boost:0, adCd:0, ads:0, adUse:{}, recent:[], shelf:[], cycles:0, eaten:0, hasSplicer:false, hyb:{}, seed:null, splice:null, sp:[null,null], spOut:null, story:{}, side:[], ob:null, tickets:TICKETS_PER_DAY, tDay:'', shopT:0, arts:{}, placed:[null,null,null], meds:{}, brew:null, storyV:2, shopC:0, icepack:false, st:{}, studies:{}, gen:{ runs:0, pts:0, perks:{}, seen:{} }, freeRes:false, last:Date.now() }; }
-function load(){ try{ const s = JSON.parse(localStorage.getItem(SAVE)); if (!s || !s.dishes) return null; s.dishes.forEach(d => d.drops.forEach(g => { g.atk = null; g.meet = null; g.frozen = false; })); s.hyb = s.hyb || {}; s.story = s.story || {}; s.side = (s.side || []).filter(x => x && x.base !== undefined && SIDE[x.k]); s.st = s.st || {}; s.studies = s.studies || {}; s.gen = s.gen || { runs:0, pts:0, perks:{}, seen:{} }; s.freeRes = !!s.freeRes; if (s.active && s.active.id === 'study' && !s.active.key) s.active = null; s.ob = null; if (s.seed === undefined) s.seed = null; if (s.splice === undefined) s.splice = null; s.hasSplicer = !!s.hasSplicer; s.sp = s.sp || [null, null]; s.spOut = s.spOut || null; if (s.splice && !s.splice.a) s.splice = null; s.ups = s.ups || {}; if (s.tickets === undefined) s.tickets = TICKETS_PER_DAY; s.tDay = s.tDay || ''; s.shopT = s.shopT || 0; s.arts = s.arts || {}; s.placed = s.placed || [null, null, null]; s.meds = s.meds || {}; s.brew = s.brew && s.brew.id ? s.brew : null; if (s.res && s.res.wash === true) s.res.wash = 20;
+function load(){ try{ const s = JSON.parse(localStorage.getItem(SAVE)); if (!s || !s.dishes) return null; s.dishes.forEach(d => d.drops.forEach(g => { g.atk = null; g.meet = null; g.frozen = false; })); s.hyb = s.hyb || {}; s.story = s.story || {}; s.side = (s.side || []).filter(x => x && x.base !== undefined && SIDE[x.k]); s.st = s.st || {}; s.studies = s.studies || {}; s.gen = s.gen || { runs:0, pts:0, perks:{}, seen:{} }; s.freeRes = !!s.freeRes; if (s.active && s.active.id === 'study' && !s.active.key) s.active = null; s.ob = null; if (s.seed === undefined) s.seed = null; if (s.splice === undefined) s.splice = null; s.hasSplicer = !!s.hasSplicer; s.sp = s.sp || [null, null]; s.spOut = s.spOut || null; if (s.splice && !s.splice.a) s.splice = null; s.ups = s.ups || {}; if (s.tickets === undefined) s.tickets = TICKETS_PER_DAY; s.tDay = s.tDay || ''; s.shopT = s.shopT || 0; s.arts = s.arts || {}; for (const id in s.arts){ if (typeof s.arts[id] === 'number') s.arts[id] = s.arts[id] > 0 ? { 1: s.arts[id] } : {}; } s.placed = (s.placed || [null, null, null]).map(p => typeof p === 'string' ? (ART[p] ? { id: p, lv: 1 } : null) : (p && ART[p.id] ? p : null)); while (s.placed.length < 3) s.placed.push(null); s.meds = s.meds || {}; s.brew = s.brew && s.brew.id ? s.brew : null; if (s.res && s.res.wash === true) s.res.wash = 20;
     // chapter 1 grew from 7 steps to 9 (four raw-sample requests, then brewing): map an old position onto the new list
     if (!s.storyV){ const st = s.story && s.story[0]; if (st){ if (st.done) st.step = STORY[0].steps.length; else if (st.step > 0) st.step = [4,5,5,6,7,7,8][Math.min(st.step, 6)]; } s.storyV = 2; } for (const t in s.story){ s.story[t].brewing = null; } return s; }catch(e){ return null; } }
 let wiped = false;
@@ -651,7 +652,16 @@ function save(){ if (wiped) return; S.last = Date.now(); try{ localStorage.setIt
 const tierMult = (t) => Math.pow(TIER_MULT, t === undefined ? S.tier : t);
 const boostOn = () => S.boost > 0;
 function catMult(){ let m = 1; for (const t in S.cat) for (const k in S.cat[t]) m += BONUS[+k[0]]; return m; }
-function artPerk(k){ let v = 0; for (const id of (S.placed || [])){ const a = id && ART[id]; if (a && a.perk[0] === k) v += a.perk[1]; } return v; }
+// Artifacts have levels. Three copies of one level merge into one of the next; the perk scales with level.
+const ART_MAX = 5, ART_MERGE = 3;
+function artVal(a, lv){ return a.perk[1] * lv; }
+function artDesc(a, lv){ const v = artVal(a, lv), k = a.perk[0]; return k === 'lv' ? `+${v} effective level${v > 1 ? 's' : ''}` : k === 'speed' ? `−${Math.round(v*100)}% cycle time` : k === 'value' ? `+${Math.round(v*100)}% duplicate value` : k === 'income' ? `+${Math.round(v*100)}% income` : `+${v} ${v > 1 ? T.drops : T.drop} per cycle`; }
+function artCount(id, lv){ return ((S.arts[id] || {})[lv]) || 0; }
+function artPlaced(id, lv){ return S.placed.filter(p => p && p.id === id && p.lv === lv).length; }
+function artSpare(id, lv){ return artCount(id, lv) - artPlaced(id, lv); }
+function addArt(id, lv){ lv = lv || 1; const c = S.arts[id] = S.arts[id] || {}; c[lv] = (c[lv] || 0) + 1; }
+function mergeArt(id, lv){ const a = ART[id]; if (!a || lv >= ART_MAX || artSpare(id, lv) < ART_MERGE) return; S.arts[id][lv] -= ART_MERGE; if (!S.arts[id][lv]) delete S.arts[id][lv]; addArt(id, lv + 1); toast(`${a.n} is now level ${lv + 1}: ${artDesc(a, lv + 1)}`); renderAll(); save(); }
+function artPerk(k){ let v = 0; for (const p of (S.placed || [])){ const a = p && ART[p.id]; if (a && a.perk[0] === k) v += artVal(a, p.lv); } return v; }
 function upSum(k){ let v = 0; for (const id in S.ups){ const u = UPI[id]; if (u && u.k === k) v += u.v; } return v; }
 function upProd(k){ let v = 1; for (const id in S.ups){ const u = UPI[id]; if (u && u.k === k) v *= u.v; } return v; }
 function upSpeed(){ let v = 1; for (const id in S.ups){ const u = UPI[id]; if (u && u.k === 'speed') v *= (1 - u.v); } return v; }
@@ -754,8 +764,8 @@ function canGenesis(){ return S.tier >= GEN_TIER && !!(S.story[GEN_TIER] && S.st
 function seenBefore(t, key){ return !!(((S.gen || {}).seen || {})[t] || {})[key]; }
 function genesis(){ if (!canGenesis()) return; const g = S.gen = S.gen || { runs:0, pts:0, perks:{}, seen:{} };
   const pts = genPoints(); g.pts += pts; g.runs++; g.seen = g.seen || {}; for (const t in S.cat){ g.seen[t] = g.seen[t] || {}; for (const k in S.cat[t]) if (S.cat[t][k] > 0) g.seen[t][k] = true; }
-  const keepHyb = S.seed, keepArt = S.placed[0];
-  Object.assign(S, { tier:0, lv:1 + 2 * genLv('head'), cur:0, ups:{}, res:{}, active:null, cat:{}, dishes:[newDish()], boost:0, recent:[], shelf:[], cycles:0, eaten:0, hasSplicer:false, hyb: keepHyb ? { [keepHyb]:1 } : {}, seed: keepHyb || null, splice:null, sp:[null,null], spOut:null, story:{}, side:[], ob:null, arts: keepArt ? { [keepArt]:1 } : {}, placed:[keepArt || null, null, null], meds:{}, brew:null, icepack:false, st:{}, studies:{}, freeRes: genLv('bench') > 0 });
+  const keepHyb = S.seed, keepArt = S.placed[0] && ART[S.placed[0].id] ? S.placed[0] : null;
+  Object.assign(S, { tier:0, lv:1 + 2 * genLv('head'), cur:0, ups:{}, res:{}, active:null, cat:{}, dishes:[newDish()], boost:0, recent:[], shelf:[], cycles:0, eaten:0, hasSplicer:false, hyb: keepHyb ? { [keepHyb]:1 } : {}, seed: keepHyb || null, splice:null, sp:[null,null], spOut:null, story:{}, side:[], ob:null, arts: keepArt ? { [keepArt.id]: { [keepArt.lv]: 1 } } : {}, placed:[keepArt ? { id: keepArt.id, lv: keepArt.lv } : null, null, null], meds:{}, brew:null, icepack:false, st:{}, studies:{}, freeRes: genLv('bench') > 0 });
   if (genLv('starter') && g.seen[0]){ S.cat[0] = {}; for (const k in g.seen[0]) if (k[0] === '0') S.cat[0][k] = 3; }
   S.dishes.forEach(d => d.drops = rollDrops());
   toast(`Genesis ${g.runs}: +${pts} Genome. The dish is small again.`); closePanel(); applyVessel(); renderAll(); save(); }
@@ -1008,24 +1018,25 @@ function goalHtml(){
   return `<b class="stepno">${no}</b><span>${s.who}</span>${needs}`;
 }
 function questsHas(){ return (S.side || []).filter(sideDone).length; }
-function unplacedCount(){ let n = 0; for (const id in S.arts) n += Math.max(0, S.arts[id] - S.placed.filter(p => p === id).length); return n; }
+function unplacedCount(){ let n = 0; for (const id in S.arts) for (const lv in S.arts[id]) n += Math.max(0, artSpare(id, +lv)); return n; }
+function mergeableCount(){ let n = 0; for (const id in S.arts) for (const lv in S.arts[id]) if (+lv < ART_MAX && artSpare(id, +lv) >= ART_MERGE) n++; return n; }
 // ---- the pipette mini-game ----
 let mg = null;
 const mgPos = now => .5 + .5*Math.sin((now - mg.t0)/1000 * 3.4);
 function mgStart(){ if (S.tickets <= 0){ toast('No tickets left today. Watch an ad for one, or buy one in the Shop.'); return; } S.tickets--; bump('ticket'); mg = { t0: performance.now(), done: false }; renderAll(); save(); }
 function mgDrop(){ if (!mg || mg.done) return; const pos = mgPos(performance.now()), d = Math.abs(pos - .5)/.5; const grade = d <= .08 ? 3 : d <= .2 ? 2 : d <= .36 ? 1 : 0;
   const W = [[85,15,0,0],[55,35,9,1],[25,45,25,5],[5,25,45,25]][grade]; let r = Math.random()*100, ri = 0; for (let k = 0; k < 4; k++){ r -= W[k]; if (r < 0){ ri = k; break; } }
-  const pool = ARTS.filter(a => a.r === ri), art = pool[Math.floor(Math.random()*pool.length)]; S.arts[art.id] = (S.arts[art.id] || 0) + 1;
+  const pool = ARTS.filter(a => a.r === ri), art = pool[Math.floor(Math.random()*pool.length)]; addArt(art.id);
   mg.done = true; mg.result = { art, grade, pos }; toast(`${['Miss.','Close.','Nice!','Perfect!'][grade]} You found ${art.n}.`); renderAll(); save(); }
 function adTicket(){ ad('ticket', () => { S.tickets++; toast('+1 ticket'); renderAll(); }); }
 function buyShop(id){ const it = SHOP.find(x => x.id === id); if (!it || (it.show && !it.show())) return; const c = it.cost(), cost0 = c; if (S.cur < c){ toast(`Needs ${fmt(c)} ${T.cur.toLowerCase()}.`); return; } S.cur -= c;
   if (id === 'ticket'){ S.tickets++; S.shopT = (S.shopT || 0) + 1; toast('+1 ticket'); }
   else if (id === 'crate'){ const c = S.cat[S.tier] = S.cat[S.tier] || {}; const found0 = Object.keys(c).filter(k => k[0] === '0' && c[k] > 0); if (!found0.length){ S.cur += cost0; toast('The fridge is empty until you have found a common strain.'); renderAll(); return; } const got = []; for (let k = 0; k < 3; k++){ const key = found0[Math.floor(Math.random()*found0.length)]; c[key]++; got.push(item(S.tier, +key[0], +key.slice(2)).n); } S.shopC = (S.shopC || 0) + 1; toast(`Crate: ${got.join(', ')}`); }
   else if (id === 'icepack'){ S.icepack = true; toast('Ice pack fitted: +2 h offline'); }
-  else if (id === 'pebble'){ const pool = ARTS.filter(a => a.r === 0), a = pool[Math.floor(Math.random()*pool.length)]; S.arts[a.id] = (S.arts[a.id] || 0) + 1; toast(`Inside the pebble: ${a.n}`); }
+  else if (id === 'pebble'){ const pool = ARTS.filter(a => a.r === 0), a = pool[Math.floor(Math.random()*pool.length)]; addArt(a.id); toast(`Inside the pebble: ${a.n}`); }
   else if (id === 'boost'){ S.boost = BOOST_LEN; toast('2× for two minutes'); }
   renderAll(); save(); }
-function placeArt(id){ const a = ART[id]; if (!a || !S.arts[id]) return; const used = S.placed.filter(p => p === id).length; if (used >= S.arts[id]){ toast('All your copies are already placed.'); return; } const slot = S.placed.indexOf(null); if (slot < 0){ toast('All three slots are full. Remove one first.'); return; } S.placed[slot] = id; toast(`${a.n} placed: ${a.d}`); renderAll(); save(); }
+function placeArt(id, lv){ lv = +lv || 1; const a = ART[id]; if (!a || !artCount(id, lv)) return; if (artSpare(id, lv) <= 0){ toast('All your copies are already placed.'); return; } const k = S.placed.indexOf(null); if (k < 0){ toast('No free slot. Remove something first.'); return; } S.placed[k] = { id, lv }; toast(`${a.n} placed: ${artDesc(a, lv)}`); renderAll(); save(); }
 function unplaceArt(slot){ if (S.placed[slot] == null) return; S.placed[slot] = null; renderAll(); save(); }
 
 // ---------- results sheet ----------
@@ -1123,7 +1134,7 @@ function updateLive(){
   document.querySelectorAll('.sbtn[data-tab], #tabs button[data-tab]').forEach(b => { const k = b.dataset.tab; if (!UNLOCK[k]) return; const ok = unlocked(k); b.classList.toggle('locked', !ok); const lk = b.querySelector('.lk'); if (lk){ lk.hidden = ok; setText(lk, unlockLabel(k)); } });
   if (tab === 'splicer'){ setHTML($('mstat'), S.splice ? `<b>Splicing</b> · ${fmtDur(S.splice.left)} · ${item(0, S.splice.a[0], S.splice.a[1]).n} + ${item(0, S.splice.b[0], S.splice.b[1]).n}` : S.spOut ? `<b>Something formed.</b> Tap the chamber to collect it.` : `<b>Splice-o-matic</b> · ${spWhy()}`); setDis($('spBtn'), !spReady()); const sa = $('spAd'); setHTML(sa, adLabel('Finish now')); setDis(sa, !S.splice || S.adCd > 0 || adBusy); }
   $('tabs').children[2].classList.toggle('has', clinicHas());
-  const qn = questsHas(); $('qCnt').hidden = !qn; setText($('qCnt'), String(qn)); setText($('tCnt'), String(S.tickets)); $('tCnt').classList.toggle('ok', S.tickets > 0); const un = unplacedCount(); $('dCnt').hidden = !un; setText($('dCnt'), String(un));
+  const qn = questsHas(); $('qCnt').hidden = !qn; setText($('qCnt'), String(qn)); setText($('tCnt'), String(S.tickets)); $('tCnt').classList.toggle('ok', S.tickets > 0); const un = unplacedCount() + mergeableCount(); $('dCnt').hidden = !un; setText($('dCnt'), String(un));
   if (tab === 'tickets'){ const m = $('mgMarker'); if (m && mg && !mg.done) m.style.left = (mgPos(performance.now())*100) + '%'; }
   $('tabs').children[4].classList.toggle('has', canAscend());
   setText($('devStat'), `ads watched ${S.ads}  ·  ${Object.entries(S.adUse).map(([k,v]) => k + ' ' + v).join(', ') || 'none yet'}\ncycles ${S.cycles}  ·  eaten ${S.eaten}  ·  catalog ×${catMult().toFixed(2)}  ·  tier ×${tierMult()}\nrarity @ lv ${effLv().toFixed(1)}: ${weights(effLv()).map(x => x.toFixed(0)).join(' / ')}`);
@@ -1175,11 +1186,12 @@ function renderTab(){
     el.innerHTML = `<p class="sub">Paid in ${T.cur.toLowerCase()}. Nothing here you can't also earn; more appears as the town opens up.</p>` + SHOP.filter(it => !it.show || it.show()).map(it => { const c = it.cost(); return `<div class="r" style="cursor:default"><div class="rn">${it.e} ${it.n}</div><div class="rd">${it.d}</div><div class="rc">${fmt(c)}</div><div class="acts"><button class="btn primary" data-act="shop" data-id="${it.id}" ${S.cur >= c ? '' : 'disabled'}>Buy</button></div></div>`; }).join('');
   }
   else if (tab === 'decor'){
-    const slots = S.placed.map((id, k) => { const a = id && ART[id]; return a ? `<div class="slot full"><div class="e">${a.e}</div><div class="nm">${a.n}</div><div class="pd">${a.d}</div><button class="btn" data-act="unplace" data-i="${k}">Remove</button></div>` : `<div class="slot"><div class="e" style="opacity:.35">＋</div><div class="pd">Slot ${k+1}</div><div class="pd">empty</div></div>`; }).join('');
-    const owned = ARTS.filter(a => S.arts[a.id]);
-    const list = owned.length ? owned.map(a => { const spare = S.arts[a.id] - S.placed.filter(p => p === a.id).length; return `<div class="r" style="cursor:default"><div class="rn"><span class="artrow"><span class="e">${a.e}</span><span>${a.n} <span class="tag on" style="color:${RAR[a.r].col}">${RAR[a.r].n}</span></span></span></div><div class="rd">${a.d} · ×${S.arts[a.id]} owned, ${spare} spare</div><div class="acts"><button class="btn primary" data-act="placeArt" data-id="${a.id}" ${spare > 0 && S.placed.includes(null) ? '' : 'disabled'}>Place</button></div></div>`; }).join('') : `<div class="card"><p class="sub" style="margin:0">No artifacts yet. Win them at the pipette (Tickets) or buy a mystery pebble in the Shop.</p></div>`;
+    const slots = S.placed.map((p, k) => { const a = p && ART[p.id]; return a ? `<div class="slot full"><div class="e">${a.e}</div><div class="nm">${a.n} <b class="alv">Lv ${p.lv}</b></div><div class="pd">${artDesc(a, p.lv)}</div><button class="btn" data-act="unplace" data-i="${k}">Remove</button></div>` : `<div class="slot"><div class="e" style="opacity:.35">＋</div><div class="pd">Slot ${k+1}</div><div class="pd">empty</div></div>`; }).join('');
+    const rows = []; ARTS.forEach(a => { const c = S.arts[a.id] || {}; Object.keys(c).map(Number).sort((x, y) => y - x).forEach(lv => { if (!c[lv]) return; const spare = artSpare(a.id, lv), canMerge = lv < ART_MAX && spare >= ART_MERGE;
+      rows.push(`<div class="r" style="cursor:default"><div class="rn"><span class="artrow"><span class="e">${a.e}</span><span>${a.n} <b class="alv">Lv ${lv}</b> <span class="tag on" style="color:${RAR[a.r].col}">${RAR[a.r].n}</span></span></span></div><div class="rd">${artDesc(a, lv)} · ×${c[lv]} owned, ${spare} spare${lv < ART_MAX ? ` · ${ART_MERGE} spare merge into Lv ${lv+1} (${artDesc(a, lv+1)})` : ' · max level'}</div><div class="acts" style="display:flex;gap:8px"><button class="btn primary" data-act="placeArt" data-id="${a.id}" data-lv="${lv}" ${spare > 0 && S.placed.includes(null) ? '' : 'disabled'}>Place</button>${lv < ART_MAX ? `<button class="btn" data-act="merge" data-id="${a.id}" data-lv="${lv}" ${canMerge ? '' : 'disabled'}>Merge ${Math.min(spare, ART_MERGE)}/${ART_MERGE}</button>` : ''}</div></div>`); }); });
+    const list = rows.length ? rows.join('') : `<div class="card"><p class="sub" style="margin:0">No artifacts yet. Win them at the pipette (Tickets) or buy a mystery pebble in the Shop.</p></div>`;
     const tot = { lv: artPerk('lv'), speed: artPerk('speed'), value: artPerk('value'), income: artPerk('income'), drop: artPerk('drop') };
-    el.innerHTML = `<p class="sub">Three things can sit in the ${T.dish}. Only placed artifacts count.</p><div class="slots">${slots}</div><div class="card" style="margin-top:10px"><div class="kv"><span>From decor</span><span>+${tot.lv} lv · −${Math.round(tot.speed*100)}% cycle · +${Math.round(tot.value*100)}% value · +${Math.round(tot.income*100)}% income · +${tot.drop} ${T.drops}</span></div></div><h4 class="gh">Collection</h4>` + list;
+    el.innerHTML = `<p class="sub">Three things can sit in the ${T.dish}. Only placed artifacts count. Three spare copies of the same level merge into one a level higher, and the perk grows with the level.</p><div class="slots">${slots}</div><div class="card" style="margin-top:10px"><div class="kv"><span>From decor</span><span>+${tot.lv} lv · −${Math.round(tot.speed*100)}% cycle · +${Math.round(tot.value*100)}% value · +${Math.round(tot.income*100)}% income · +${tot.drop} ${T.drops}</span></div></div><h4 class="gh">Collection</h4>` + list;
   }
   if (tab === 'up'){
     const rows = [];
@@ -1281,7 +1293,7 @@ function renderTab(){
       <div class="acts" style="display:flex;margin-top:10px"><button class="btn primary" data-act="ascend" ${ok ? '' : 'disabled'}>${T.ascend} to ${next.n}</button></div></div>` : `<div class="card"><h3>The top of the ladder</h3><p class="sub" style="margin:0">${tierDef(S.tier).n} is as big as it gets. The only way up is back to the start.</p></div>`;
     const canG = canGenesis(), gate = S.tier < GEN_TIER ? `Finish the ${tierDef(GEN_TIER).n} chapter first.` : !(S.story[GEN_TIER] && S.story[GEN_TIER].done) ? `Finish the ${tierDef(GEN_TIER).n} chapter first.` : '';
     const genCard = (S.tier >= GEN_TIER || g.runs) ? `<div class="card gen"><h3>🌱 Genesis${g.runs ? ` · run ${g.runs + 1}` : ''}</h3><p class="sub" style="margin:0 0 6px">The ${tierDef(total-1).n.toLowerCase()} collapses to a single cell and Mossbrook starts again. Everything resets: tier, level, ${T.cur.toLowerCase()}, upgrades, research, studies, catalog, stock, medicines, story.</p>
-      <div class="kv"><span>You keep</span><span>the seeded hybrid${S.seed ? ' (' + HYB[S.seed].n + ')' : ''}, the artifact in Decor slot 1${S.placed[0] ? ' (' + ART[S.placed[0]].n + ')' : ''}, your tickets, and the catalog as memory</span></div>
+      <div class="kv"><span>You keep</span><span>the seeded hybrid${S.seed ? ' (' + HYB[S.seed].n + ')' : ''}, the artifact in Decor slot 1${S.placed[0] && ART[S.placed[0].id] ? ' (' + ART[S.placed[0].id].n + ' Lv ' + S.placed[0].lv + ')' : ''}, your tickets, and the catalog as memory</span></div>
       <div class="kv"><span>Genome this run</span><span class="good">+${genPoints()} · ${S.tier + 1} tiers, ${Object.keys(S.cat).reduce((n, t) => n + found(+t), 0)} found, ${Object.values(S.story).filter(x => x.done).length} chapters</span></div>
       ${gate ? `<p class="sub" style="margin:6px 0 0">${gate}</p>` : ''}
       <div class="acts" style="display:flex;margin-top:10px"><button class="btn ${genArm ? 'primary' : ''}" data-act="genesis" ${canG ? '' : 'disabled'}>${genArm ? 'Tap again to begin Genesis' : 'Begin Genesis'}</button></div></div>` : '';
@@ -1598,7 +1610,7 @@ function draw(now){
     cx.strokeStyle = 'rgba(120,140,200,.25)'; cx.lineWidth = 1; cx.beginPath(); cx.moveTo(R, 14); cx.lineTo(R, 34); cx.moveTo(R, H-14); cx.lineTo(R, H-34); cx.moveTo(14, R); cx.lineTo(34, R); cx.moveTo(W-14, R); cx.lineTo(W-34, R); cx.stroke();
     if (!d.ready){ const a = (now/1500) % 7; cx.beginPath(); cx.moveTo(R,R); cx.arc(R, R, R-2, a-.6, a); cx.closePath(); cx.fillStyle = 'rgba(93,214,232,.08)'; cx.fill(); }
   } else { const V = vessel(); cx.save(); vesselPath(cx, V.shape, W, H); cx.clip(); cx.drawImage(vesselBg(V, W, H), 0, 0); if (V.draw) V.draw(cx, W, H, now);
-    S.placed.forEach((id, k) => { const a = id && ART[id]; if (!a) return; const [px, py] = V.slots[k]; cx.fillStyle = 'rgba(0,0,0,.18)'; cx.beginPath(); cx.ellipse(px*W, py*H + 12, 16, 6, 0, 0, 7); cx.fill(); cx.font = '28px sans-serif'; cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.fillText(a.e, px*W, py*H + Math.sin(now/600 + k)*2); }); }
+    S.placed.forEach((p, k) => { const a = p && ART[p.id]; if (!a) return; const [px, py] = V.slots[k]; cx.fillStyle = 'rgba(0,0,0,.18)'; cx.beginPath(); cx.ellipse(px*W, py*H + 12, 16, 6, 0, 0, 7); cx.fill(); cx.font = '28px sans-serif'; cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.fillText(a.e, px*W, py*H + Math.sin(now/600 + k)*2); if (p.lv > 1){ cx.fillStyle = '#ffd43b'; for (let i = 0; i < p.lv; i++){ cx.beginPath(); cx.arc(px*W + (i - (p.lv-1)/2) * 7, py*H + 22, 2.5, 0, 7); cx.fill(); } } }); }
   if (T.skin === 'bio' && S.seed && HYB[S.seed]){ const sy = H*vessel().seedY; cx.strokeStyle = 'rgba(255,255,255,.55)'; cx.lineWidth = 3; cx.setLineDash([6,5]); cx.lineDashOffset = -now/80; cx.beginPath(); cx.arc(W*.5, sy, W*.08, 0, 7); cx.stroke(); cx.setLineDash([]); drawCritter(cx, W*.5, sy, W*.05, HYB[S.seed].look, now, { seed: 42, ready: d.ready }); }
   const order = d.drops.slice().sort((a, b) => a.y - b.y);
   for (const dr of order){
@@ -1690,7 +1702,8 @@ $('phone').addEventListener('click', e => {
   else if (act === 'mgDrop') mgDrop();
   else if (act === 'adTicket') adTicket();
   else if (act === 'shop') buyShop(b.dataset.id);
-  else if (act === 'placeArt') placeArt(b.dataset.id);
+  else if (act === 'placeArt') placeArt(b.dataset.id, b.dataset.lv);
+  else if (act === 'merge') mergeArt(b.dataset.id, +b.dataset.lv);
   else if (act === 'unplace') unplaceArt(i);
   else if (act === 'stir'){
     bump('stir');
