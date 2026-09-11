@@ -257,6 +257,14 @@
   .adbox{background:#111; color:#eee; border:3px solid var(--ink); border-radius:16px; padding:18px 14px; text-align:center; font-family:var(--display); font-size:12px; margin:8px 0} .adbox .big{font-size:40px; font-weight:700; color:#fff; margin:6px 0} .adbox .cd{color:#9ae6b4}
   .finds{display:flex; flex-wrap:wrap; gap:4px; margin-top:4px}
 
+  #hand{position:fixed; left:0; top:0; z-index:60; pointer-events:none; display:flex; flex-direction:column; align-items:center; transform:translate(-50%,0); transition:left .25s, top .25s}
+  #hand .hp{font-size:34px; line-height:1; filter:drop-shadow(0 3px 0 rgba(0,0,0,.35)); animation:handbob .9s ease-in-out infinite}
+  #hand.up .hp{animation-name:handbobup}
+  #hand .hc{pointer-events:auto; background:var(--ink); color:#fff3d6; font-size:12.5px; font-weight:800; padding:6px 26px 6px 10px; border-radius:10px; margin-top:2px; max-width:220px; text-align:center; position:relative; box-shadow:0 3px 0 rgba(0,0,0,.35)}
+  #hand .hc i{position:absolute; right:6px; top:4px; font-style:normal; opacity:.7; font-size:13px; padding:0 4px}
+  #hand.up{flex-direction:column-reverse} #hand.up .hc{margin:0 0 2px}
+  @keyframes handbob{0%,100%{transform:translateY(0) rotate(-8deg)} 50%{transform:translateY(7px) rotate(-8deg)}}
+  @keyframes handbobup{0%,100%{transform:translateY(0) rotate(8deg)} 50%{transform:translateY(-7px) rotate(8deg)}}
   .toast{position:absolute; left:50%; top:14px; transform:translate(-50%,-40px) scale(.8); background:var(--surface) var(--paper); color:var(--text); border:3px solid var(--ink); box-shadow:0 4px 0 var(--ink); padding:7px 14px; border-radius:999px; font-family:var(--display); font-weight:600; font-size:13px; opacity:0; transition:all .35s cubic-bezier(.34,1.56,.64,1); z-index:10; pointer-events:none; white-space:nowrap; max-width:92%; overflow:hidden; text-overflow:ellipsis} .toast.on{opacity:1; transform:translate(-50%,0) scale(1)}
   .toast.bad{background:#ffd6dc}
 
@@ -292,6 +300,7 @@
     <div class="main" id="main">
     <div class="dishcard">
       <div class="page">
+      <div id="hand" hidden><span class="hp">👆</span><b class="hc"><span class="ht"></span><i data-act="handoff">✕</i></b></div>
       <div class="dishwrap" id="dishwrap" data-act="stir" data-i="0">
         <canvas id="dish" width="360" height="360"></canvas>
         <svg viewBox="0 0 200 200"><path class="bg" id="ringBg" d="M100 5 A95 95 0 1 1 99.99 5 Z"/><path class="fg" id="ring" d="M100 5 A95 95 0 1 1 99.99 5 Z" stroke-dasharray="596.9" stroke-dashoffset="596.9"/></svg>
@@ -373,7 +382,7 @@
 <script>
 'use strict';
 // ---------- constants ----------
-const VERSION = '0.8.0';
+const VERSION = '0.8.1';
 const RAR = [
   {k:'c', n:'Common',    col:'#d6c59a'},
   {k:'u', n:'Uncommon',  col:'#4ade80'},
@@ -642,8 +651,8 @@ const UPT = [
     { id:'l_val',   n:'Museum deal',     d:'+60% duplicate value',  k:'val',   v:.6,  cost:9000 } ] },
 ];
 const UPI = Object.fromEntries(UPT.flatMap(t => t.items).map(u => [u.id, u]));
-function fresh(){ return { theme:'bio', cur:0, tier:0, lv:1, ups:{}, res:{}, active:null, cat:{}, dishes:[newDish()], boost:0, adCd:0, ads:0, adUse:{}, recent:[], shelf:[], cycles:0, eaten:0, hasSplicer:false, hyb:{}, seed:null, splice:null, sp:[null,null], spOut:null, story:{}, side:[], ob:null, tickets:TICKETS_PER_DAY, tDay:'', shopT:0, arts:{}, placed:[null,null,null], meds:{}, brew:null, storyV:2, shopC:0, icepack:false, st:{}, studies:{}, gen:{ runs:0, pts:0, perks:{}, seen:{} }, freeRes:false, last:Date.now() }; }
-function load(){ try{ const s = JSON.parse(localStorage.getItem(SAVE)); if (!s || !s.dishes) return null; s.dishes.forEach(d => d.drops.forEach(g => { g.atk = null; g.meet = null; g.frozen = false; })); s.hyb = s.hyb || {}; s.story = s.story || {}; s.side = (s.side || []).filter(x => x && x.base !== undefined && SIDE[x.k]); s.st = s.st || {}; s.studies = s.studies || {}; s.gen = s.gen || { runs:0, pts:0, perks:{}, seen:{} }; s.freeRes = !!s.freeRes; if (s.active && s.active.id === 'study' && !s.active.key) s.active = null; s.ob = null; if (s.seed === undefined) s.seed = null; if (s.splice === undefined) s.splice = null; s.hasSplicer = !!s.hasSplicer; s.sp = s.sp || [null, null]; s.spOut = s.spOut || null; if (s.splice && !s.splice.a) s.splice = null; s.ups = s.ups || {}; if (s.tickets === undefined) s.tickets = TICKETS_PER_DAY; s.tDay = s.tDay || ''; s.shopT = s.shopT || 0; s.arts = s.arts || {}; for (const id in s.arts){ if (typeof s.arts[id] === 'number') s.arts[id] = s.arts[id] > 0 ? { 1: s.arts[id] } : {}; } s.placed = (s.placed || [null, null, null]).map(p => typeof p === 'string' ? (ART[p] ? { id: p, lv: 1 } : null) : (p && ART[p.id] ? p : null)); while (s.placed.length < 3) s.placed.push(null); s.meds = s.meds || {}; s.brew = s.brew && s.brew.id ? s.brew : null; if (s.res && s.res.wash === true) s.res.wash = 20;
+function fresh(){ return { theme:'bio', cur:0, tier:0, lv:1, ups:{}, res:{}, active:null, cat:{}, dishes:[newDish()], boost:0, adCd:0, ads:0, adUse:{}, recent:[], shelf:[], cycles:0, eaten:0, hasSplicer:false, hyb:{}, seed:null, splice:null, sp:[null,null], spOut:null, story:{}, side:[], ob:null, tickets:TICKETS_PER_DAY, tDay:'', shopT:0, arts:{}, placed:[null,null,null], meds:{}, brew:null, storyV:2, shopC:0, icepack:false, st:{}, studies:{}, gen:{ runs:0, pts:0, perks:{}, seen:{} }, freeRes:false, tut:{ seen:{}, done:false }, last:Date.now() }; }
+function load(){ try{ const s = JSON.parse(localStorage.getItem(SAVE)); if (!s || !s.dishes) return null; s.dishes.forEach(d => d.drops.forEach(g => { g.atk = null; g.meet = null; g.frozen = false; })); s.hyb = s.hyb || {}; s.story = s.story || {}; s.side = (s.side || []).filter(x => x && x.base !== undefined && SIDE[x.k]); s.st = s.st || {}; s.studies = s.studies || {}; s.gen = s.gen || { runs:0, pts:0, perks:{}, seen:{} }; s.freeRes = !!s.freeRes; s.tut = s.tut || { seen:{}, done: !!(s.story && s.story[0] && s.story[0].step >= 5) }; if (s.active && s.active.id === 'study' && !s.active.key) s.active = null; s.ob = null; if (s.seed === undefined) s.seed = null; if (s.splice === undefined) s.splice = null; s.hasSplicer = !!s.hasSplicer; s.sp = s.sp || [null, null]; s.spOut = s.spOut || null; if (s.splice && !s.splice.a) s.splice = null; s.ups = s.ups || {}; if (s.tickets === undefined) s.tickets = TICKETS_PER_DAY; s.tDay = s.tDay || ''; s.shopT = s.shopT || 0; s.arts = s.arts || {}; for (const id in s.arts){ if (typeof s.arts[id] === 'number') s.arts[id] = s.arts[id] > 0 ? { 1: s.arts[id] } : {}; } s.placed = (s.placed || [null, null, null]).map(p => typeof p === 'string' ? (ART[p] ? { id: p, lv: 1 } : null) : (p && ART[p.id] ? p : null)); while (s.placed.length < 3) s.placed.push(null); s.meds = s.meds || {}; s.brew = s.brew && s.brew.id ? s.brew : null; if (s.res && s.res.wash === true) s.res.wash = 20;
     // chapter 1 grew from 7 steps to 9 (four raw-sample requests, then brewing): map an old position onto the new list
     if (!s.storyV){ const st = s.story && s.story[0]; if (st){ if (st.done) st.step = STORY[0].steps.length; else if (st.step > 0) st.step = [4,5,5,6,7,7,8][Math.min(st.step, 6)]; } s.storyV = 2; } for (const t in s.story){ s.story[t].brewing = null; } return s; }catch(e){ return null; } }
 let wiped = false;
@@ -718,7 +727,7 @@ function medsTake(list){ const m = S.meds[S.tier] = S.meds[S.tier] || {}; list.f
 function batchSize(){ return S.res.batch3 ? 6 : S.res.batch2 ? 3 : 1; }
 function brewTime(m, n){ return m.time * (S.res.fastbrew ? .5 : 1) * Math.sqrt(n); }
 function batchesAffordable(m){ let n = Infinity; m.need.forEach(([r, i, q]) => { n = Math.min(n, Math.floor(stock(r, i) / q)); }); return Math.min(batchSize(), n === Infinity ? 0 : n); }
-function brewMed(id){ const m = med(id); if (!m || S.brew) return; const n = batchesAffordable(m); if (n < 1){ toast(`Not enough spare strains for ${m.n}.`); return; } m.need.forEach(([r, i, q]) => { S.cat[S.tier][`${r}-${i}`] -= q * n; }); const t = brewTime(m, n); S.brew = { id, n, left: t, total: t }; toast(`Brewing ${n} ${m.n}`); renderAll(); save(); }
+function brewMed(id){ const m = med(id); if (!m || S.brew) return; const n = batchesAffordable(m); if (n < 1){ toast(`Not enough spare strains for ${m.n}.`); return; } m.need.forEach(([r, i, q]) => { S.cat[S.tier][`${r}-${i}`] -= q * n; }); const t = brewTime(m, n); S.brew = { id, n, left: t, total: t }; tutSeen('brewed'); toast(`Brewing ${n} ${m.n}`); renderAll(); save(); }
 function finishBrew(){ if (!S.brew) return; const b = S.brew; S.brew = null; bump('brew', b.n); const m = S.meds[S.tier] = S.meds[S.tier] || {}; m[b.id] = (m[b.id] || 0) + b.n; toast(`${b.n} ${b.id} ready`); markDirty(); }
 function medsRelevant(){ const ids = new Set(); const st = story(); [st.step, st.step + 1].forEach(k => stepReqs(S.tier, k).forEach(q => { if (q.t === 'med') ids.add(q.id); })); for (const id in (S.meds[S.tier] || {})) if (S.meds[S.tier][id] > 0) ids.add(id); return medsFor(S.tier).filter(m => ids.has(m.id)); }
 function weights(L){
@@ -934,13 +943,14 @@ function tick(dt, now){
 
 // ---------- actions ----------
 function buy(k){
+  tutSeen('buy');
   if (k === 'lv'){ const c = lvCost(); if (S.cur < c) return; S.cur -= c; S.lv++; bump('lv'); toast(`${T.up.lv[0]} ${S.lv}`); }
   else { const u = UPI[k]; if (!u) return; const ti = UPT.findIndex(t => t.items.includes(u)); if (!upCanBuy(u, ti)) return; S.cur -= u.cost * upMult(); S.ups[u.id] = true; bump('up'); toast(`${u.n}: ${u.d}`); if (ti + 1 < UPT.length && upBought(ti) === UPT[ti+1].need) toast(`Tier ${ti+2} unlocked: ${UPT[ti+1].n}`); }
   renderAll(); save();
 }
 function startResearch(id){
   const def = RES_DEF.find(r => r.id === id); if (!def || !resVisible(def) || S.active || resDone(def) || S.cur < resCost(def) || (def.req && !S.res[def.req])) return;
-  S.cur -= resCost(def); const t = resTime(def); S.active = { id, left: t, total: t }; if (S.freeRes){ S.freeRes = false; toast('Warm bench: instant.'); completeResearch(); } renderAll(); save();
+  tutSeen('res'); S.cur -= resCost(def); const t = resTime(def); S.active = { id, left: t, total: t }; if (S.freeRes){ S.freeRes = false; toast('Warm bench: instant.'); completeResearch(); } renderAll(); save();
 }
 function ascend(){
   if (!canAscend()) return;
@@ -1111,7 +1121,47 @@ function drawShelf(now){
   });
 }
 
+// ---------- first-run guide: a bobbing hand over the next thing to tap, one idea at a time ----------
+const tut = () => (S.tut = S.tut || { seen:{}, done:false });
+function tutSeen(k){ const t = tut(); if (!t.seen[k]){ t.seen[k] = true; } }
+function guideTarget(){
+  const t = tut(); if (t.done || (S.gen && S.gen.runs) || S.tier > 0) return null;
+  const st = story(), seen = t.seen, dish = S.dishes[0];
+  if (st.step >= 5 && seen.brew && seen.brewed){ t.done = true; return null; }
+  if (!tab){
+    if (S.cycles === 0 && !dish.ready && (S.st.stir || 0) < 3) return ['#dishwrap', 'Tap the dish to stir it along', 'in'];
+    if (dish.ready && !S.res.auto) return ['#collect', 'Harvest your first colonies'];
+    if (clinicHas()) return ['#tabs button[data-tab="clinic"]', `Deliver to ${curStep().who}`];
+    if (!seen.clinic && S.cycles >= 1) return ['#tabs button[data-tab="clinic"]', 'Someone at the Clinic needs you'];
+    if (!seen.buy && S.cur >= lvCost() && S.cycles >= 2) return ['#tabs button[data-tab="up"]', 'You can afford an upgrade'];
+    if (unlocked('quests') && !seen.quests) return ['.sbtn[data-tab="quests"]', 'Quests pay for things you already do'];
+    if (unlocked('lab') && !seen.lab) return ['#tabs button[data-tab="lab"]', 'Doc Ferro gave you a bench. Research something'];
+    if (unlocked('brew') && !seen.brew) return ['.sbtn[data-tab="brew"]', 'The kettle: spare samples become medicine'];
+    if (unlocked('tickets') && !seen.tickets) return ['.sbtn[data-tab="tickets"]', 'Three tickets a day. Win artifacts'];
+    if (unlocked('decor') && !seen.decor && unplacedCount() > 0) return ['.sbtn[data-tab="decor"]', 'Place your artifact in the dish'];
+    if (st.step < 5 && !clinicHas() && S.cycles >= 3 && (S.st.stir || 0) < 12 && !dish.ready) return ['#dishwrap', 'Tapping the dish speeds it up', 'in'];
+    return null;
+  }
+  if (tab === 'clinic' && clinicHas()) return ['#tabbody [data-act="deliver"]', `Deliver to ${curStep().who}`];
+  if (tab === 'up' && !seen.buy && S.cur >= lvCost()) return ['#tabbody .r[data-k="lv"]', 'Level the dish for rarer strains'];
+  if (tab === 'lab' && !seen.res && !S.active) return ['#tabbody .r[data-act="research"]:not(.poor)', 'Start your first research'];
+  if (tab === 'brew' && !S.brew && !seen.brewed) return S.brewSel ? ['#bwBtn', 'Brew it'] : ['#brewer', 'Tap a bottle on the rack to pick a recipe', 'in'];
+  return null;
+}
+let handKey = '';
+function guideTick(){
+  const h = $('hand'); const g = guideTarget(); const el = g && document.querySelector(g[0]); if (!el){ if (!h.hidden){ h.hidden = true; handKey = ''; } return; }
+  const r = el.getBoundingClientRect(); if (!r.width || !r.height){ h.hidden = true; handKey = ''; return; }
+  if (tab){ const tb = $('tabbody').getBoundingClientRect(); if (el.closest('#tabbody') && (r.top < tb.top - 4 || r.bottom > tb.bottom + 4)){ h.hidden = true; handKey = ''; return; } }
+  const key = g[0] + '|' + g[1]; if (key !== handKey){ handKey = key; setText(h.querySelector('.ht'), g[1]); }
+  const above = r.top + r.height/2 > innerHeight * .62 || tab === 'clinic' || tab === 'lab' || tab === 'up';
+  const inside = g[2] === 'in'; h.classList.toggle('up', above); h.querySelector('.hp').textContent = above ? '👇' : '👆';
+  const x = r.left + r.width/2; const y = inside ? r.top + r.height*.55 : above ? r.top - 4 : r.bottom + 4;
+  h.style.left = x + 'px'; if (above) { h.style.top = 'auto'; h.style.bottom = (innerHeight - y) + 'px'; } else { h.style.bottom = 'auto'; h.style.top = y + 'px'; }
+  if (h.hidden) h.hidden = false;
+}
 function updateLive(){
+  guideTick();
   setText($('cur'), fmt(S.cur));
   setText($('rate'), `+${fmt(genRate())}/s${boostOn() ? ' · 2× ' + fmtDur(S.boost) : ''}`);
   const d = S.dishes[0], ct = cycleTime();
@@ -1669,6 +1719,7 @@ $('phone').addEventListener('click', e => {
   else if (act === 'adResearch') adResearch();
   else if (act === 'buy') buy(b.dataset.k);
   else if (act === 'research') startResearch(b.dataset.id);
+  else if (act === 'handoff'){ tut().done = true; $('hand').hidden = true; toast('Guide off. Five taps on the sign brings the dev tools if you want it back.'); save(); }
   else if (act === 'ascend') ascend();
   else if (act === 'study') startStudy(b.dataset.key);
   else if (act === 'genesis'){ if (!canGenesis()) return; if (!genArm){ genArm = true; markDirty(); setTimeout(() => { if (genArm){ genArm = false; markDirty(); } }, 4000); } else { genArm = false; genesis(); } }
@@ -1727,7 +1778,7 @@ $('phone').addEventListener('click', e => {
 $('tabs').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; if (tab === b.dataset.tab) closePanel(); else openPanel(b.dataset.tab); });
 let animT, openedAt = 0;
 let genArm = false;
-function openPanel(t){ genArm = false;
+function openPanel(t){ genArm = false; if (unlocked(t)) tutSeen(t);
   if (!unlocked(t)){ toast(`🔒 ${unlockName(t)} opens after ${unlockLabel(t)}. ${unlockHint(t)}`); return; }
   tab = t; openedAt = performance.now(); renderTop(); renderTab(); updateLive();
   const p = $('panel'); p.classList.remove('anim'); void p.offsetWidth; p.classList.add('open', 'anim'); $('mapscrim').classList.add('on'); $('tabbody').scrollTop = 0;
@@ -1773,11 +1824,11 @@ if ('serviceWorker' in navigator && location.protocol.startsWith('http')) naviga
 let signTaps = 0, signT;
 document.querySelector('.sign').addEventListener('click', () => { signTaps++; clearTimeout(signT); signT = setTimeout(() => signTaps = 0, 1500); if (signTaps >= 5){ signTaps = 0; openDev(); } });
 function openDev(){
-  $('sheet').innerHTML = `<div class="eyebrow" style="color:var(--muted);text-shadow:none">Dev tools</div><h3>Playtest cheats</h3><p class="sub">Hidden behind five taps on the sign. None of this ships.</p><div class="needs">${[['skin','Skin: ' + T.name],['speed','Sim ×10: ' + (simSpeed === 10 ? 'on' : 'off')],['away','Simulate 1 h away'],['cur','+1000'],['lv','+5 levels'],['stock','+4 of everything'],['tix','+3 tickets'],['ads','Reset ad cooldown'],['reset','Reset save']].map(([k, n]) => `<button class="chip" data-dev="${k}" style="font-size:12px;padding:6px 10px">${n}</button>`).join('')}</div><div class="acts"><button class="btn primary" id="devClose">Close</button></div>`;
+  $('sheet').innerHTML = `<div class="eyebrow" style="color:var(--muted);text-shadow:none">Dev tools</div><h3>Playtest cheats</h3><p class="sub">Hidden behind five taps on the sign. None of this ships.</p><div class="needs">${[['skin','Skin: ' + T.name],['speed','Sim ×10: ' + (simSpeed === 10 ? 'on' : 'off')],['away','Simulate 1 h away'],['cur','+1000'],['lv','+5 levels'],['stock','+4 of everything'],['tix','+3 tickets'],['guide','Guide: ' + (S.tut && S.tut.done ? 'off' : 'on')],['ads','Reset ad cooldown'],['reset','Reset save']].map(([k, n]) => `<button class="chip" data-dev="${k}" style="font-size:12px;padding:6px 10px">${n}</button>`).join('')}</div><div class="acts"><button class="btn primary" id="devClose">Close</button></div>`;
   $('devClose').onclick = closeSheet; openSheet();
 }
 $('sheet').addEventListener('click', e => { const b = e.target.closest('[data-dev]'); if (!b) return; const k = b.dataset.dev;
-  if (k === 'skin') $('devSkin').click(); else if (k === 'speed') $('devSpeed').click(); else if (k === 'away'){ closeSheet(); $('devAway').click(); return; } else if (k === 'cur') $('devCur').click(); else if (k === 'lv') $('devLv').click(); else if (k === 'stock') $('devStock').click(); else if (k === 'tix') $('devTix').click(); else if (k === 'ads'){ S.adCd = 0; renderAll(); } else if (k === 'reset'){ wipeSave(); }
+  if (k === 'skin') $('devSkin').click(); else if (k === 'speed') $('devSpeed').click(); else if (k === 'away'){ closeSheet(); $('devAway').click(); return; } else if (k === 'cur') $('devCur').click(); else if (k === 'lv') $('devLv').click(); else if (k === 'stock') $('devStock').click(); else if (k === 'tix') $('devTix').click(); else if (k === 'ads'){ S.adCd = 0; renderAll(); } else if (k === 'guide'){ tut().done = !tut().done; if (!tut().done) tut().seen = {}; closeSheet(); renderAll(); save(); } else if (k === 'reset'){ wipeSave(); }
   openDev(); });
 if (!S.dishes[0].drops.length) S.dishes[0].drops = rollDrops();
 // Bake the SVG noise textures and the wood filter into PNGs once. Safari re-runs SVG filters on every

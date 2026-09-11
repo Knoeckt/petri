@@ -436,6 +436,18 @@ all read it.
 
 The story log lives at the bottom of the Clinic, so there is no separate Notes button.
 
+### First-run guide
+
+On a first run (no Genesis yet, tier 1, before the first brew) a bobbing hand sits over
+the next thing to tap with a one-line caption, one idea at a time: stir the dish, harvest,
+the Clinic when someone needs you, Deliver when you can, Upgrades the first time a level is
+affordable, then each area the moment it opens (Quests, Lab, Brewery, Tickets, Decor) and,
+inside those panels, the first row worth tapping. It never explains two things at once and
+it disappears the moment the thing is done; opening an area counts as learning it. The
+caption has a ✕ that turns the guide off for good, and the dev sheet can turn it back on.
+It ends by itself once the first medicine is brewing and the fifth request is done. Saves
+that are already past 1-5 load with the guide finished.
+
 | Button | What it is |
 |---|---|
 | **Quests** (left) | odd jobs that count things you do anyway (harvest five dishes, box up two biters, level up twice): two at a time with a progress bar, Collect when full, a fresh one after. A badge counts the ones ready to collect. |
