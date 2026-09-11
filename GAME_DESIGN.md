@@ -443,7 +443,11 @@ the next thing to tap with a one-line caption, one idea at a time: stir the dish
 the Clinic when someone needs you, Deliver when you can, Upgrades the first time a level is
 affordable, then each area the moment it opens (Quests, Lab, Brewery, Tickets, Decor) and,
 inside those panels, the first row worth tapping. It never explains two things at once and
-it disappears the moment the thing is done; opening an area counts as learning it. The
+it disappears the moment the thing is done; opening an area counts as learning it. While the hand is up, everything except the target is dimmed and
+blocked: four shaded panels frame a hole over the target with a pulsing gold ring, so the
+only tap that does anything is the one being asked for. Reminders (tap the dish between
+beats, pick a bottle on the rack) and any target that is disabled or unaffordable show the
+hand without the dim, so the player is never boxed in with nothing to do. The
 caption has a ✕ that turns the guide off for good, and the dev sheet can turn it back on.
 It ends by itself once the first medicine is brewing and the fifth request is done. Saves
 that are already past 1-5 load with the guide finished.

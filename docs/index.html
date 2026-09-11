@@ -257,6 +257,10 @@
   .adbox{background:#111; color:#eee; border:3px solid var(--ink); border-radius:16px; padding:18px 14px; text-align:center; font-family:var(--display); font-size:12px; margin:8px 0} .adbox .big{font-size:40px; font-weight:700; color:#fff; margin:6px 0} .adbox .cd{color:#9ae6b4}
   .finds{display:flex; flex-wrap:wrap; gap:4px; margin-top:4px}
 
+  .gb{position:fixed; z-index:55; background:rgba(8,22,18,.58); pointer-events:auto; touch-action:none}
+  #spot{position:fixed; z-index:56; pointer-events:none; border:3px solid #ffd43b; border-radius:14px; box-shadow:0 0 0 3px rgba(0,0,0,.35), 0 0 22px rgba(255,212,59,.85); animation:spotpulse 1.2s ease-in-out infinite}
+  #spot.round{border-radius:50%}
+  @keyframes spotpulse{0%,100%{box-shadow:0 0 0 3px rgba(0,0,0,.35), 0 0 14px rgba(255,212,59,.6)} 50%{box-shadow:0 0 0 3px rgba(0,0,0,.35), 0 0 30px rgba(255,212,59,1)}}
   #hand{position:fixed; left:0; top:0; z-index:60; pointer-events:none; display:flex; flex-direction:column; align-items:center; transform:translate(-50%,0); transition:left .25s, top .25s}
   #hand .hp{font-size:34px; line-height:1; filter:drop-shadow(0 3px 0 rgba(0,0,0,.35)); animation:handbob .9s ease-in-out infinite}
   #hand.up .hp{animation-name:handbobup}
@@ -300,7 +304,7 @@
     <div class="main" id="main">
     <div class="dishcard">
       <div class="page">
-      <div id="hand" hidden><span class="hp">👆</span><b class="hc"><span class="ht"></span><i data-act="handoff">✕</i></b></div>
+      <div class="gb" id="gb0" hidden></div><div class="gb" id="gb1" hidden></div><div class="gb" id="gb2" hidden></div><div class="gb" id="gb3" hidden></div><div id="spot" hidden></div><div id="hand" hidden><span class="hp">👆</span><b class="hc"><span class="ht"></span><i data-act="handoff">✕</i></b></div>
       <div class="dishwrap" id="dishwrap" data-act="stir" data-i="0">
         <canvas id="dish" width="360" height="360"></canvas>
         <svg viewBox="0 0 200 200"><path class="bg" id="ringBg" d="M100 5 A95 95 0 1 1 99.99 5 Z"/><path class="fg" id="ring" d="M100 5 A95 95 0 1 1 99.99 5 Z" stroke-dasharray="596.9" stroke-dashoffset="596.9"/></svg>
@@ -382,7 +386,7 @@
 <script>
 'use strict';
 // ---------- constants ----------
-const VERSION = '0.8.1';
+const VERSION = '0.8.2';
 const RAR = [
   {k:'c', n:'Common',    col:'#d6c59a'},
   {k:'u', n:'Uncommon',  col:'#4ade80'},
@@ -1139,23 +1143,31 @@ function guideTarget(){
     if (unlocked('brew') && !seen.brew) return ['.sbtn[data-tab="brew"]', 'The kettle: spare samples become medicine'];
     if (unlocked('tickets') && !seen.tickets) return ['.sbtn[data-tab="tickets"]', 'Three tickets a day. Win artifacts'];
     if (unlocked('decor') && !seen.decor && unplacedCount() > 0) return ['.sbtn[data-tab="decor"]', 'Place your artifact in the dish'];
-    if (st.step < 5 && !clinicHas() && S.cycles >= 3 && (S.st.stir || 0) < 12 && !dish.ready) return ['#dishwrap', 'Tapping the dish speeds it up', 'in'];
+    if (st.step < 5 && !clinicHas() && S.cycles >= 3 && (S.st.stir || 0) < 12 && !dish.ready) return ['#dishwrap', 'Tapping the dish speeds it up', 'in soft'];
     return null;
   }
   if (tab === 'clinic' && clinicHas()) return ['#tabbody [data-act="deliver"]', `Deliver to ${curStep().who}`];
   if (tab === 'up' && !seen.buy && S.cur >= lvCost()) return ['#tabbody .r[data-k="lv"]', 'Level the dish for rarer strains'];
   if (tab === 'lab' && !seen.res && !S.active) return ['#tabbody .r[data-act="research"]:not(.poor)', 'Start your first research'];
-  if (tab === 'brew' && !S.brew && !seen.brewed) return S.brewSel ? ['#bwBtn', 'Brew it'] : ['#brewer', 'Tap a bottle on the rack to pick a recipe', 'in'];
+  if (tab === 'brew' && !S.brew && !seen.brewed) return S.brewSel ? ['#bwBtn', 'Brew it'] : ['#brewer', 'Tap a bottle on the rack to pick a recipe', 'in soft'];
   return null;
 }
 let handKey = '';
+const GB = [0,1,2,3].map(i => $('gb' + i));
+function guideDim(r, sel, on){ const sp = $('spot'); if (!on){ GB.forEach(b => { if (!b.hidden) b.hidden = true; }); if (!sp.hidden) sp.hidden = true; return; }
+  const W = innerWidth, H = innerHeight, pad = 5, x0 = Math.max(0, r.left - pad), y0 = Math.max(0, r.top - pad), x1 = Math.min(W, r.right + pad), y1 = Math.min(H, r.bottom + pad);
+  const set = (b, l, t, w, hh) => { b.style.left = l + 'px'; b.style.top = t + 'px'; b.style.width = Math.max(0, w) + 'px'; b.style.height = Math.max(0, hh) + 'px'; if (b.hidden) b.hidden = false; };
+  set(GB[0], 0, 0, W, y0); set(GB[1], 0, y1, W, H - y1); set(GB[2], 0, y0, x0, y1 - y0); set(GB[3], x1, y0, W - x1, y1 - y0);
+  sp.style.left = (x0 - 3) + 'px'; sp.style.top = (y0 - 3) + 'px'; sp.style.width = (x1 - x0) + 'px'; sp.style.height = (y1 - y0) + 'px'; sp.classList.toggle('round', sel === '#dishwrap'); if (sp.hidden) sp.hidden = false; }
 function guideTick(){
-  const h = $('hand'); const g = guideTarget(); const el = g && document.querySelector(g[0]); if (!el){ if (!h.hidden){ h.hidden = true; handKey = ''; } return; }
-  const r = el.getBoundingClientRect(); if (!r.width || !r.height){ h.hidden = true; handKey = ''; return; }
-  if (tab){ const tb = $('tabbody').getBoundingClientRect(); if (el.closest('#tabbody') && (r.top < tb.top - 4 || r.bottom > tb.bottom + 4)){ h.hidden = true; handKey = ''; return; } }
+  const h = $('hand'); const g = guideTarget(); const el = g && document.querySelector(g[0]); if (!el){ if (!h.hidden){ h.hidden = true; handKey = ''; } guideDim(null, '', false); return; }
+  const r = el.getBoundingClientRect(); if (!r.width || !r.height){ h.hidden = true; handKey = ''; guideDim(null, '', false); return; }
+  if (tab){ const tb = $('tabbody').getBoundingClientRect(); if (el.closest('#tabbody') && (r.top < tb.top - 4 || r.bottom > tb.bottom + 4)){ h.hidden = true; handKey = ''; guideDim(null, '', false); return; } }
   const key = g[0] + '|' + g[1]; if (key !== handKey){ handKey = key; setText(h.querySelector('.ht'), g[1]); }
+  const opts = g[2] || ''; const soft = /soft/.test(opts) || el.disabled || el.classList.contains('poor') || el.classList.contains('locked');
+  guideDim(r, g[0], !soft);
   const above = r.top + r.height/2 > innerHeight * .62 || tab === 'clinic' || tab === 'lab' || tab === 'up';
-  const inside = g[2] === 'in'; h.classList.toggle('up', above); h.querySelector('.hp').textContent = above ? '👇' : '👆';
+  const inside = /in/.test(opts); h.classList.toggle('up', above); h.querySelector('.hp').textContent = above ? '👇' : '👆';
   const x = r.left + r.width/2; const y = inside ? r.top + r.height*.55 : above ? r.top - 4 : r.bottom + 4;
   h.style.left = x + 'px'; if (above) { h.style.top = 'auto'; h.style.bottom = (innerHeight - y) + 'px'; } else { h.style.bottom = 'auto'; h.style.top = y + 'px'; }
   if (h.hidden) h.hidden = false;
@@ -1719,7 +1731,7 @@ $('phone').addEventListener('click', e => {
   else if (act === 'adResearch') adResearch();
   else if (act === 'buy') buy(b.dataset.k);
   else if (act === 'research') startResearch(b.dataset.id);
-  else if (act === 'handoff'){ tut().done = true; $('hand').hidden = true; toast('Guide off. Five taps on the sign brings the dev tools if you want it back.'); save(); }
+  else if (act === 'handoff'){ tut().done = true; $('hand').hidden = true; guideDim(null, '', false); toast('Guide off. Five taps on the sign brings the dev tools if you want it back.'); save(); }
   else if (act === 'ascend') ascend();
   else if (act === 'study') startStudy(b.dataset.key);
   else if (act === 'genesis'){ if (!canGenesis()) return; if (!genArm){ genArm = true; markDirty(); setTimeout(() => { if (genArm){ genArm = false; markDirty(); } }, 4000); } else { genArm = false; genesis(); } }
