@@ -1,4 +1,4 @@
-// Shapes of the game's data. The values live in generated.ts (from the mockup) and index.ts.
+// Shapes of the game's data. The values live in content.ts and index.ts.
 
 export interface Look {
   shape: string; col: string; col2?: string; eyes?: number;

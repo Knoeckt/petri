@@ -1,14 +1,14 @@
 // Everything the player can do. Each action checks its own preconditions and returns true when it happened.
 import {
-  RES_DEF, UPT, UPI, UP_TEXT, TEXT, STORY, SIDE, HYBRIDS, HYB, ARTS, ART, GEN_DEF, SHOP, PIPETTE_W, UNLOCK,
-  SPLICE_COST, SPLICE_TIME, OB_HP, OB_TIME, BOOST_LEN, AD_CD, ART_MAX, ART_MERGE, GEN_TIER, STUDY_TIME, TIER_MULT,
+  RES_DEF, UPT, UPI, TEXT, STORY, SIDE, HYBRIDS, HYB, ARTS, ART, GEN_DEF, SHOP, PIPETTE_W, UNLOCK,
+  SPLICE_COST, SPLICE_TIME, OB_HP, OB_TIME, BOOST_LEN, AD_CD, ART_MAX, ART_MERGE, GEN_TIER, STUDY_TIME, TIER_MULT, EQ, SITE, COUNTS,
 } from '../data';
 import type { Ctx } from './ctx';
 import { toast, dirty, fmt } from './ctx';
 import { newDish, type Pair } from './state';
 import {
-  lvCost, upMult, upCanBuy, upBought, resCost, resTime, resDone, resVisible, resLv, resName, guardChance, shelfCap, item, stock, tierMult, bump, unlocked, unlockName,
-  studyCost, studyPerk, perkText, parseStudyKey, artCount, artSpare, artDesc, genLv, genCost, genPoints, canAscend, TIER_COUNT, tierDef, warpLen, cycleTime,
+  upMult, upCanBuy, upBought, resCost, resTime, resDone, resVisible, resLv, resName, guardChance, shelfCap, item, stock, tierMult, bump, unlocked, unlockName,
+  studyCost, studyPerk, perkText, parseStudyKey, artCount, artSpare, artDesc, genLv, genCost, genPoints, canAscend, TIER_COUNT, tierDef, warpLen, cycleTime, eqLv, eqCost, eqCanBuy, siteOpen, effLv,
 } from './rules';
 import { story, curStep, stepReqs, reqOk, reqTake, med, batchesAffordable, brewTime } from './requests';
 import { rollDrops, collect, flashFinds } from './dish';
@@ -22,12 +22,37 @@ const done = (g: Ctx) => { dirty(g); return true; };
 // ---- upgrades ----
 export function buy(g: Ctx, k: string): boolean {
   const s = g.s; tutSeen(g, 'buy');
-  if (k === 'lv') { const c = lvCost(g); if (s.cur < c) return false; s.cur -= c; s.lv++; bump(g, 'lv'); toast(g, `${UP_TEXT.lv[0]} ${s.lv}`); return done(g); }
   const u = UPI[k]; if (!u) return false;
   const ti = UPT.findIndex(t => t.items.includes(u)); if (!upCanBuy(g, u, ti)) return false;
   s.cur -= u.cost * upMult(g); s.ups[u.id] = true; bump(g, 'up'); toast(g, `${u.n}: ${u.d}`);
   if (ti + 1 < UPT.length && upBought(g, ti) === UPT[ti + 1].need) toast(g, `Tier ${ti + 2} unlocked: ${UPT[ti + 1].n}`);
   return done(g);
+}
+
+// ---- lab equipment: ranked with Notes from field trips ----
+export function buyEquip(g: Ctx, id: string): boolean {
+  const s = g.s; const e = EQ[id]; if (!e || !eqCanBuy(g, id)) return false;
+  const c = eqCost(g, id); s.notes -= c.notes; s.cur -= c.bio; s.eq[id] = eqLv(g, id) + 1; bump(g, 'lv'); tutSeen(g, 'buy');
+  toast(g, `${e.n} rank ${s.eq[id]}${id === 'dish' ? ` · effective level ${effLv(g)}` : ''}`); return done(g);
+}
+
+// ---- field trips: one expedition at a time, back with Notes and sometimes a sample ----
+export function startTrip(g: Ctx, siteId: string): boolean {
+  const s = g.s; const x = SITE[siteId]; if (!x || s.trip || !siteOpen(g, siteId)) return false;
+  s.trip = { site: siteId, left: x.time, total: x.time }; bump(g, 'trip'); toast(g, `Off to ${x.n.toLowerCase()}. Back in ${Math.round(x.time)}s.`); return done(g);
+}
+export function finishTrip(g: Ctx) {
+  const s = g.s; if (!s.trip) return; const x = SITE[s.trip.site]; s.trip = null; if (!x) return;
+  const notes = x.notes[0] + Math.floor(g.rng() * (x.notes[1] - x.notes[0] + 1)); s.notes += notes;
+  let sample: { r: number; i: number; isNew: boolean } | null = null;
+  if (g.rng() < x.sample) {
+    const r = x.sampleR, i = Math.floor(g.rng() * COUNTS[r]), c = s.cat[s.tier] = s.cat[s.tier] || {}, key = `${r}-${i}`; const isNew = !c[key];
+    c[key] = (c[key] || 0) + 1; if (isNew) { bump(g, 'find'); s.shelf = [{ t: s.tier, r, i }, ...s.shelf].slice(0, 5); }
+    sample = { r, i, isNew };
+  }
+  s.lastTrip = { site: x.id, notes, sample, at: Date.now() };
+  g.emit({ type: 'trip', site: x.id, notes, sample });
+  toast(g, `Back from ${x.n.toLowerCase()}: +${notes} notes${sample ? `, a ${sample.isNew ? 'new ' : ''}${item(s.tier, sample.r, sample.i).n}` : ''}`); dirty(g);
 }
 
 // ---- research and studies (one bench) ----
@@ -131,7 +156,7 @@ export function obWin(g: Ctx) { g.s.ob = null; story(g).brewed = true; g.emit({ 
 // ---- side quests: they count things you do anyway ----
 export function sideGateOpen(g: Ctx, k: number) {
   const q = SIDE[k]; if (!q.gate) return true;
-  if (q.gate.lv !== undefined && g.s.lv < q.gate.lv) return false;
+  if (q.gate.lv !== undefined && effLv(g) < q.gate.lv) return false;
   if (q.gate.undiscovered !== undefined && Object.keys(g.s.cat[g.s.tier] || {}).length > 13 - q.gate.undiscovered) return false;
   if (q.gate.area && !unlocked(g, q.gate.area)) return false;
   return true;
@@ -208,7 +233,7 @@ export function buyShop(g: Ctx, id: string): boolean {
 // ---- the ladder ----
 export function ascend(g: Ctx): boolean {
   const s = g.s; if (!canAscend(g) || s.tier + 1 >= TIER_COUNT) return false;
-  s.tier++; s.lv = 1 + 2 * genLv(g, 'head'); s.cur = 0; s.ups = {}; s.brew = null; s.dishes = s.dishes.map(() => newDish()); s.recent = [];
+  s.tier++; s.cur = 0; s.ups = {}; s.brew = null; s.dishes = s.dishes.map(() => newDish()); s.recent = [];
   if (genLv(g, 'bench')) s.freeRes = true;
   g.emit({ type: 'ascend', tier: s.tier }); toast(g, `${TEXT.ascend}: ${tierDef(s.tier).n}. Everything ×${TIER_MULT}.`); return done(g);
 }
@@ -219,7 +244,7 @@ export function genesis(g: Ctx): boolean {
   for (const t in s.cat) { gen.seen[+t] = gen.seen[+t] || {}; for (const k in s.cat[+t]) if (s.cat[+t][k] > 0) gen.seen[+t][k] = true; }
   const keepHyb = s.seed, keepArt = s.placed[0] && ART[s.placed[0].id] ? s.placed[0] : null;
   Object.assign(s, {
-    tier: 0, lv: 1 + 2 * genLv(g, 'head'), cur: 0, ups: {}, res: {}, active: null, cat: {}, dishes: [newDish()], boost: 0, recent: [], shelf: [], cycles: 0, eaten: 0,
+    tier: 0, cur: 0, notes: 0, eq: genLv(g, 'head') ? { dish: 2 * genLv(g, 'head') } : {}, trip: null, lastTrip: null, ups: {}, res: {}, active: null, cat: {}, dishes: [newDish()], boost: 0, recent: [], shelf: [], cycles: 0, eaten: 0,
     hasSplicer: false, hyb: keepHyb ? { [keepHyb]: 1 } : {}, seed: keepHyb || null, splice: null, sp: [null, null], spOut: null, story: {}, side: [], ob: null,
     arts: keepArt ? { [keepArt.id]: { [keepArt.lv]: 1 } } : {}, placed: [keepArt ? { id: keepArt.id, lv: keepArt.lv } : null, null, null],
     meds: {}, brew: null, icepack: false, st: {}, studies: {}, freeRes: genLv(g, 'bench') > 0,
@@ -234,7 +259,7 @@ export function buyGen(g: Ctx, id: string): boolean {
 }
 
 // ---- rewarded ads: the UI plays the ad, then claims the reward here ----
-export type AdPlacement = 'finish dish' | 'finish research' | 'time warp' | 'boost' | 'finish brew' | 'finish splice' | 'ticket' | 'double offline';
+export type AdPlacement = 'finish dish' | 'finish research' | 'time warp' | 'boost' | 'finish brew' | 'finish splice' | 'finish trip' | 'ticket' | 'double offline';
 export const adReady = (g: Ctx) => g.s.adCd <= 0;
 export interface AdResult { ok: boolean; sum?: Summary }
 export function adClaim(g: Ctx, placement: AdPlacement, arg?: number): AdResult {
@@ -247,6 +272,7 @@ export function adClaim(g: Ctx, placement: AdPlacement, arg?: number): AdResult 
     case 'boost': if (s.boost > 0) return { ok: false }; s.boost = BOOST_LEN; toast(g, '2× for two minutes'); break;
     case 'finish brew': if (!s.brew) return { ok: false }; finishBrew(g); break;
     case 'finish splice': if (!s.splice) return { ok: false }; finishSplice(g, 0); break;
+    case 'finish trip': if (!s.trip) return { ok: false }; finishTrip(g); break;
     case 'ticket': s.tickets++; toast(g, '+1 ticket'); break;
     case 'double offline': s.cur += arg ?? 0; toast(g, `+${fmt(arg ?? 0)} ${TEXT.cur} doubled`); break;
   }

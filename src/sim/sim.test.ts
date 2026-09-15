@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 import {
   createGame, seeded, fresh, migrate, tick, simulate, checkOffline, collect, resolve, blankSummary, stir,
   story, curStep, stepReqs, reqOk, deliver, clinicHas, goal, unlocked, unlockLabel,
-  buy, lvCost, startResearch, startStudy, completeResearch, brewMed, finishBrew, medHave,
-  shelfCap, stock, weights, rarLv, rarCap, effLv, cycleTime, genRate, offlineEff,
+  buy, startResearch, buyEquip, eqCost, eqLv, startTrip, finishTrip, sitesOpen, siteOpen, rerollChance, startStudy, completeResearch, brewMed, finishBrew, medHave,
+  shelfCap, stock, weights, rarLv, rarCap, effLv, cycleTime, genRate, offlineEff, dropsPer, guardChance,
   addArt, mergeArt, placeArt, artPerk, artSpare, sideRefill, sideProg, sideDone, doSide, bump,
   ascend, canAscend, genesis, canGenesis, buyGen, genLv, buyShop, shopCost, adClaim, mgStart, mgDrop,
   type Ctx, type Req, resVisible, RES_DEF, TIER_COUNT, STORY, SIDE, GEN_TIER,
@@ -24,9 +24,9 @@ const finishChapter = (g: Ctx, t: number) => { g.s.story[t] = { step: 99, brewin
 describe('a fresh game', () => {
   it('starts on the Mayor with everything locked', () => {
     const g = game();
-    expect(g.s.tier).toBe(0); expect(g.s.lv).toBe(1);
+    expect(g.s.tier).toBe(0); expect(effLv(g)).toBe(0); expect(g.s.notes).toBe(0);
     expect(goal(g)).toMatchObject({ no: '1-1', kind: 'gather', who: 'Mayor Bramble' });
-    for (const k of ['quests', 'shop', 'lab', 'brew', 'tickets', 'decor', 'splicer', 'asc']) expect(unlocked(g, k)).toBe(false);
+    for (const k of ['field', 'quests', 'shop', 'lab', 'brew', 'tickets', 'decor', 'splicer', 'asc']) expect(unlocked(g, k)).toBe(false);
     expect(unlockLabel('brew')).toBe('1-4');
   });
   it('is deterministic under a seeded rng', () => {
@@ -47,7 +47,7 @@ describe('chapter 1', () => {
     expect(g.s.cat[0]).toEqual({ '0-0': 1, '1-0': 1, '0-1': 1, '0-2': 1, '1-2': 1, '2-0': 1 });
     expect(Object.values(g.s.meds[0])).toEqual([0, 0, 0, 0]);
     expect(g.s.hasSplicer).toBe(true);
-    expect(opened).toEqual([['quests', 'shop'], ['lab'], ['brew'], ['tickets', 'decor'], ['splicer'], ['asc']]);
+    expect(opened).toEqual([['field'], ['quests', 'shop'], ['lab'], ['brew'], ['tickets', 'decor'], ['splicer'], ['asc']]);
     expect(curStep(g)!.outbreak).toBe(true);
   });
   it('1-6 wants a live Mirror Mike and 1-8 wants three medicines', () => {
@@ -85,12 +85,34 @@ describe('the dish', () => {
 });
 
 describe('the economy', () => {
-  it('upgrades outrun income by tier', () => {
-    const g = game(); expect(lvCost(g)).toBe(15); g.s.lv = 25; expect(lvCost(g)).toBe(3176);
-    g.s.lv = 1; g.s.tier = 1; expect(lvCost(g)).toBe(120);
+  it('equipment is ranked with notes and a little biomass', () => {
+    const g = game(); expect(eqCost(g, 'dish')).toEqual({ notes: 3, bio: 10 });
+    expect(buyEquip(g, 'dish')).toBe(false); g.s.notes = 100; g.s.cur = 1000;
+    expect(buyEquip(g, 'dish')).toBe(true); expect(eqLv(g, 'dish')).toBe(1); expect(effLv(g)).toBe(1); expect(g.s.notes).toBe(97); expect(g.s.cur).toBe(990); expect(g.s.st.lv).toBe(1);
+    expect(eqCost(g, 'dish').notes).toBe(Math.round(3 * 1.15));
+    g.s.eq.dish = 30; expect(buyEquip(g, 'dish')).toBe(false);
+    g.s.eq.incub = 5; expect(cycleTime(g)).toBeCloseTo(20 * 0.9);
+    g.s.eq.pipette = 5; expect(dropsPer(g)).toBe(2); g.s.eq.pipette = 6; expect(dropsPer(g)).toBe(3);
+    g.s.eq.clean = 3; expect(shelfCap(g)).toBe(8); expect(guardChance(g)).toBeCloseTo(0.12);
+  });
+  it('the microscope turns duplicates into new finds', () => {
+    const g = game(21); g.s.cat[0] = { '0-0': 3 }; g.s.eq.scope = 15; expect(rerollChance(g)).toBeCloseTo(0.3);
+    const sum = blankSummary(); const drops = Array.from({ length: 40 }, () => ({ r: 0, i: 0, x: 0, y: 0, t0: 0, s: 1, seed: 0, dead: false, contained: false, eatT: 0, ate: 0 }));
+    resolve(g, drops, sum); expect(sum.finds.length).toBeGreaterThan(1); expect(sum.finds.length).toBeLessThanOrEqual(4);
+  });
+  it('field trips come back with notes and sometimes a sample', () => {
+    const g = game(4); expect(sitesOpen(g).length).toBe(0); expect(startTrip(g, 'pond')).toBe(false);
+    g.s.story[0] = { step: 1, brewing: null, brewed: false, log: [], done: false }; expect(siteOpen(g, 'pond')).toBe(true); expect(siteOpen(g, 'bakery')).toBe(false);
+    expect(startTrip(g, 'pond')).toBe(true); expect(startTrip(g, 'pond')).toBe(false); expect(g.s.trip).toMatchObject({ site: 'pond', left: 60 });
+    for (let i = 0; i < 130; i++) tick(g, 0.5, i * 500);
+    expect(g.s.trip).toBeNull(); expect(g.s.notes).toBeGreaterThanOrEqual(4); expect(g.s.notes).toBeLessThanOrEqual(6); expect(g.s.lastTrip!.site).toBe('pond'); expect(g.s.st.trip).toBe(1);
+    let samples = 0; for (let k = 0; k < 40; k++) { startTrip(g, 'pond'); finishTrip(g); if (g.s.lastTrip!.sample) samples++; }
+    expect(samples).toBeGreaterThan(0); expect(samples).toBeLessThan(20);
+    g.s.trip = null; startTrip(g, 'pond'); const before = g.s.notes; simulate(g, 3600); expect(g.s.trip).toBeNull(); expect(g.s.notes).toBeGreaterThan(before);
+    startTrip(g, 'pond'); expect(adClaim(g, 'finish trip').ok).toBe(true); expect(g.s.trip).toBeNull();
   });
   it('caps the rarity table by tier', () => {
-    const g = game(); g.s.lv = 60; expect(effLv(g)).toBe(60); expect(rarLv(g)).toBe(40);
+    const g = game(); g.s.eq.dish = 30; g.s.ups = { l_lv: true, p_lv: true, i_lv: true, b_lv: true }; g.s.res = { tides: true, growlamp: true }; expect(effLv(g)).toBe(46); expect(rarLv(g)).toBe(40);
     expect(weights(rarLv(g)).map(x => +x.toFixed(2))).toEqual([74, 18, 5.75, 1.75, 0.5, 0]);
     g.s.tier = 2; expect(rarCap(g)).toBe(70);
   });
@@ -164,14 +186,14 @@ describe('the shop', () => {
 describe('the ladder', () => {
   it('scales up after the chapter and ten finds, and stops at the last vessel', () => {
     const g = game(); expect(canAscend(g)).toBe(false); finishChapter(g, 0); expect(canAscend(g)).toBe(true);
-    expect(ascend(g)).toBe(true); expect(g.s.tier).toBe(1); expect(g.s.lv).toBe(1); expect(g.s.cur).toBe(0);
+    expect(ascend(g)).toBe(true); expect(g.s.tier).toBe(1); expect(g.s.cur).toBe(0);
     g.s.tier = TIER_COUNT - 1; expect(canAscend(g)).toBe(false);
   });
   it('genesis resets the run, keeps the right things and pays Genome', () => {
     const g = game(9); for (const t of [0, 1, 2]) finishChapter(g, t); g.s.tier = GEN_TIER;
     g.s.hyb = { glowfuzz: 1 }; g.s.seed = 'glowfuzz'; addArt(g, 'chime', 3); g.s.placed = [{ id: 'chime', lv: 3 }, null, null]; g.s.studies = { '0:0-0': true }; g.s.res = { auto: true };
     expect(canGenesis(g)).toBe(true); expect(genesis(g)).toBe(true);
-    expect(g.s).toMatchObject({ tier: 0, lv: 1, cur: 0, res: {}, studies: {}, cat: {}, seed: 'glowfuzz', hasSplicer: false, tickets: 3 });
+    expect(g.s).toMatchObject({ tier: 0, cur: 0, notes: 0, eq: {}, res: {}, studies: {}, cat: {}, seed: 'glowfuzz', hasSplicer: false, tickets: 3 });
     expect(g.s.arts).toEqual({ chime: { 3: 1 } }); expect(g.s.placed[0]).toEqual({ id: 'chime', lv: 3 });
     expect(g.s.gen).toMatchObject({ runs: 1, pts: 9 }); expect(Object.keys(g.s.gen.seen[0]).length).toBe(10);
     expect(buyGen(g, 'head')).toBe(true); expect(buyGen(g, 'income')).toBe(true); expect(buyGen(g, 'bench')).toBe(true); expect(g.s.gen.pts).toBe(6);
@@ -180,7 +202,9 @@ describe('the ladder', () => {
     const sum = blankSummary(); resolve(g, [{ r: 0, i: 3, x: 0, y: 0, t0: 0, s: 1, seed: 0, dead: false, contained: false, eatT: 0, ate: 0 }], sum);
     expect(sum.cur).toBe(30);
     // the next scale-up gets the warm bench and head start
-    finishChapter(g, 0); expect(ascend(g)).toBe(true); expect(g.s.lv).toBe(3); expect(g.s.freeRes).toBe(true);
+    finishChapter(g, 0); expect(ascend(g)).toBe(true); expect(g.s.freeRes).toBe(true);
+    // head start seeds the dish on the next Genesis, not on scale-up
+    for (const t of [0, 1, 2]) finishChapter(g, t); g.s.tier = GEN_TIER; expect(genesis(g)).toBe(true); expect(g.s.eq.dish).toBe(2);
     g.s.cur = 1e6; expect(startResearch(g, 'luck')).toBe(true); expect(g.s.res.luck).toBe(true); expect(g.s.active).toBeNull();
   });
 });
@@ -197,15 +221,15 @@ describe('saves', () => {
   it('round-trips through JSON', () => {
     const g = game(8); for (let i = 0; i < 80; i++) tick(g, 0.5, i * 500);
     const back = migrate(JSON.parse(JSON.stringify(g.s)))!;
-    expect(back.cycles).toBe(g.s.cycles); expect(back.v).toBe(3);
+    expect(back.cycles).toBe(g.s.cycles); expect(back.v).toBe(4);
   });
   it('imports a mockup save with every legacy shape', () => {
-    const old = { ...fresh(0), theme: 'bio', v: undefined, arts: { chime: 7, pebble: 2 }, placed: ['chime', null, 'bogus'], story: { 0: { step: 3, brewing: null, brewed: false, log: ['a'], done: false } }, res: { wash: true }, side: [{ k: 1 }], gen: undefined, tut: undefined };
+    const old = { ...fresh(0), theme: 'bio', v: undefined, lv: 12, notes: undefined, eq: undefined, arts: { chime: 7, pebble: 2 }, placed: ['chime', null, 'bogus'], story: { 0: { step: 3, brewing: null, brewed: false, log: ['a'], done: false } }, res: { wash: true }, side: [{ k: 1 }], gen: undefined, tut: undefined };
     delete (old as any).storyV;
     const g = game(1, old);
     expect(g.s.arts).toEqual({ chime: { 1: 7 }, pebble: { 1: 2 } }); expect(g.s.placed).toEqual([{ id: 'chime', lv: 1 }, null, null]);
     expect(g.s.story[0].step).toBe(6); expect(g.s.res.wash).toBe(20); expect(g.s.side).toEqual([]); expect(g.s.gen.runs).toBe(0); expect(g.s.tut.done).toBe(true);
-    expect(g.s.v).toBe(3); expect((g.s as any).theme).toBeUndefined();
+    expect(g.s.v).toBe(4); expect((g.s as any).theme).toBeUndefined(); expect((g.s as any).lv).toBeUndefined(); expect(g.s.eq.dish).toBe(11); expect(g.s.notes).toBe(0);
   });
   it('a current save mid-chapter is left alone', () => {
     const g = game(1); g.s.story[0] = { step: 3, brewing: null, brewed: false, log: [], done: false };

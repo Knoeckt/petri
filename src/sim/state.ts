@@ -1,7 +1,7 @@
 // The whole game is one plain object: JSON in, JSON out. Everything the UI shows is derived from it.
 import { STORY, SIDE, ART, TICKETS_PER_DAY } from '../data';
 
-export const SAVE_VERSION = 3;
+export const SAVE_VERSION = 4;
 
 export interface Meet { until: number; em: string; dir: number }
 export interface Attack { phase: 'wind' | 'lunge' | 'back'; t0: number; vi: number; ox: number; oy: number; sx?: number; sy?: number }
@@ -21,11 +21,15 @@ export interface Outbreak { hp: number; max: number; dur: number; t: number; spo
 export interface Recent { r?: number; i?: number; t?: number; h?: string; isNew: boolean }
 export interface Find { t: number; r: number; i: number }
 export interface Placed { id: string; lv: number }
+export interface Trip { site: string; left: number; total: number }
+export interface TripResult { site: string; notes: number; sample: { r: number; i: number; isNew: boolean } | null; at: number }
 export interface Genome { runs: number; pts: number; perks: Record<string, number>; seen: Record<number, Record<string, boolean>> }
 
 export interface State {
   v: number;
-  cur: number; tier: number; lv: number;
+  cur: number; tier: number;
+  /** field notes, the lab's own money; equipment ranks */
+  notes: number; eq: Record<string, number>; trip: Trip | null; lastTrip: TripResult | null;
   ups: Record<string, boolean>;
   res: Record<string, boolean | number>;
   active: Timer | null;
@@ -55,7 +59,7 @@ export const freshGenome = (): Genome => ({ runs: 0, pts: 0, perks: {}, seen: {}
 
 export function fresh(now: number): State {
   return {
-    v: SAVE_VERSION, cur: 0, tier: 0, lv: 1, ups: {}, res: {}, active: null, cat: {}, dishes: [newDish()],
+    v: SAVE_VERSION, cur: 0, tier: 0, notes: 0, eq: {}, trip: null, lastTrip: null, ups: {}, res: {}, active: null, cat: {}, dishes: [newDish()],
     boost: 0, adCd: 0, ads: 0, adUse: {}, recent: [], shelf: [], cycles: 0, eaten: 0,
     hasSplicer: false, hyb: {}, seed: null, splice: null, sp: [null, null], spOut: null,
     story: {}, side: [], ob: null, tickets: TICKETS_PER_DAY, tDay: '', shopT: 0, shopC: 0,
@@ -76,6 +80,9 @@ export function migrate(raw: unknown): State | null {
   s.hyb = s.hyb || {}; s.story = s.story || {}; s.st = s.st || {}; s.studies = s.studies || {};
   s.gen = s.gen || freshGenome(); s.gen.perks = s.gen.perks || {}; s.gen.seen = s.gen.seen || {};
   s.freeRes = !!s.freeRes;
+  // the repeatable dish level became Petri dish ranks on the bench (one for one); Notes and trips are new
+  s.notes = s.notes || 0; s.eq = s.eq || {}; s.trip = s.trip && s.trip.site ? s.trip : null; s.lastTrip = s.lastTrip || null;
+  if (typeof s.lv === 'number') { s.eq.dish = Math.min(30, Math.max(s.eq.dish || 0, s.lv - 1)); delete s.lv; }
   s.side = (s.side || []).filter((x: any) => x && x.base !== undefined && SIDE[x.k]);
   if (s.active && s.active.id === 'study' && !s.active.key) s.active = null;
   s.ob = null;

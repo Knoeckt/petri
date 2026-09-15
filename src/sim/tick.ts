@@ -4,7 +4,7 @@ import type { Ctx } from './ctx';
 import { toast, dirty } from './ctx';
 import { genRate, cycleTime, boostOn, offlineCap, offlineEff, perk, item } from './rules';
 import { rollDrops, moveTick, eatTick, attackTick, dangerInstant, resolve, collect, flashFinds, blankSummary, spawned, type Summary } from './dish';
-import { completeResearch, finishBrew, finishSplice, obWin } from './actions';
+import { completeResearch, finishBrew, finishSplice, obWin, finishTrip } from './actions';
 
 /** one live frame; dt in seconds, now a millisecond clock for animations */
 export function tick(g: Ctx, dt: number, now: number) {
@@ -22,6 +22,7 @@ export function tick(g: Ctx, dt: number, now: number) {
   if (s.active) { s.active.left -= dt; if (s.active.left <= 0) completeResearch(g); }
   if (s.brew) { s.brew.left -= dt; if (s.brew.left <= 0) finishBrew(g); }
   if (s.splice) { s.splice.left -= dt; if (s.splice.left <= 0) finishSplice(g, now); }
+  if (s.trip) { s.trip.left -= dt; if (s.trip.left <= 0) finishTrip(g); }
   if (s.ob) obTick(g, dt, now);
   dailyReset(g);
   if (s.boost > 0) { s.boost = Math.max(0, s.boost - dt); if (s.boost === 0) dirty(g); }
@@ -67,6 +68,7 @@ export function simulate(g: Ctx, secs: number, eff = 1): Summary {
   if (s.active) { s.active.left -= secs; if (s.active.left <= 0) completeResearch(g); }
   if (s.brew) { s.brew.left -= secs; if (s.brew.left <= 0) finishBrew(g); }
   if (s.splice) { s.splice.left -= secs; if (s.splice.left <= 0) finishSplice(g, 0); }
+  if (s.trip) { s.trip.left -= secs; if (s.trip.left <= 0) finishTrip(g); }
   s.adCd = Math.max(0, s.adCd - secs);
   return sum;
 }

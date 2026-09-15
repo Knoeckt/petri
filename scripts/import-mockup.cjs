@@ -1,4 +1,4 @@
-// Regenerates src/data/generated.ts from the mockup's data constants.
+// One-off importer: pulls the mockup's data constants into a TS module. Content is hand-maintained now; keep this for reference.
 // Usage: node scripts/gen-data.cjs   (reads docs/index.html, the reference build)
 const fs = require('fs'), vm = require('vm'), path = require('path');
 const root = path.join(__dirname, '..');

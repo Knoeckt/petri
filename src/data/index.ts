@@ -1,6 +1,6 @@
 export * from './types';
-export * from './generated';
-import { HYBRIDS, ARTS, UPT } from './generated';
+export * from './content';
+import { HYBRIDS, ARTS, UPT } from './content';
 import type { Hybrid, Artifact, Upgrade } from './types';
 
 export const HYB: Record<string, Hybrid> = Object.fromEntries(HYBRIDS.map(h => [h.id, h]));
@@ -26,3 +26,24 @@ export const STUDY_DANGER_PERK: [string, number][] = [['guard', 0.05]];
 /** pipette grades: rarity weights for miss / close / nice / perfect */
 export const PIPETTE_W = [[85, 15, 0, 0], [55, 35, 9, 1], [25, 45, 25, 5], [5, 25, 45, 25]];
 export const EMOTES = ['♥', '♪', '!', '?', '☺'];
+
+/** Lab equipment: ranked with Notes (and a little biomass). Persists across scale-ups; Genesis resets it. */
+export interface Equipment { id: string; n: string; d: string; max: number; notes: number; grow: number; bio: number }
+export const EQUIP: Equipment[] = [
+  { id: 'dish',    n: 'Petri dish',  d: '+1 effective level per rank',                              max: 30, notes: 3,  grow: 1.15, bio: 10 },
+  { id: 'scope',   n: 'Microscope',  d: '+2% chance a duplicate turns out to be a strain you have not found', max: 15, notes: 8,  grow: 1.2,  bio: 20 },
+  { id: 'incub',   n: 'Incubator',   d: '−2% cycle time per rank',                                  max: 15, notes: 8,  grow: 1.2,  bio: 20 },
+  { id: 'pipette', n: 'Pipette',     d: '+1 colony per cycle every three ranks',                    max: 12, notes: 12, grow: 1.22, bio: 30 },
+  { id: 'clean',   n: 'Clean room',  d: '+4% quarantine on arrival and +1 spare on the shelf, per rank', max: 10, notes: 10, grow: 1.22, bio: 25 },
+];
+export const EQ: Record<string, Equipment> = Object.fromEntries(EQUIP.map(e => [e.id, e]));
+
+/** Field trips: send an expedition, it comes back with Notes and sometimes a live sample. Times are mockup seconds. */
+export interface Site { id: string; n: string; d: string; time: number; notes: [number, number]; sample: number; sampleR: number; unlock: [number, number] }
+export const SITES: Site[] = [
+  { id: 'pond',   n: 'The pond',      d: 'Ten minutes along the towpath. Damp, and something is always growing.', time: 60,   notes: [4, 6],     sample: .12, sampleR: 0, unlock: [0, 1] },
+  { id: 'bakery', n: "Ida's bakery",  d: 'Warm, floury, and the yeast talks. Ida sends buns back with you.',      time: 180,  notes: [15, 21],   sample: .2,  sampleR: 1, unlock: [0, 3] },
+  { id: 'woods',  n: 'The woods',     d: 'Past the pond and up the hill. Things live under the bark.',           time: 600,  notes: [68, 82],   sample: .3,  sampleR: 2, unlock: [0, 6] },
+  { id: 'quarry', n: 'The old quarry', d: 'Flooded, cold, and strange. Nobody goes. You go.',                    time: 1800, notes: [280, 320], sample: .35, sampleR: 3, unlock: [1, 0] },
+];
+export const SITE: Record<string, Site> = Object.fromEntries(SITES.map(x => [x.id, x]));

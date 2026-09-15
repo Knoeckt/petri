@@ -16,7 +16,8 @@ export type GameEvent =
   | { type: 'unlock'; areas: string[] }
   | { type: 'chapterDone' }
   | { type: 'ascend'; tier: number }
-  | { type: 'genesis'; runs: number };
+  | { type: 'genesis'; runs: number }
+  | { type: 'trip'; site: string; notes: number; sample: { r: number; i: number; isNew: boolean } | null };
 
 /** where critters may go, in vessel-normalised coordinates (0..1) */
 export type Bounds =

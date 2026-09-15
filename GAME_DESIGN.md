@@ -97,8 +97,10 @@ shows a "now" bar and a "next" bar so a level is a visible change, not a number.
 | 75    | 50     | 25       | 13   | 7         | 4      | 1 |
 | 100   | 34     | 26       | 18   | 11        | 7      | 4 |
 
-Weights interpolate between rows. Effective level is dish level plus everything that adds
-to it (tiered rarity upgrades, a seeded Glowfuzz, placed artifacts, studies, research).
+Weights interpolate between rows. Effective level is the **Petri dish's rank** on the bench
+(section 3e) plus everything that adds to it: tiered rarity upgrades, a seeded Glowfuzz,
+placed artifacts, studies, research. There is no repeatable dish level bought with biomass
+any more; reaching up the table is a matter of Notes from field trips.
 
 **Each vessel has a reach.** Tier 1 can only use the table up to level 40 (about 0.8%
 exotic, no mythic), and every scale-up raises the reach by 15, so the Cosmos reaches the
@@ -394,7 +396,7 @@ the pool.
 | Postie Lark | stirs (taps on the dish) | 12 | 40 | always |
 | Old Bill | biters quarantined | 2 | 90 | dish level 3 |
 | Nurse Ona | new strains discovered | 2 | 80 | two or more still undiscovered |
-| Coach Dabb | dish levels bought | 2 | 70 | always |
+| Coach Dabb | equipment ranks bought | 2 | 70 | always |
 | Mayor Bramble | upgrades bought | 2 | 60 | always |
 | Gran Moss | time warps | 1 | 80 | always |
 | Ida the baker | medicines brewed | 3 | 120 | Apothecary |
@@ -517,6 +519,57 @@ A full level-5 needs 81 level-1 copies of the same artifact, so with three ticke
 this is the long-term sink for the pipette, and the reason to keep playing it after every
 artifact has been seen once.
 
+## 3e. The bench and field trips (the rarity engine)
+
+The dish level used to be a biomass sink that shifted the rarity table, which made it the
+economy's wall and the least tangible upgrade in the game. It is replaced by two things
+that belong together: **lab equipment** you can picture, ranked with **Notes**, the lab's
+own money, which come from **field trips**, a second idle loop.
+
+### Lab equipment
+
+Five pieces on the bench, each with ranks and one effect. Ranks cost Notes first and a
+little biomass second (so both economies matter), persist across scale-ups like research,
+and reset at Genesis (Head start seeds the dish on the next run).
+
+| Equipment | Ranks | Per rank | Notes (rank 1, growth) | Biomass (×tier) |
+|---|---:|---|---|---|
+| Petri dish | 30 | +1 effective level | 3, ×1.15 | 10 ×1.25 |
+| Microscope | 15 | +2% chance a duplicate turns out to be a strain you had not found | 8, ×1.2 | 20 |
+| Incubator | 15 | −2% cycle time | 8, ×1.2 | 20 |
+| Pipette | 12 | +1 colony per cycle every three ranks | 12, ×1.22 | 30 |
+| Clean room | 10 | +4% quarantine on arrival, +1 spare on the shelf | 10, ×1.22 | 25 |
+
+A full Petri dish is about 1,300 Notes; rank 10, where the first uncommons show with the
+early upgrades on top, is about 60. The tier reach cap (section 3) is unchanged: equipment
+gets you to the cap, scaling up raises it. The Microscope is the discovery lever the game
+lacked: at rank 15 nearly a third of duplicates become new entries while any remain.
+
+### Field trips
+
+Send an expedition to a place on the town map; it comes back after a timer with Notes and
+sometimes a live sample, which counts as found. One trip at a time, it runs while you are
+away, an ad brings it home early. Places open with the story, and later places pay more per
+minute so the best trip is always the newest.
+
+| Place | Opens after | Trip (mockup) | Notes | Sample chance, rarity |
+|---|---|---:|---|---|
+| The pond | 1-1 (the Mayor hands you a map) | 60 s | 4 to 6 | 12%, common |
+| Ida's bakery | 1-3 | 3 min | 15 to 21 | 20%, uncommon |
+| The woods | 1-6 | 10 min | 68 to 82 | 30%, rare |
+| The old quarry | tier 2 | 30 min | 280 to 320 | 35%, very rare |
+
+In the real build the timers are minutes to hours, matching the cycle. The rhythm this
+creates is the one an idle game wants: open the app, collect the trip, rank something on
+the bench, send the next trip. The pipette and its tickets stay as the artifact source;
+both live behind the Field side button. Rarity progression is therefore time-gated rather
+than income-gated, and biomass keeps its other sinks: one-time upgrades, research, studies,
+the shop, splicing, and the biomass half of each rank.
+
+**Migration:** an old save's dish level becomes Petri dish ranks one for one.
+
+---
+
 ## 3c. The Splicer (supporting)
 
 Doc Ferro's splicer arrives with request 4. It is a place, not a list: the **Splicer** side
@@ -569,10 +622,11 @@ back, no penalty beyond the eaten colonies, and you can try again from the board
 
 ## 4. Upgrades
 
-**Dish level** stays repeatable (cost × 1.25 per level) and is the main sink: it shifts the
-rarity table. Everything else is a **one-time upgrade in a tier**, Egg Inc style: five per
-tier, each a bigger version of the classic lever, and buying enough in a tier opens the next.
-Upgrades reset on scale-up. The Upgrades tab shows a red dot whenever one is affordable.
+The repeatable dish level is gone; rarity progression lives in lab equipment (section 3e).
+What remains here are **one-time upgrades in a tier**, Egg Inc style: five per tier, each a
+bigger version of the classic lever, and buying enough in a tier opens the next. Upgrades
+reset on scale-up. The Upgrades tab shows a red dot whenever one, or an equipment rank, is
+affordable, and its top section is the bench (equipment).
 
 | Tier | Opens after | Yield | Speed | Income | Rarity | Value |
 |---|---|---|---|---|---|---|
@@ -735,7 +789,7 @@ Permanent, bought on the Scale up tab, cost rises by one point per rank.
 
 | Perk | Ranks | Effect |
 |---|---:|---|
-| Head start | 3 | each run and each tier starts +2 dish levels per rank |
+| Head start | 3 | each run starts with the Petri dish two ranks up per rank |
 | Old growth | 10 | +10% income per rank, every tier |
 | Immune memory | 5 | +5% quarantine on arrival per rank |
 | Long memory | 4 | time warp lasts 30 min longer per rank |

@@ -3,7 +3,8 @@ import { createGame, tick, checkOffline, fmt, fmtDur, SAVE_VERSION } from './sim
 import { App } from './ui/app';
 
 const KEY = 'petri-v' + SAVE_VERSION;
-const raw = (() => { try { return JSON.parse(localStorage.getItem(KEY) || 'null'); } catch { return null; } })();
+// read the newest save this build or any earlier one wrote; migrate() brings it up to date
+const raw = (() => { for (let v = SAVE_VERSION; v >= 3; v--) { try { const s = JSON.parse(localStorage.getItem('petri-v' + v) || 'null'); if (s) return s; } catch { /* unreadable */ } } return null; })();
 const g = createGame({ save: raw });
 const app = new App(g);
 const mount = document.getElementById('app') || document.querySelector('.phone');

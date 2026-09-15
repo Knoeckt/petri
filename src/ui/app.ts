@@ -1,7 +1,7 @@
 // The main screen: sign, counter, vessel, board, tab bar, and the panel layer. Structure once; live values patched.
 import { RAR, TEXT } from '../data';
 import type { Ctx } from '../sim';
-import { goal, genRate, cycleTime, lvCost, buy, collect, flashFinds, tierDef, fmt, fmtDur, clinicHas, unlocked, unlockLabel, upAvailable, canAscend, UNLOCK } from '../sim';
+import { goal, genRate, cycleTime, collect, flashFinds, tierDef, fmt, fmtDur, clinicHas, unlocked, unlockLabel, upAvailable, canAscend, UNLOCK, startTrip, sitesOpen, eqAvailable } from '../sim';
 import { VesselView } from './vessel';
 import { Panels } from './panel';
 import { clinicPanel } from './panels/clinic';
@@ -30,7 +30,7 @@ export class App {
         <div class="bar"><i></i></div>
         <div class="acts">
           <button class="btn primary harvest">${TEXT.collect}</button>
-          <button class="btn lv">Dish level<small></small></button>
+          <button class="btn lv">Field trip<small></small></button>
         </div>
       </div>
       <nav class="tabs">${TABS.map(([id, ic, n]) => `<button data-tab="${id}"><span class="i">${ic}</span>${n}<i class="badge"></i><b class="lk" hidden></b></button>`).join('')}</nav>
@@ -43,7 +43,7 @@ export class App {
     this.goalEl = this.root.querySelector('.goal')!; this.bar = this.root.querySelector('.bar')!; this.barFill = this.root.querySelector('.bar i')!;
     this.harvest = this.root.querySelector('.harvest')!; this.lvBtn = this.root.querySelector('.lv')!; this.signSmall = this.root.querySelector('.sign small')!; this.toastEl = this.root.querySelector('.toast')!; this.tabs = this.root.querySelector('.tabs')!;
     this.harvest.onclick = () => { const sum = collect(g, 0); if (sum) { flashFinds(g, sum); this.vessel.jelly(); this.bump(); } };
-    this.lvBtn.onclick = () => { if (buy(g, 'lv')) this.bump(); };
+    this.lvBtn.onclick = () => { const open = sitesOpen(g); const best = open[open.length - 1]; if (best && startTrip(g, best.id)) this.bump(); };
     this.tabs.addEventListener('click', e => { const b = (e.target as HTMLElement).closest<HTMLElement>('button[data-tab]'); if (b) this.panels.toggle(b.dataset.tab!); });
     g.on(e => { if (e.type === 'toast') this.toast(e.msg, e.bad); });
     this.update();
@@ -64,7 +64,8 @@ export class App {
     const prog = Math.min(1, d.p / cycleTime(g));
     this.barFill.style.width = (prog * 100).toFixed(1) + '%'; this.bar.classList.toggle('ready', d.ready);
     this.harvest.disabled = !d.ready; setText(this.harvest, d.ready ? `${TEXT.collect}!` : `${TEXT.cycling} · ${fmtDur(cycleTime(g) - d.p)}`);
-    setHTML(this.lvBtn, `Dish level ${s.lv}<small>${fmt(lvCost(g))} ${TEXT.cur.toLowerCase()}</small>`); this.lvBtn.disabled = s.cur < lvCost(g);
+    const open = sitesOpen(g), best = open[open.length - 1];
+    setHTML(this.lvBtn, s.trip ? `Trip out<small>back in ${fmtDur(s.trip.left)} · ${s.notes} notes</small>` : best ? `Send to ${best.n.toLowerCase()}<small>${fmtDur(best.time)} · ${s.notes} notes</small>` : `Field trips<small>open after 1-1</small>`); this.lvBtn.disabled = !!s.trip || !best;
     const gl = goal(g);
     const html = gl.kind === 'gather'
       ? `<span class="no">${gl.no}</span><span>${gl.who}</span>` + gl.needs!.map(n => `<span class="need ${n.ok ? 'ok' : ''} ${n.med ? 'med' : ''}">${n.med ? '💊' : `<i style="background:${RAR[n.r].col}"></i>`}${n.have}/${n.n} ${n.name}</span>`).join('')
@@ -76,7 +77,7 @@ export class App {
       : `<span class="no">${gl.no}</span><span>No chapter here yet</span>`;
     setHTML(this.goalEl, html);
     // tab badges and locks
-    const has: Record<string, boolean> = { up: upAvailable(g), clinic: clinicHas(g), asc: canAscend(g) };
+    const has: Record<string, boolean> = { up: upAvailable(g) || eqAvailable(g), clinic: clinicHas(g), asc: canAscend(g) };
     this.tabs.querySelectorAll<HTMLElement>('button[data-tab]').forEach(b => {
       const k = b.dataset.tab!; b.classList.toggle('has', !!has[k]); b.setAttribute('aria-selected', String(this.panels.current === k));
       if (UNLOCK[k]) { const ok = unlocked(g, k); b.classList.toggle('locked', !ok); const lk = b.querySelector<HTMLElement>('.lk')!; lk.hidden = ok; setText(lk, unlockLabel(k)); }

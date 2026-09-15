@@ -3,7 +3,7 @@ import { COUNTS, VAL, EAT_EVERY, EAT_FIRST, EMOTES, TEXT } from '../data';
 import type { Ctx } from './ctx';
 import { toast, dirty } from './ctx';
 import type { Dish, Drop, Find } from './state';
-import { item, dropsPer, rollRarity, guardChance, cycleTime, shelfCap, seenBefore, tierMult, valMult, bump } from './rules';
+import { item, dropsPer, rollRarity, guardChance, cycleTime, shelfCap, seenBefore, tierMult, valMult, bump, rerollChance, tierDef } from './rules';
 import { pick } from './rng';
 
 export interface Summary { cur: number; drops: number; cycles: number; finds: Find[]; secs: number; eaten: number }
@@ -38,7 +38,7 @@ export function nearEdge(g: Ctx, d: Drop) {
 function centre(g: Ctx): [number, number] { const B = g.bounds; return B.type === 'rect' ? [(B.minX + B.maxX) / 2, (B.minY + B.maxY) / 2] : [0.5, 0.5]; }
 
 export function rollDrops(g: Ctx): Drop[] {
-  const n = dropsPer(g); const out: Drop[] = [];
+  const n = Math.floor(dropsPer(g) + 1e-9); const out: Drop[] = [];
   for (let k = 0; k < n; k++) {
     const r = rollRarity(g); const i = Math.floor(g.rng() * COUNTS[r]); const it = item(g.s.tier, r, i);
     const [x, y] = randPos(g);
@@ -129,7 +129,9 @@ export function resolve(g: Ctx, drops: Drop[], sum: Summary) {
   let gained = 0;
   for (const d of drops) {
     if (d.dead) continue;
-    const key = `${d.r}-${d.i}`;
+    let key = `${d.r}-${d.i}`;
+    // the microscope: a duplicate may turn out to be a strain of that rarity you had not found
+    if (c[key] && rerollChance(g) > 0 && g.rng() < rerollChance(g)) { const unfound = tierDef(t).items[d.r].map((_, i) => i).filter(i => !c[`${d.r}-${i}`]); if (unfound.length) { d.i = unfound[Math.floor(g.rng() * unfound.length)]; key = `${d.r}-${d.i}`; } }
     const isNew = !c[key];
     c[key] = Math.min((c[key] || 0) + 1, 1 + shelfCap(g));
     if (isNew) {

@@ -3,7 +3,7 @@
 import {
   RAR, COUNTS, KEYS, BONUS, CYCLE_BASE, TIER_MULT, UP_MULT, TIER_CYCLE, ASC_LV, ASC_FOUND, RAR_CAP0, RAR_CAP_STEP, SHELF,
   OFFLINE_CAP, WARP, TIERS, MORE, SHAPES, PALETTE, RES_DEF, RES_TEXT, UPT, UPI, ART, HYB, GEN_DEF, STUDY_COST, STUDY_PERKS, STUDY_DANGER_PERK,
-  UNLOCK, UNLOCK_NAME, STORY, TEXT,
+  UNLOCK, UNLOCK_NAME, STORY, TEXT, EQ, EQUIP, SITES,
 } from '../data';
 import type { Artifact, Research, GenPerk, Strain, TierDef, Upgrade } from '../data';
 import type { Ctx } from './ctx';
@@ -90,15 +90,29 @@ export function genPoints(g: Ctx) { let f = 0; for (const t in g.s.cat) f += fou
 export const seenBefore = (g: Ctx, t: number, key: string) => !!((g.s.gen.seen[t] || {})[key]);
 export const genDef = (id: string) => GEN_DEF.find(x => x.id === id);
 
+// lab equipment
+export const eqLv = (g: Ctx, id: string) => g.s.eq[id] || 0;
+export const eqDef = (id: string) => EQ[id];
+export const eqMaxed = (g: Ctx, id: string) => eqLv(g, id) >= EQ[id].max;
+/** a rank costs Notes first and a little biomass second */
+export const eqCost = (g: Ctx, id: string) => { const e = EQ[id], r = eqLv(g, id); return { notes: Math.round(e.notes * Math.pow(e.grow, r)), bio: Math.round(e.bio * Math.pow(1.25, r) * tierMult(g)) }; };
+export const eqCanBuy = (g: Ctx, id: string) => !!EQ[id] && !eqMaxed(g, id) && g.s.notes >= eqCost(g, id).notes && g.s.cur >= eqCost(g, id).bio;
+export const eqAvailable = (g: Ctx) => EQUIP.some(e => eqCanBuy(g, e.id));
+/** chance a duplicate rerolls into an unfound strain of its rarity */
+export const rerollChance = (g: Ctx) => 0.02 * eqLv(g, 'scope');
+// field trips
+export function siteOpen(g: Ctx, id: string) { const x = SITES.find(x => x.id === id); if (!x) return false; const [t, k] = x.unlock; if (g.s.tier > t) return true; if (g.s.tier < t) return false; return (g.s.story[t] ? g.s.story[t].step : 0) >= k; }
+export const sitesOpen = (g: Ctx) => SITES.filter(x => siteOpen(g, x.id));
+
 // ---- the numbers the dish runs on ----
 export const genRate = (g: Ctx) => 0.3 * upProd(g, 'gen') * tierMult(g) * catMult(g) * (boostOn(g) ? 2 : 1) * (1 + artPerk(g, 'income')) * (1 + studyFx(g, 'income')) * (1 + 0.1 * genLv(g, 'income'));
 export function cycleTime(g: Ctx) {
   const base = CYCLE_BASE * Math.pow(TIER_CYCLE, g.s.tier) * (g.s.res.fast ? 0.75 : 1);
-  return Math.max(base * 0.25, base * upSpeed(g)) * (perk(g, 'speed') ? 0.85 : 1) * (1 - artPerk(g, 'speed')) * resProd(g, 'cycle') * Math.max(0.4, 1 - studyFx(g, 'cycle'));
+  return Math.max(base * 0.25, base * upSpeed(g)) * (perk(g, 'speed') ? 0.85 : 1) * (1 - artPerk(g, 'speed')) * resProd(g, 'cycle') * Math.max(0.4, 1 - studyFx(g, 'cycle')) * (1 - 0.02 * eqLv(g, 'incub'));
 }
-export const dropsPer = (g: Ctx) => 1 + upSum(g, 'yield') + (perk(g, 'drop') ? 1 : 0) + artPerk(g, 'drop') + resSum(g, 'drop') + studyFx(g, 'drop');
+export const dropsPer = (g: Ctx) => 1 + upSum(g, 'yield') + (perk(g, 'drop') ? 1 : 0) + artPerk(g, 'drop') + resSum(g, 'drop') + studyFx(g, 'drop') + Math.floor(eqLv(g, 'pipette') / 3);
 export const valMult = (g: Ctx) => (1 + upSum(g, 'val')) * (perk(g, 'value') ? 1.5 : 1) * (1 + artPerk(g, 'value')) * (1 + resSum(g, 'val'));
-export const effLv = (g: Ctx) => g.s.lv + upSum(g, 'lv') + (perk(g, 'luck') ? 3 : 0) + artPerk(g, 'lv') + resSum(g, 'lv') + studyFx(g, 'lv');
+export const effLv = (g: Ctx) => eqLv(g, 'dish') + upSum(g, 'lv') + (perk(g, 'luck') ? 3 : 0) + artPerk(g, 'lv') + resSum(g, 'lv') + studyFx(g, 'lv');
 /** each vessel can only reach so far up the rarity table; scaling up raises the reach */
 export const rarCap = (g: Ctx) => RAR_CAP0 + RAR_CAP_STEP * g.s.tier;
 export const rarLv = (g: Ctx, L = effLv(g)) => Math.min(L, rarCap(g));
@@ -108,18 +122,17 @@ export function weights(L: number): number[] {
   return KEYS[KEYS.length - 1][1];
 }
 export function rollRarity(g: Ctx) { const w = weights(rarLv(g)); let r = g.rng() * 100; for (let i = 0; i < RAR.length; i++) { r -= w[i]; if (r < 0) return i; } return 0; }
-export const lvCost = (g: Ctx) => Math.round(15 * Math.pow(1.25, g.s.lv - 1) * upMult(g));
 export const offlineCap = (g: Ctx) => OFFLINE_CAP * (g.s.res.storage ? 2 : 1) + (g.s.icepack ? 2 * 3600 : 0) + resSum(g, 'off');
 export const offlineEff = (g: Ctx) => Math.min(1, 0.1 + 0.1 * genLv(g, 'offline'));
 export const warpLen = (g: Ctx) => WARP + 1800 * genLv(g, 'warp');
-export const guardChance = (g: Ctx) => Math.min(1, resLv(g, 'wash') * 0.05 + (perk(g, 'guard') ? 0.4 : 0) + studyFx(g, 'guard') + 0.05 * genLv(g, 'guard'));
-export const shelfCap = (g: Ctx) => (SHELF + SHELF * resLv(g, 'fridge')) * (g.s.res.storage ? 2 : 1);
+export const guardChance = (g: Ctx) => Math.min(1, resLv(g, 'wash') * 0.05 + (perk(g, 'guard') ? 0.4 : 0) + studyFx(g, 'guard') + 0.05 * genLv(g, 'guard') + 0.04 * eqLv(g, 'clean'));
+export const shelfCap = (g: Ctx) => (SHELF + SHELF * resLv(g, 'fridge')) * (g.s.res.storage ? 2 : 1) + eqLv(g, 'clean');
 
 // ---- the ladder and what opens when ----
 export function canAscend(g: Ctx) {
   if (g.s.tier + 1 >= TIER_COUNT) return false;
   if (STORY[g.s.tier]) return !!(g.s.story[g.s.tier] && g.s.story[g.s.tier].done) && found(g, g.s.tier) >= ASC_FOUND;
-  return g.s.lv >= ASC_LV && found(g, g.s.tier) >= ASC_FOUND;
+  return effLv(g) >= ASC_LV && found(g, g.s.tier) >= ASC_FOUND;
 }
 export function unlocked(g: Ctx, k: string) {
   const u = UNLOCK[k]; if (!u) return true;
