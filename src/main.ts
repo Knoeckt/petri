@@ -30,5 +30,15 @@ requestAnimationFrame(frame);
 setInterval(save, 3000);
 document.addEventListener('visibilitychange', () => { if (document.hidden) save(); else { last = performance.now(); const o = checkOffline(g, Date.now()); if (o) app.toast(`Away ${fmtDur(o.away)}: +${fmt(o.sum.cur)}`); } });
 window.addEventListener('beforeunload', save);
+// iOS home-screen apps report a viewport that is the screen minus the status bar, yet anchor it at the top of the
+// screen, which leaves a strip at the bottom. When that happens, size the page to the whole screen.
+function fitStandalone() {
+  const standalone = (navigator as any).standalone || matchMedia('(display-mode: standalone)').matches;
+  if (!standalone) return;
+  const h = screen.height;
+  const fix = h > innerHeight + 8 ? h + 'px' : '';
+  document.documentElement.style.height = fix; document.body.style.height = fix;
+}
+fitStandalone(); addEventListener('resize', fitStandalone); addEventListener('orientationchange', () => setTimeout(fitStandalone, 300));
 // installable on the phone: the worker is scoped to this folder and does not touch the mockup's
 if (import.meta.env.PROD && 'serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => { /* no offline shell, the game still runs */ });
