@@ -174,6 +174,11 @@ Tier 2 (Aquarium) and tier 3 (Terrarium) have full rosters in the mockup, with o
 biters each (Blue planarian, Orchid mantis, Sundew, and the Corpse flower as a legendary
 that bites). Later tiers use generated placeholders until they are written.
 
+### Biters wait for you
+
+Eating and lunges pause while any panel covers the vessel, so a Gulp can never empty the
+dish while you are reading the Clinic. Offline they still bite at their usual rate.
+
 ### Dangerous strains
 
 A dangerous strain spawns early in the cycle (never later than 30% in) with a red aura and
@@ -323,9 +328,9 @@ Two kinds of request sit on the board:
 | 3 | Pip | The cat glows at night | 1 uncommon or better | rarity, the odds bar, levelling, the Catalog; opens the Lab | 150 | Same glow as the cat. |
 | 4 | Doc Ferro | Purple spots, six patients | 2 Fuzzwald, 1 Dotto | two targets at once; opens the Apothecary | 220 | "Something is spreading." |
 | 5 | Doc Ferro | The town needs medicine | 2 Fizz-Fix (recipe: 2 Blubb) | brewing, one recipe; opens Tickets and Decor | 260 | "The pond is another matter." |
-| 6 | Gran Moss | The pond has gone black | 2 Mirror wash, 2 Fizz-Fix | two medicines, a rare ingredient | 520 | Something moved under the surface. |
-| 7 | Doc Ferro | Needs something that bites back | 3 Bitters, 1 live Nibbler | a dangerous strain as an ingredient and a deliverable; **gives the splicer** | 700 | "It is learning." |
-| 8 | Doc Ferro | It is in the water supply | 2 Contained sample, 2 Bitters | the biter itself, contained; opens Scale up | 900 | "We called it The Wipe. It blooms." |
+| 6 | Gran Moss | The pond has gone black | 1 live Mirror Mike, 2 Fizz-Fix | the rare hunt is the beat: level toward the tier's reach | 520 | Something moved under the surface. |
+| 7 | Doc Ferro | Needs something that bites back | 4 Bitters, 1 live Nibbler | a dangerous strain as an ingredient and a deliverable; **gives the splicer** | 700 | "It is learning." |
+| 8 | Doc Ferro | It is in the water supply | 2 Contained sample, 3 Bitters, 2 Mirror wash | the biter itself, contained; opens Scale up | 900 | "We called it The Wipe. It blooms." |
 | 9 | Doc Ferro | It is blooming in your dish | **Outbreak** | fight it in the dish | 2000 | "Downstream is the pond, and the pond is where we go next." |
 
 Recipes stay as before: Fizz-Fix is two Blubb, Mirror wash a Mirror Mike and two Moldy Pete,
@@ -846,3 +851,89 @@ panel open, side canvases at 8.
 - **Where the Wipe goes next.** Chapter 1 ends with it draining into the pond. Chapter 2
   should start with the pond life already changed by it, so the tier 2 roster is the
   consequence of chapter 1, not a reset.
+
+---
+
+## 12. Art build spec (for the real build)
+
+The mockup proved the shape. The next build starts from these three lists rather than
+layering them onto the single file. See section 9 for the phone budget; all of this lives
+inside it.
+
+### Palette (fourteen tokens, nothing else)
+
+| Token | Hex | Used for |
+|---|---|---|
+| `ink` | `#1f3d33` | every outline, text on cream, shadows |
+| `cream` | `#fff6dc` | panel and card surfaces |
+| `cream-2` | `#ffe9b3` | raised rows, chips |
+| `wood-1` | `#c98a4a` | board face |
+| `wood-2` | `#8a5a2b` | board edge, grain |
+| `wood-3` | `#5a3a1a` | board underside, sign shadow |
+| `teal` | `#22d3b0` | live accents: bars, positive badges, the vessel rim |
+| `teal-deep` | `#1f8b6f` | ground, panel headers |
+| `gold` | `#ffd43b` | currency, level pips, the guide ring |
+| `gold-deep` | `#e6a800` | currency shadow, primary button base |
+| `rarity 0-5` | beige `#d9c9a3`, green `#7ed957`, blue `#5aa9ff`, red `#ff5c5c`, purple `#a78bfa`, gold `#ffd43b` | bands, jars, chips, odds bar |
+| `danger` | `#e63946` | biters, eaten counts, the bloom |
+| `paper` | `#f4ead0` | story log, the Catalog page |
+
+Rule: a colour that is not a token is a lighter or darker step of one (`color-mix` at 15%
+or 30%), never a new hex. The mockup has 274 distinct hexes; the build has fourteen plus
+their steps.
+
+### Icon set (one SVG sprite, critter style)
+
+Drawn like the critters: 3 px ink outline, flat token fill, one white highlight blob, no
+gradients, 24-unit grid, readable at 18 px. Emoji are gone everywhere.
+
+| Group | Icons |
+|---|---|
+| Tabs (5) | flask (Upgrades), microscope (Lab), pill bottle (Clinic), open book (Catalog), rocket (Scale up) |
+| Side buttons (6) | scroll (Quests), ticket (Tickets), DNA helix (Splicer), cart (Shop), vase (Decor), kettle (Brewery) |
+| Currency and state (6) | biomass drop, genome helix, lock, padlock-open, red dot, tick |
+| Actions (6) | harvest hand, stir swirl, play triangle, ad film, warp clock, boost flame |
+| Artifacts (8) | pebble, lamp, salt shaker, prism, wind chime, moon shard, old key, golden bell |
+| Shop (5) | crate, heat lamp, ice pack, ticket, pebble (shared) |
+| Townsfolk (6) | Mayor Bramble, Ida, Pip, Doc Ferro, Gran Moss, plus a generic villager for side quests; drawn with the part-list renderer plus new parts: hat, hair, glasses, apron, stethoscope, so faces match the critters |
+| Guide (1) | pointing hand |
+
+That is 43 marks. Portraits are code-drawn so they can blink and bounce on delivery.
+
+### Motion set (four motions, used everywhere)
+
+| Name | Curve | Length | Used for |
+|---|---|---|---|
+| **pop** | scale .8 → 1.04 → 1, opacity 0 → 1 | 260 ms | cards entering a panel (staggered 40 ms), toasts, chips filling, a found strain on the shelf |
+| **press** | translateY 3 px, shadow collapses | 120 ms down, 180 ms back with overshoot | every button (already in the mockup) |
+| **slide** | panel from 100% to 0 with overshoot 1.25 | 450 ms, content pops in after 180 ms | opening any area |
+| **jelly** | squash 1.08/0.92 then settle | 400 ms | critters on tap, the vessel on stir, the portrait on delivery, the counter on income |
+
+Only `transform` and `opacity` animate. `prefers-reduced-motion` turns pop and slide into
+120 ms fades and stops the idle bob.
+
+### The six moments that get particles
+
+Event-driven bursts on the vessel canvas, each under 300 ms and under 40 particles, so
+the heat budget holds.
+
+1. **Harvest:** each colony arcs from the dish to the shelf jar, the counter rolls up.
+2. **Deliver:** the portrait jellies, three coins arc to the counter, a paper chit drops
+   into the story log.
+3. **Level up:** the odds bar segments grow with a pulse, a ring expands from the rim.
+4. **Research or study done:** the bench flashes cream once, a tick pops on the Lab tab.
+5. **Quarantine:** a glass jar drops over the biter with a clink, it goes grey.
+6. **Genesis:** the vessel shrinks to a single glowing cell over two seconds, the ground
+   fades to the Petri green, the cell divides into the first dish.
+
+### Life in the vessel
+
+Colonies scale from 60% to 100% over the cycle so the wait is visible; a thin growth ring
+inside the rim fills with the bar; four ambient bubbles rise on a 6 s loop; the vessel
+jellies on stir. Biters keep their wind-up and lunge.
+
+### Sound (no assets)
+
+A WebAudio synth with six voices: tap (short sine blip), harvest (two-note chime up),
+deliver (three-note fanfare), level (rising sweep), danger (low growl), genesis (long pad).
+A mute toggle on the sign. Sounds are the cheapest feel per hour in the whole list.
