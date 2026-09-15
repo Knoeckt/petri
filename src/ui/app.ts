@@ -16,13 +16,14 @@ export class App {
   root: HTMLDivElement; vessel: VesselView; panels: Panels;
   private cur: HTMLElement; private rate: HTMLElement; private goalEl: HTMLElement; private bar: HTMLElement; private barFill: HTMLElement;
   private harvest: HTMLButtonElement; private lvBtn: HTMLButtonElement; private signSmall: HTMLElement; private toastEl: HTMLElement; private tabs: HTMLElement;
-  private toastT = 0;
+  private toastT = 0; private chEl: HTMLElement; private wdEl: HTMLElement;
 
   constructor(private g: Ctx) {
     this.root = document.createElement('div'); this.root.className = 'phone';
     this.root.innerHTML = `
       <header class="top">
         <div class="sign"><small></small><b>${TEXT.name}</b></div>
+        <div class="lvl"><b class="ch">1-1</b><small class="wd">World 1</small></div>
         <div class="cur"><b>0</b><small>+0.0/s</small></div>
       </header>
       <div class="stage"></div>
@@ -41,7 +42,7 @@ export class App {
     this.root.querySelector('.stage')!.appendChild(this.vessel.el);
     this.panels = new Panels(g, [upgradesPanel, clinicPanel], open => this.root.classList.toggle('covered', !!open));
     this.root.insertBefore(this.panels.el, this.root.querySelector('.tabs'));
-    this.cur = this.root.querySelector('.cur b')!; this.rate = this.root.querySelector('.cur small')!;
+    this.cur = this.root.querySelector('.cur b')!; this.rate = this.root.querySelector('.cur small')!; this.chEl = this.root.querySelector('.lvl .ch')!; this.wdEl = this.root.querySelector('.lvl .wd')!;
     this.goalEl = this.root.querySelector('.goal')!; this.bar = this.root.querySelector('.bar')!; this.barFill = this.root.querySelector('.bar i')!;
     this.harvest = this.root.querySelector('.harvest')!; this.lvBtn = this.root.querySelector('.lv')!; this.signSmall = this.root.querySelector('.sign small')!; this.toastEl = this.root.querySelector('.toast')!; this.tabs = this.root.querySelector('.tabs')!;
     this.harvest.onclick = () => { const sum = collect(g, 0); if (sum) { flashFinds(g, sum); this.bump(); } };
@@ -69,6 +70,7 @@ export class App {
     const open = sitesOpen(g), best = open[open.length - 1];
     setHTML(this.lvBtn, s.trip ? `Trip out<small>back in ${fmtDur(s.trip.left)} · ${s.notes} notes</small>` : best ? `Send to ${best.n.toLowerCase()}<small>${fmtDur(best.time)} · ${s.notes} notes</small>` : `Field trips<small>open after 1-1</small>`); this.lvBtn.disabled = !!s.trip || !best;
     const gl = goal(g);
+    setText(this.chEl, gl.kind === 'done' ? `${s.tier + 1} ✓` : gl.kind === 'bloom' ? '☠' : gl.no); setText(this.wdEl, `World ${s.tier + 1}`);
     const html = gl.kind === 'gather'
       ? `<span class="no">${gl.no}</span><span>${gl.who}</span>` + gl.needs!.map(n => `<span class="need ${n.ok ? 'ok' : ''} ${n.med ? 'med' : ''}">${n.med ? '💊' : `<i style="background:${RAR[n.r].col}"></i>`}${n.have}/${n.n} ${n.name}</span>`).join('')
       : gl.kind === 'deliver' ? `<span class="no">${gl.no}</span><span>Deliver to ${gl.who}</span>`
