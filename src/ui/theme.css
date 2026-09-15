@@ -1,0 +1,73 @@
+/* Petri: the fourteen tokens (design doc §12). Every other colour is a step of one of these. */
+:root{
+  --ink:#1f3d33; --cream:#fff6dc; --cream-2:#ffe9b3;
+  --wood-1:#c98a4a; --wood-2:#8a5a2b; --wood-3:#5a3a1a;
+  --teal:#22d3b0; --teal-deep:#1f8b6f;
+  --gold:#ffd43b; --gold-deep:#e6a800;
+  --danger:#e63946; --paper:#f4ead0;
+  --r0:#d9c9a3; --r1:#7ed957; --r2:#5aa9ff; --r3:#ff5c5c; --r4:#a78bfa; --r5:#ffd43b;
+  --display:'Fredoka','Arial Rounded MT Bold','Segoe UI',sans-serif;
+  --ui:'Nunito','Segoe UI',Roboto,system-ui,sans-serif;
+  --press:cubic-bezier(.34,1.56,.64,1);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0; background:color-mix(in srgb, var(--teal-deep) 70%, var(--ink)); color:var(--ink); font:14px/1.4 var(--ui); overscroll-behavior:none; -webkit-tap-highlight-color:transparent; touch-action:manipulation; display:flex; align-items:center; justify-content:center}
+button{font-family:var(--display); cursor:pointer}
+
+/* the phone: a fixed portrait stage so the layout is the same on every screen */
+.phone{position:relative; width:min(100vw,400px); height:min(100vh,820px); overflow:hidden; display:flex; flex-direction:column; isolation:isolate;
+  background:var(--teal-deep); color:var(--cream); border:4px solid var(--ink); border-radius:34px; box-shadow:0 30px 60px rgba(0,0,0,.45)}
+@media (max-width:420px), (max-height:840px){ .phone{border:0; border-radius:0; width:100vw; height:100vh; height:100dvh} }
+.phone::before{content:''; position:absolute; inset:0; z-index:-1; pointer-events:none;
+  background:radial-gradient(ellipse at 50% 18%, rgba(255,255,255,.16), transparent 55%), radial-gradient(ellipse at 50% 105%, rgba(0,0,0,.35), transparent 60%)}
+
+/* top row: the sign and the counter */
+.top{display:flex; justify-content:space-between; align-items:flex-start; padding:12px 12px 0; gap:10px}
+.sign{position:relative; background:var(--wood-1); color:var(--cream); border:3px solid var(--ink); border-radius:10px; padding:6px 14px 8px; box-shadow:0 4px 0 var(--wood-3), inset 0 2px 0 rgba(255,255,255,.25); transform:rotate(-2deg)}
+.sign small{display:block; font:700 9.5px var(--display); letter-spacing:.12em; text-transform:uppercase; opacity:.85}
+.sign b{display:block; font:700 26px/1 var(--display); text-shadow:0 2px 0 var(--wood-3)}
+.cur{background:var(--gold); color:var(--ink); border:3px solid var(--ink); border-radius:999px; padding:6px 14px 6px 12px; box-shadow:0 4px 0 var(--gold-deep); text-align:right; min-width:104px}
+.cur b{display:block; font:700 20px/1 var(--display); font-variant-numeric:tabular-nums}
+.cur small{display:block; font:700 10.5px var(--ui); opacity:.75; font-variant-numeric:tabular-nums}
+.cur.tick{animation:jelly .4s var(--press)}
+
+/* the vessel */
+.stage{flex:1; display:flex; align-items:center; justify-content:center; min-height:0}
+.vwrap{position:relative; width:min(72vw,300px); aspect-ratio:1; cursor:pointer}
+.vwrap::before{content:''; position:absolute; inset:5%; border-radius:50%; box-shadow:0 12px 0 rgba(0,0,0,.2); pointer-events:none}
+.vwrap[data-shape="rect"]::before{border-radius:12%}
+.vwrap canvas{position:absolute; inset:0; width:100%; height:100%; display:block; transform-origin:50% 60%}
+.vwrap.jelly canvas{animation:jelly .4s var(--press)}
+.vwrap.ready canvas{animation:wob .8s ease-in-out infinite}
+
+/* the board under the vessel */
+.board{position:relative; margin:0 10px 10px; padding:12px 12px 12px; border-radius:16px; background:linear-gradient(180deg, var(--wood-1), color-mix(in srgb, var(--wood-1) 75%, var(--wood-2))); border:3px solid var(--ink); box-shadow:0 6px 0 var(--wood-3), inset 0 2px 0 rgba(255,255,255,.22); color:var(--cream)}
+.goal{display:flex; align-items:center; gap:8px; flex-wrap:wrap; font:700 13.5px var(--display); background:rgba(0,0,0,.22); border:2px dashed rgba(255,246,220,.5); border-radius:10px; padding:7px 10px; min-height:36px}
+.goal .no{background:var(--gold); color:var(--ink); border-radius:7px; padding:1px 7px; font-size:12px}
+.goal .need{display:inline-flex; align-items:center; gap:4px; font:700 12px var(--ui); opacity:.85}
+.goal .need i{width:9px; height:9px; border-radius:50%; border:2px solid var(--ink); display:inline-block}
+.goal .need.ok{color:var(--teal)}
+.goal .need.med{opacity:1}
+.bar{height:10px; border-radius:6px; background:rgba(0,0,0,.28); border:2px solid var(--ink); overflow:hidden; margin:8px 0}
+.bar i{display:block; height:100%; width:0; background:var(--teal); transition:width .2s linear}
+.bar.ready i{background:var(--gold)}
+.acts{display:flex; gap:8px}
+.btn{flex:1; border:3px solid var(--ink); border-radius:12px; padding:10px 10px; font:700 14px var(--display); color:var(--ink); background:var(--cream-2); box-shadow:0 4px 0 var(--ink); transition:transform .12s var(--press), box-shadow .12s}
+.btn:active{transform:translateY(3px); box-shadow:0 1px 0 var(--ink)}
+.btn.primary{background:var(--gold); box-shadow:0 4px 0 var(--gold-deep), 0 4px 0 var(--ink)}
+.btn.primary:active{box-shadow:0 1px 0 var(--ink)}
+.btn[disabled]{opacity:.55; transform:none; box-shadow:0 4px 0 var(--ink); cursor:default}
+.btn small{display:block; font:700 10.5px var(--ui); opacity:.75}
+
+/* toast */
+.toast{position:absolute; left:50%; top:14px; z-index:40; transform:translate(-50%,-40px) scale(.85); opacity:0; background:var(--ink); color:var(--cream); border:2px solid var(--cream-2); border-radius:10px; padding:7px 12px; font:700 12.5px var(--ui); max-width:86%; text-align:center; pointer-events:none; transition:transform .26s var(--press), opacity .2s}
+.toast.on{transform:translate(-50%,0) scale(1); opacity:1}
+.toast.bad{background:var(--danger); border-color:var(--cream)}
+
+/* the motion set: pop, press (above), slide (later), jelly */
+@keyframes pop{0%{transform:scale(.8); opacity:0} 70%{transform:scale(1.04); opacity:1} 100%{transform:scale(1)}}
+@keyframes jelly{0%{transform:scale(1,1)} 30%{transform:scale(1.08,.92)} 60%{transform:scale(.96,1.04)} 100%{transform:scale(1,1)}}
+@keyframes wob{0%,100%{transform:rotate(-1.2deg) scale(1.01)} 50%{transform:rotate(1.2deg) scale(1.02)}}
+.pop{animation:pop .26s var(--press) both}
+@media (prefers-reduced-motion: reduce){ .pop{animation:none} .vwrap.jelly canvas, .vwrap.ready canvas, .cur.tick{animation:none} }
