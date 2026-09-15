@@ -36,7 +36,7 @@ export const labPanel: PanelDef = {
   },
   live(el, g) {
     const a = g.s.active;
-    if (a) { const l = el.querySelector('[data-live="left"]'); if (l && l.textContent !== fmtDur(a.left)) l.textContent = fmtDur(a.left); const p = el.querySelector<HTMLElement>('[data-live="prog"]'); if (p) p.style.width = ((1 - a.left / a.total) * 100) + '%'; const b = el.querySelector<HTMLButtonElement>('[data-live="ad"]'); if (b) { const t = adLabel(g, 'Finish now'); if (b.textContent !== t) b.textContent = t; } }
+    if (a) { const l = el.querySelector('[data-live="left"]'); if (l && l.textContent !== fmtDur(a.left)) l.textContent = fmtDur(a.left); const p = el.querySelector<HTMLElement>('[data-live="prog"]'); if (p) p.style.width = ((1 - a.left / a.total) * 100) + '%'; const b = el.querySelector<HTMLButtonElement>('[data-live="ad"]'); if (b) { const t = adLabel(g, 'Finish now'); if (b.innerHTML !== t) b.innerHTML = t; } }
     el.querySelectorAll<HTMLElement>('.r[data-id]').forEach(r => { const def = RES_DEF.find(x => x.id === r.dataset.id); if (def) r.classList.toggle('poor', !!g.s.active || g.s.cur < resCost(g, def)); });
     el.querySelectorAll<HTMLElement>('.r[data-key]').forEach(r => { const [t, ri] = r.dataset.key!.split(':'); const [rr, ii] = ri.split('-').map(Number); r.classList.toggle('poor', !!g.s.active || stock(g, rr, ii, +t) < 1 || g.s.cur < studyCost(g, +t, rr)); });
   },

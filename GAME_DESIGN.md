@@ -559,6 +559,12 @@ minute so the best trip is always the newest.
 | The woods | 1-6 | 10 min | 68 to 82 | 30%, rare |
 | The old quarry | tier 2 | 30 min | 280 to 320 | 35%, very rare |
 
+The Field is its own screen: a drawn map of Mossbrook with the lab treehouse at the bottom,
+dashed roads to each place, a walker on the road while a trip is out, and fog with a padlock
+over places the story has not opened (the label says which step lifts it). Tap a place to
+read it and send the trip. The Apothecary and the Splice-o-matic are full screens too, with
+a Back button, since their scenes want the whole width.
+
 In the real build the timers are minutes to hours, matching the cycle. The rhythm this
 creates is the one an idle game wants: open the app, collect the trip, rank something on
 the bench, send the next trip. The pipette and its tickets stay as the artifact source;

@@ -225,3 +225,14 @@ canvas.scene{display:block; width:100%; height:auto; touch-action:manipulation}
 @keyframes handbobup{0%,100%{transform:translateY(0) rotate(188deg)} 50%{transform:translateY(-7px) rotate(188deg)}}
 @media (prefers-reduced-motion: reduce){ .guide .hand .hp, .guide .spot{animation:none} }
 .guide .hand[hidden]{display:none}
+
+/* ---- full-screen areas ---- */
+.panel.full{height:100%; border-radius:0; border-top:0; z-index:35; transform:translateX(105%); transition:transform .38s cubic-bezier(.34,1.15,.64,1)}
+.panel.full.open{transform:none}
+.panel.full .ph{padding-top:calc(10px + env(safe-area-inset-top))}
+.panel.full .tabbody{padding-bottom:calc(20px + env(safe-area-inset-bottom))}
+.ph .back{border:3px solid var(--ink); background:var(--cream-2); color:var(--ink); font:700 14px var(--display); padding:6px 12px 6px 8px; border-radius:12px; box-shadow:0 3px 0 var(--ink); margin-right:10px}
+.ph .back:active{transform:translateY(2px); box-shadow:0 1px 0 var(--ink)}
+.ph .back[hidden], .ph .x[hidden]{display:none}
+.ph h2{flex:1}
+canvas.scene.map{border-bottom:3px solid var(--ink)}

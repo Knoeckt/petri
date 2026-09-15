@@ -14,6 +14,7 @@ export const spliceScene = (g: Ctx) => spl || (spl = new SpliceScene(g));
 export const brewPanel: PanelDef = {
   id: 'brew',
   title: () => 'Apothecary',
+  full: true,
   render(el, g) {
     const s = g.s, b = s.brew, sc = brewScene(g); const list = medsRelevant(g);
     if (!sc.sel && list.length) sc.sel = list[0].id; if (sc.sel && !list.find(m => m.id === sc.sel)) sc.sel = list[0]?.id || null;
@@ -28,7 +29,7 @@ export const brewPanel: PanelDef = {
     el.querySelector('.scenewrap')!.appendChild(sc.canvas);
   },
   frame(_el, g, now) { brewScene(g).draw(now); },
-  live(el, g) { const b = g.s.brew; if (b) { const l = el.querySelector('[data-live="left"]'); if (l && l.textContent !== fmtDur(b.left)) l.textContent = fmtDur(b.left); const p = el.querySelector<HTMLElement>('[data-live="prog"]'); if (p) p.style.width = ((1 - b.left / b.total) * 100) + '%'; const a = el.querySelector<HTMLButtonElement>('[data-live="ad"]'); if (a) { const t = adLabel(g, 'Finish now'); if (a.textContent !== t) a.textContent = t; } } },
+  live(el, g) { const b = g.s.brew; if (b) { const l = el.querySelector('[data-live="left"]'); if (l && l.textContent !== fmtDur(b.left)) l.textContent = fmtDur(b.left); const p = el.querySelector<HTMLElement>('[data-live="prog"]'); if (p) p.style.width = ((1 - b.left / b.total) * 100) + '%'; const a = el.querySelector<HTMLButtonElement>('[data-live="ad"]'); if (a) { const t = adLabel(g, 'Finish now'); if (a.innerHTML !== t) a.innerHTML = t; } } },
   scene(g, x, y) {
     const sc = brewScene(g), h = sc.hit(x, y); if (!h) return false;
     if (h.kind === 'rack') { sc.sel = h.id; play('tap'); return true; }
@@ -44,6 +45,7 @@ export const brewPanel: PanelDef = {
 export const splicerPanel: PanelDef = {
   id: 'splicer',
   title: () => 'Splice-o-matic',
+  full: true,
   render(el, g) {
     const s = g.s, sp = s.splice, sc = spliceScene(g);
     const c = s.cat[0] || {}; const opts: Pair[] = []; COUNTS.forEach((n, r) => { for (let i = 0; i < n; i++) if (c[`${r}-${i}`]) opts.push([r, i]); });
@@ -57,7 +59,7 @@ export const splicerPanel: PanelDef = {
     el.querySelector('.scenewrap')!.appendChild(sc.canvas);
   },
   frame(_el, g, now) { spliceScene(g).draw(now); },
-  live(el, g) { const sp = g.s.splice; if (sp) { const l = el.querySelector('[data-live="left"]'); if (l && l.textContent !== fmtDur(sp.left)) l.textContent = fmtDur(sp.left); const p = el.querySelector<HTMLElement>('[data-live="prog"]'); if (p) p.style.width = ((1 - sp.left / sp.total) * 100) + '%'; const a = el.querySelector<HTMLButtonElement>('[data-live="ad"]'); if (a) { const t = adLabel(g, 'Finish now'); if (a.textContent !== t) a.textContent = t; } } },
+  live(el, g) { const sp = g.s.splice; if (sp) { const l = el.querySelector('[data-live="left"]'); if (l && l.textContent !== fmtDur(sp.left)) l.textContent = fmtDur(sp.left); const p = el.querySelector<HTMLElement>('[data-live="prog"]'); if (p) p.style.width = ((1 - sp.left / sp.total) * 100) + '%'; const a = el.querySelector<HTMLButtonElement>('[data-live="ad"]'); if (a) { const t = adLabel(g, 'Finish now'); if (a.innerHTML !== t) a.innerHTML = t; } } },
   scene(g, x, y) {
     const s = g.s, sc = spliceScene(g), h = sc.hit(x, y); if (!h) return false;
     if (!s.hasSplicer) { g.emit({ type: 'toast', msg: 'Doc Ferro still has the splicer. Help the Clinic.' }); return false; }

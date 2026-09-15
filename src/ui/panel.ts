@@ -6,6 +6,8 @@ export interface PanelApi { open: (id: string) => void; close: () => void; reren
 export interface PanelDef {
   id: string;
   title: (g: Ctx) => string;
+  /** a full screen with a Back button rather than a sheet over the vessel */
+  full?: boolean;
   render: (el: HTMLElement, g: Ctx, api: PanelApi) => void;
   /** cheap per-150 ms patching of live values */
   live?: (el: HTMLElement, g: Ctx) => void;
@@ -26,11 +28,12 @@ export class Panels {
   constructor(private g: Ctx, defs: PanelDef[], private onChange: (open: string | null) => void = () => {}) {
     for (const d of defs) this.defs[d.id] = d;
     this.el = document.createElement('div'); this.el.className = 'panels';
-    this.el.innerHTML = `<div class="scrim"></div><div class="panel"><header class="ph"><h2></h2><button class="x" aria-label="Close">✕</button></header><div class="tabbody"></div></div>`;
+    this.el.innerHTML = `<div class="scrim"></div><div class="panel"><header class="ph"><button class="back" aria-label="Back" hidden>‹ Back</button><h2></h2><button class="x" aria-label="Close">✕</button></header><div class="tabbody"></div></div>`;
     this.scrim = this.el.querySelector('.scrim')!; this.panel = this.el.querySelector('.panel')!; this.title = this.el.querySelector('h2')!; this.body = this.el.querySelector('.tabbody')!;
     this.api = { open: id => this.open(id), close: () => this.close(), rerender: () => this.rerender() };
     this.scrim.onclick = () => { if (performance.now() - this.openedAt > 350) this.close(); };
     this.el.querySelector('.x')!.addEventListener('click', () => this.close());
+    this.el.querySelector('.back')!.addEventListener('click', () => this.close());
     this.body.addEventListener('pointerdown', e => {
       const cv = (e.target as HTMLElement).closest<HTMLCanvasElement>('canvas.scene'); if (!cv || !this.current) return;
       const d = this.defs[this.current]; if (!d.scene) return; const r = cv.getBoundingClientRect();
@@ -48,6 +51,7 @@ export class Panels {
     if (!this.defs[id]) return;
     if (!unlocked(this.g, id)) { toast(this.g, `🔒 ${unlockName(id)} opens after ${unlockLabel(id)}. ${unlockHint(id)}`); return; }
     this.current = id; this.openedAt = performance.now(); this.g.paused = true;
+    const full = !!this.defs[id].full; this.panel.classList.toggle('full', full); (this.el.querySelector('.back') as HTMLElement).hidden = !full; (this.el.querySelector('.x') as HTMLElement).hidden = full;
     this.rerender(); this.body.scrollTop = 0;
     this.panel.classList.remove('anim'); void this.panel.offsetWidth; this.panel.classList.add('open', 'anim'); this.scrim.classList.add('on');
     clearTimeout(this.animT); this.animT = window.setTimeout(() => this.panel.classList.remove('anim'), 900);
