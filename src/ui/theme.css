@@ -37,8 +37,8 @@ button{font-family:var(--display); cursor:pointer}
 .cur.tick{animation:jelly .4s var(--press)}
 
 /* the vessel */
-.stage{flex:1; display:flex; align-items:center; justify-content:center; min-height:0}
-.vwrap{position:relative; width:min(72vw,300px); aspect-ratio:1; cursor:pointer}
+.stage{flex:1; display:flex; align-items:center; justify-content:center; min-height:120px}
+.vwrap{position:relative; width:min(72vw, 300px, 40dvh); aspect-ratio:1; cursor:pointer}
 .vwrap::before{content:''; position:absolute; inset:5%; border-radius:50%; box-shadow:0 12px 0 rgba(0,0,0,.2); pointer-events:none}
 .vwrap[data-shape="rect"]::before{border-radius:12%}
 .vwrap canvas{position:absolute; inset:0; width:100%; height:100%; display:block; transform-origin:50% 60%}
@@ -46,7 +46,7 @@ button{font-family:var(--display); cursor:pointer}
 .vwrap.ready canvas{animation:wob .8s ease-in-out infinite}
 
 /* the board under the vessel */
-.board{position:relative; margin:0 10px 10px; padding:12px 12px 12px; border-radius:16px; background:linear-gradient(180deg, var(--wood-1), color-mix(in srgb, var(--wood-1) 75%, var(--wood-2))); border:3px solid var(--ink); box-shadow:0 6px 0 var(--wood-3), inset 0 2px 0 rgba(255,255,255,.22); color:var(--cream)}
+.board{position:relative; flex:none; margin:0 10px 10px; padding:12px 12px 12px; border-radius:16px; background:linear-gradient(180deg, var(--wood-1), color-mix(in srgb, var(--wood-1) 75%, var(--wood-2))); border:3px solid var(--ink); box-shadow:0 6px 0 var(--wood-3), inset 0 2px 0 rgba(255,255,255,.22); color:var(--cream)}
 .goal{display:flex; align-items:center; gap:8px; flex-wrap:wrap; font:700 13.5px var(--display); background:rgba(0,0,0,.22); border:2px dashed rgba(255,246,220,.5); border-radius:10px; padding:7px 10px; min-height:36px}
 .goal .no{background:var(--gold); color:var(--ink); border-radius:7px; padding:1px 7px; font-size:12px}
 .goal .need{display:inline-flex; align-items:center; gap:4px; font:700 12px var(--ui); opacity:.85}
@@ -77,7 +77,7 @@ button{font-family:var(--display); cursor:pointer}
 @media (prefers-reduced-motion: reduce){ .pop{animation:none} .vwrap.jelly canvas, .vwrap.ready canvas, .cur.tick{animation:none} }
 
 /* ---- the tab bar ---- */
-.tabs{position:absolute; left:0; right:0; bottom:0; z-index:30; display:flex; padding:7px 4px calc(6px + env(safe-area-inset-bottom)); background:var(--wood-1); border-top:4px solid var(--wood-3); box-shadow:0 -8px 22px rgba(0,0,0,.3)}
+.tabs{position:relative; flex:none; z-index:30; display:flex; padding:7px 4px calc(6px + env(safe-area-inset-bottom)); background:var(--wood-1); border-top:4px solid var(--wood-3); box-shadow:0 -8px 22px rgba(0,0,0,.3)}
 .tabs button{flex:1; position:relative; background:none; border:0; color:var(--cream); padding:2px 2px 3px; font:700 10.5px var(--display); display:flex; flex-direction:column; align-items:center; gap:3px; text-shadow:0 1px 0 rgba(0,0,0,.55); transition:transform .18s var(--press)}
 .tabs button:active{transform:translateY(2px)}
 .tabs button .i{width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; background:linear-gradient(180deg, var(--cream-2), var(--cream)); border:3px solid var(--ink); box-shadow:0 3px 0 var(--ink); transition:transform .18s var(--press), background .18s; position:relative}
@@ -87,7 +87,6 @@ button{font-family:var(--display); cursor:pointer}
 .tabs button.locked{opacity:.7} .tabs button.locked .i{filter:grayscale(1) brightness(.72); background:linear-gradient(180deg,#d8cfbd,#a89d86)}
 .tabs button.locked .i::after{content:'🔒'; position:absolute; right:-6px; bottom:-6px; width:20px; height:20px; border-radius:50%; background:var(--ink); border:2px solid var(--cream); font-size:11px; display:flex; align-items:center; justify-content:center}
 .lk{position:absolute; top:-4px; right:2px; background:var(--ink); color:var(--gold); font:700 9.5px var(--display); padding:1px 6px; border-radius:8px; border:2px solid var(--gold); white-space:nowrap; z-index:3}
-.phone .board{margin-bottom:84px}
 
 /* ---- panels: slide up over the vessel; the motion set's "slide" ---- */
 .scrim{position:absolute; inset:0; z-index:20; background:rgba(8,30,24,.45); opacity:0; pointer-events:none; transition:opacity .25s}
