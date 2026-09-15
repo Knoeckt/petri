@@ -29,3 +29,7 @@ npm run build     # typecheck + production build to dist/
 
 Saves from the mockup import as-is: `migrate()` in `src/sim/state.ts` accepts every shape
 the mockup ever wrote.
+
+`npm run build:pages` builds the new app into `docs/app/`, so it ships to GitHub Pages with
+the mockup: the mockup stays at `/petri/`, the new build is at `/petri/app/`. Commit the
+built files along with the source.

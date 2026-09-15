@@ -71,3 +71,52 @@ button{font-family:var(--display); cursor:pointer}
 @keyframes wob{0%,100%{transform:rotate(-1.2deg) scale(1.01)} 50%{transform:rotate(1.2deg) scale(1.02)}}
 .pop{animation:pop .26s var(--press) both}
 @media (prefers-reduced-motion: reduce){ .pop{animation:none} .vwrap.jelly canvas, .vwrap.ready canvas, .cur.tick{animation:none} }
+
+/* ---- the tab bar ---- */
+.tabs{position:absolute; left:0; right:0; bottom:0; z-index:30; display:flex; padding:7px 4px calc(6px + env(safe-area-inset-bottom)); background:var(--wood-1); border-top:4px solid var(--wood-3); box-shadow:0 -8px 22px rgba(0,0,0,.3)}
+.tabs button{flex:1; position:relative; background:none; border:0; color:var(--cream); padding:2px 2px 3px; font:700 10.5px var(--display); display:flex; flex-direction:column; align-items:center; gap:3px; text-shadow:0 1px 0 rgba(0,0,0,.55); transition:transform .18s var(--press)}
+.tabs button:active{transform:translateY(2px)}
+.tabs button .i{width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; background:linear-gradient(180deg, var(--cream-2), var(--cream)); border:3px solid var(--ink); box-shadow:0 3px 0 var(--ink); transition:transform .18s var(--press), background .18s; position:relative}
+.tabs button[aria-selected="true"] .i{background:linear-gradient(180deg, var(--gold), var(--gold-deep)); transform:translateY(-4px) scale(1.06)}
+.tabs button .badge{position:absolute; top:-3px; left:calc(50% + 12px); width:13px; height:13px; border-radius:50%; background:var(--danger); border:2px solid var(--ink); box-shadow:0 2px 0 var(--ink); display:none; z-index:1}
+.tabs button.has .badge{display:block}
+.tabs button.locked{opacity:.7} .tabs button.locked .i{filter:grayscale(1) brightness(.72); background:linear-gradient(180deg,#d8cfbd,#a89d86)}
+.tabs button.locked .i::after{content:'🔒'; position:absolute; right:-6px; bottom:-6px; width:20px; height:20px; border-radius:50%; background:var(--ink); border:2px solid var(--cream); font-size:11px; display:flex; align-items:center; justify-content:center}
+.lk{position:absolute; top:-4px; right:2px; background:var(--ink); color:var(--gold); font:700 9.5px var(--display); padding:1px 6px; border-radius:8px; border:2px solid var(--gold); white-space:nowrap; z-index:3}
+.phone .board{margin-bottom:84px}
+
+/* ---- panels: slide up over the vessel; the motion set's "slide" ---- */
+.scrim{position:absolute; inset:0; z-index:20; background:rgba(8,30,24,.45); opacity:0; pointer-events:none; transition:opacity .25s}
+.scrim.on{opacity:1; pointer-events:auto}
+.panel{position:absolute; left:0; right:0; bottom:0; height:66%; z-index:25; display:flex; flex-direction:column; overflow:hidden;
+  background:var(--cream); color:var(--ink); border-top:4px solid var(--ink); border-radius:26px 26px 0 0; box-shadow:0 -10px 30px rgba(0,0,0,.35);
+  transform:translateY(110%); transition:transform .45s cubic-bezier(.34,1.25,.64,1)}
+.panel.open{transform:none}
+.ph{display:flex; align-items:center; justify-content:space-between; padding:10px 14px 8px 18px; background:var(--teal-deep); color:var(--cream); border-bottom:4px solid var(--ink); flex:none}
+.ph h2{margin:0; font:700 22px var(--display); text-shadow:0 2px 0 var(--ink)}
+.ph .x{width:34px; height:34px; border-radius:50%; border:3px solid var(--ink); background:var(--danger); color:#fff; font:700 15px var(--display); box-shadow:0 3px 0 var(--ink)}
+.ph .x:active{transform:translateY(2px); box-shadow:0 1px 0 var(--ink)}
+.tabbody{flex:1; overflow-y:auto; padding:12px 14px calc(88px + env(safe-area-inset-bottom)); -webkit-overflow-scrolling:touch}
+.tabbody .acts{display:flex; gap:8px}
+
+/* ---- cards and rows ---- */
+.card{background:var(--cream); border:3px solid var(--ink); border-radius:18px; padding:12px 14px; margin-bottom:10px; box-shadow:0 4px 0 var(--ink)}
+.card.paper{background:var(--paper)}
+.card h3{margin:0 0 4px; font:700 18px var(--display)}
+.sub{color:color-mix(in srgb, var(--ink) 65%, var(--cream)); font-size:12.5px; margin:2px 4px 10px; font-weight:700}
+.gh{font:700 11px var(--display); letter-spacing:.06em; text-transform:uppercase; margin:10px 4px 6px; color:color-mix(in srgb, var(--ink) 65%, var(--cream))}
+.kv{display:flex; justify-content:space-between; gap:10px; padding:6px 0; border-bottom:2px dashed color-mix(in srgb, var(--ink) 25%, var(--cream)); font-size:13px; font-weight:700}
+.kv:last-of-type{border:0} .kv span:last-child{font-family:var(--display); text-align:right; color:color-mix(in srgb, var(--ink) 65%, var(--cream))}
+.kv .good{color:var(--teal-deep)} .kv .warn{color:var(--gold-deep)}
+.chip{display:inline-flex; align-items:center; gap:4px; font:600 10.5px var(--display); padding:2px 8px; border-radius:999px; border:2px solid var(--ink); background:#fff; color:var(--ink); white-space:nowrap; opacity:.6}
+.chip.ok{opacity:1; background:color-mix(in srgb, var(--teal) 30%, #fff)}
+.chip i{width:9px; height:9px; border-radius:50%; border:2px solid var(--ink); display:inline-block}
+.needs{display:flex; flex-wrap:wrap; gap:4px}
+.dots{display:inline-flex; gap:3px; vertical-align:middle; margin-right:4px}
+.dots i{width:10px; height:10px; border-radius:50%; border:2px solid var(--ink); background:transparent}
+.dots i.done{background:var(--teal)} .dots i.now{background:var(--gold)}
+.req .who{display:flex; gap:10px; align-items:center}
+.req .face{width:46px; height:46px; flex:none; display:flex; align-items:center; justify-content:center; font-size:26px; background:var(--cream-2); border:3px solid var(--ink); border-radius:50%; box-shadow:0 3px 0 var(--ink)}
+.req .who b{font:700 15px var(--display)}
+.req .say{font:500 13.5px/1.3 var(--display); margin:8px 0 6px}
+.tabbody .btn{width:100%}
