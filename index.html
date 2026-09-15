@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Petri (dev harness)</title>
+  <style>
+    body{margin:0;font:14px/1.4 system-ui,sans-serif;background:#1f8b6f;color:#fff6dc}
+    main{max-width:640px;margin:0 auto;padding:16px}
+    h1{font-size:18px;margin:0 0 8px}
+    pre{background:#1f3d33;color:#fff6dc;padding:12px;border-radius:10px;overflow:auto;font-size:12px;max-height:50vh}
+    .row{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+    button{font:600 13px system-ui;padding:8px 12px;border-radius:8px;border:2px solid #1f3d33;background:#ffe9b3;color:#1f3d33;cursor:pointer}
+    .log{font-size:12px;opacity:.9;max-height:16vh;overflow:auto}
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Petri sim harness</h1>
+    <p>The real UI comes next. This drives the simulation headlessly so the numbers can be watched.</p>
+    <div class="row" id="acts"></div>
+    <pre id="out"></pre>
+    <div class="log" id="log"></div>
+  </main>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
