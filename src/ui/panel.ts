@@ -1,8 +1,8 @@
 // Panels slide up over the vessel. One is open at a time; structure is rebuilt on 'dirty', live values patched in place.
-import type { Ctx } from '../sim';
+import type { Ctx, AdPlacement } from '../sim';
 import { unlocked, unlockName, unlockLabel, unlockHint, toast } from '../sim';
 
-export interface PanelApi { open: (id: string) => void; close: () => void; rerender: () => void }
+export interface PanelApi { open: (id: string) => void; close: () => void; rerender: () => void; ad?: (placement: AdPlacement, arg?: number) => void }
 export interface PanelDef {
   id: string;
   title: (g: Ctx) => string;

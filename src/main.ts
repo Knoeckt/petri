@@ -1,10 +1,16 @@
 import './ui/theme.css';
-import { createGame, tick, checkOffline, fmt, fmtDur, SAVE_VERSION } from './sim';
+import { createGame, tick, checkOffline, SAVE_VERSION } from './sim';
 import { App } from './ui/app';
 
 const KEY = 'petri-v' + SAVE_VERSION;
-// read the newest save this build or any earlier one wrote; migrate() brings it up to date
-const raw = (() => { for (let v = SAVE_VERSION; v >= 3; v--) { try { const s = JSON.parse(localStorage.getItem('petri-v' + v) || 'null'); if (s) return s; } catch { /* unreadable */ } } return null; })();
+const MOCKUP_KEY = 'petri-orbit-mock-v2';
+// read the newest save this build or any earlier one wrote; failing that, the mockup's (same origin on Pages)
+let imported = false;
+const raw = (() => {
+  for (let v = SAVE_VERSION; v >= 3; v--) { try { const s = JSON.parse(localStorage.getItem('petri-v' + v) || 'null'); if (s) return s; } catch { /* unreadable */ } }
+  try { const m = JSON.parse(localStorage.getItem(MOCKUP_KEY) || 'null'); if (m && m.dishes) { imported = true; return m; } } catch { /* unreadable */ }
+  return null;
+})();
 const g = createGame({ save: raw });
 const app = new App(g);
 const mount = document.getElementById('app') || document.querySelector('.phone');
@@ -13,10 +19,11 @@ if (import.meta.hot) import.meta.hot.accept(() => location.reload());
 
 let wiped = false;
 const save = () => { if (wiped) return; g.s.last = Date.now(); try { localStorage.setItem(KEY, JSON.stringify(g.s)); } catch { /* storage full or blocked */ } };
-(window as any).petri = { g, reset: () => { wiped = true; localStorage.removeItem(KEY); location.reload(); } };
+(window as any).petri = { g, app, reset: () => { wiped = true; localStorage.removeItem(KEY); location.reload(); } };
 
+if (imported) app.toast('Brought your Petri save across from the old build.');
 const off = checkOffline(g, Date.now());
-if (off) app.toast(`Away ${fmtDur(off.away)} at ${Math.round(off.eff * 100)}%: +${fmt(off.sum.cur)} ${off.sum.cycles} cycles, ${off.sum.finds.length} new`);
+if (off) app.offline(off);
 
 let last = performance.now(), uiAcc = 0;
 function frame(now: number) {
@@ -28,8 +35,9 @@ function frame(now: number) {
 }
 requestAnimationFrame(frame);
 setInterval(save, 3000);
-document.addEventListener('visibilitychange', () => { if (document.hidden) save(); else { last = performance.now(); const o = checkOffline(g, Date.now()); if (o) app.toast(`Away ${fmtDur(o.away)}: +${fmt(o.sum.cur)}`); } });
+document.addEventListener('visibilitychange', () => { if (document.hidden) save(); else { last = performance.now(); const o = checkOffline(g, Date.now()); if (o) app.offline(o); } });
 window.addEventListener('beforeunload', save);
+
 // iOS home-screen apps report a viewport that is the screen minus the status bar, yet anchor it at the top of the
 // screen, which leaves a strip at the bottom. When that happens, size the page to the whole screen.
 function fitStandalone() {

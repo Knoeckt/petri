@@ -1,69 +1,104 @@
-// The main screen: sign, counter, vessel, board, tab bar, and the panel layer. Structure once; live values patched.
-import { RAR, TEXT } from '../data';
-import type { Ctx } from '../sim';
-import { goal, genRate, cycleTime, collect, flashFinds, tierDef, fmt, fmtDur, clinicHas, unlocked, unlockLabel, upAvailable, canAscend, UNLOCK, startTrip, sitesOpen, eqAvailable } from '../sim';
+// The main screen: sign, counter, vessel with its side buttons, board, tab bar, panels and the sheet.
+// Structure is built once; live values are patched in place.
+import { RAR, TEXT, UNLOCK } from '../data';
+import type { Ctx, AdPlacement } from '../sim';
+import { goal, genRate, cycleTime, collect, flashFinds, tierDef, fmt, fmtDur, clinicHas, unlocked, unlockLabel, upAvailable, eqAvailable, canAscend, questsReady, unplacedCount, mergeableCount, medsRelevant, batchesAffordable, adReady, boostOn, warpLen, type Offline } from '../sim';
 import { VesselView } from './vessel';
 import { Panels } from './panel';
+import { Sheet, runAd, showResults, adLabel } from './sheet';
 import { clinicPanel } from './panels/clinic';
 import { upgradesPanel } from './panels/upgrades';
+import { labPanel } from './panels/lab';
+import { fieldPanel } from './panels/field';
+import { questsPanel, shopPanel, decorPanel } from './panels/misc';
+import { catalogPanel } from './panels/catalog';
+import { ladderPanel } from './panels/ladder';
+import { brewPanel, splicerPanel } from './panels/stations';
+import { openDev } from './dev';
 
 const setText = (el: Element | null, s: string) => { if (el && el.textContent !== s) el.textContent = s; };
 const setHTML = (el: Element | null, s: string) => { if (el && el.innerHTML !== s) el.innerHTML = s; };
+const setDis = (el: HTMLButtonElement | null, d: boolean) => { if (el && el.disabled !== d) el.disabled = d; };
 
 const TABS: [string, string, string][] = [['up', '🧪', 'Upgrades'], ['lab', '🔬', 'Lab'], ['clinic', '💊', 'Clinic'], ['cat', '📖', 'Catalog'], ['asc', '🚀', TEXT.ascend]];
+const SIDE_L: [string, string, string][] = [['quests', '📜', 'Quests'], ['field', '🗺️', 'Field'], ['splicer', '🧬', 'Splicer']];
+const SIDE_R: [string, string, string][] = [['shop', '🛒', 'Shop'], ['decor', '🏺', 'Decor'], ['brew', '⚗️', 'Brewery']];
 
 export class App {
-  root: HTMLDivElement; vessel: VesselView; panels: Panels;
+  root: HTMLDivElement; vessel: VesselView; panels: Panels; sheet: Sheet;
   private cur: HTMLElement; private rate: HTMLElement; private goalEl: HTMLElement; private bar: HTMLElement; private barFill: HTMLElement;
-  private harvest: HTMLButtonElement; private lvBtn: HTMLButtonElement; private signSmall: HTMLElement; private toastEl: HTMLElement; private tabs: HTMLElement;
-  private toastT = 0; private chEl: HTMLElement; private wdEl: HTMLElement;
+  private harvest: HTMLButtonElement; private fieldBtn: HTMLButtonElement; private warpBtn: HTMLButtonElement; private boostBtn: HTMLButtonElement;
+  private signSmall: HTMLElement; private toastEl: HTMLElement; private tabs: HTMLElement; private chEl: HTMLElement; private wdEl: HTMLElement;
+  private toastT = 0; private signTaps = 0; private signT = 0;
 
   constructor(private g: Ctx) {
     this.root = document.createElement('div'); this.root.className = 'phone';
+    const sbtn = ([id, ic, n]: [string, string, string]) => `<button class="sbtn" data-tab="${id}"><span>${ic}</span><i>${n}</i><b class="cnt" hidden></b><b class="lk" hidden></b></button>`;
     this.root.innerHTML = `
       <header class="top">
         <div class="sign"><small></small><b>${TEXT.name}</b></div>
         <div class="lvl"><b class="ch">1-1</b><small class="wd">World 1</small></div>
         <div class="cur"><b>0</b><small>+0.0/s</small></div>
       </header>
-      <div class="stage"></div>
+      <div class="stage"><div class="sideL">${SIDE_L.map(sbtn).join('')}</div><div class="sideR">${SIDE_R.map(sbtn).join('')}</div></div>
       <div class="board">
         <div class="goal"></div>
         <div class="bar"><i></i></div>
         <div class="acts">
           <button class="btn primary harvest">${TEXT.collect}</button>
-          <button class="btn lv">Field trip<small></small></button>
+          <button class="btn field">Field<small></small></button>
+        </div>
+        <div class="acts ads">
+          <button class="btn ad warp"></button>
+          <button class="btn ad boost"></button>
         </div>
       </div>
       <nav class="tabs">${TABS.map(([id, ic, n]) => `<button data-tab="${id}"><span class="i">${ic}</span>${n}<i class="badge"></i><b class="lk" hidden></b></button>`).join('')}</nav>
       <b class="ver">v${__APP_VERSION__}</b>
       <div class="toast"></div>`;
     this.vessel = new VesselView(g, { onHarvest: () => this.bump() });
-    this.root.querySelector('.stage')!.appendChild(this.vessel.el);
-    this.panels = new Panels(g, [upgradesPanel, clinicPanel], open => this.root.classList.toggle('covered', !!open));
+    const stage = this.root.querySelector('.stage')!; stage.insertBefore(this.vessel.el, stage.querySelector('.sideR'));
+    this.sheet = new Sheet();
+    this.panels = new Panels(g, [upgradesPanel, labPanel, clinicPanel, catalogPanel, ladderPanel, fieldPanel, questsPanel, shopPanel, decorPanel, brewPanel, splicerPanel], open => this.root.classList.toggle('covered', !!open));
+    this.panels.api.ad = (placement: AdPlacement, arg?: number) => this.ad(placement, arg);
     this.root.insertBefore(this.panels.el, this.root.querySelector('.tabs'));
-    this.cur = this.root.querySelector('.cur b')!; this.rate = this.root.querySelector('.cur small')!; this.chEl = this.root.querySelector('.lvl .ch')!; this.wdEl = this.root.querySelector('.lvl .wd')!;
-    this.goalEl = this.root.querySelector('.goal')!; this.bar = this.root.querySelector('.bar')!; this.barFill = this.root.querySelector('.bar i')!;
-    this.harvest = this.root.querySelector('.harvest')!; this.lvBtn = this.root.querySelector('.lv')!; this.signSmall = this.root.querySelector('.sign small')!; this.toastEl = this.root.querySelector('.toast')!; this.tabs = this.root.querySelector('.tabs')!;
+    this.root.appendChild(this.sheet.el);
+    const q = <T extends Element>(sel: string) => this.root.querySelector<T>(sel)!;
+    this.cur = q('.cur b'); this.rate = q('.cur small'); this.chEl = q('.lvl .ch'); this.wdEl = q('.lvl .wd');
+    this.goalEl = q('.goal'); this.bar = q('.bar'); this.barFill = q('.bar i');
+    this.harvest = q('.harvest'); this.fieldBtn = q('.field'); this.warpBtn = q('.warp'); this.boostBtn = q('.boost');
+    this.signSmall = q('.sign small'); this.toastEl = q('.toast'); this.tabs = q('.tabs');
     this.harvest.onclick = () => { const sum = collect(g, 0); if (sum) { flashFinds(g, sum); this.bump(); } };
-    this.lvBtn.onclick = () => { const open = sitesOpen(g); const best = open[open.length - 1]; if (best && startTrip(g, best.id)) this.bump(); };
-    this.tabs.addEventListener('click', e => { const b = (e.target as HTMLElement).closest<HTMLElement>('button[data-tab]'); if (b) this.panels.toggle(b.dataset.tab!); });
+    this.fieldBtn.onclick = () => this.panels.open('field');
+    this.warpBtn.onclick = () => this.ad('time warp');
+    this.boostBtn.onclick = () => this.ad('boost');
+    this.root.addEventListener('click', e => { const b = (e.target as HTMLElement).closest<HTMLElement>('.tabs button[data-tab], .sbtn[data-tab]'); if (b) this.panels.toggle(b.dataset.tab!); });
+    q('.sign').addEventListener('click', () => { const now = performance.now(); if (now - this.signT > 1500) this.signTaps = 0; this.signT = now; if (++this.signTaps >= 5) { this.signTaps = 0; openDev(g, this.sheet, this); } });
+    q('.ver').addEventListener('click', () => this.readout());
     g.on(e => { if (e.type === 'toast') this.toast(e.msg, e.bad); });
-    // tap the version for a layout readout (helps chase phone viewport quirks)
-    this.root.querySelector('.ver')!.addEventListener('click', () => {
-      const cs = getComputedStyle(document.documentElement), ph = this.root.getBoundingClientRect(), tb = this.tabs.getBoundingClientRect();
-      const vv = window.visualViewport;
-      this.toast(`v${__APP_VERSION__} · win ${innerWidth}×${innerHeight} · vv ${vv ? Math.round(vv.width) + '×' + Math.round(vv.height) + ' @' + Math.round(vv.offsetTop) : '-'} · frame ${Math.round(ph.top)}–${Math.round(ph.bottom)} · tabs ${Math.round(tb.top)}–${Math.round(tb.bottom)} · doc ${document.documentElement.scrollHeight}/${Math.round(scrollY)} · sa ${cs.getPropertyValue('--sat').trim() || '0'}/${cs.getPropertyValue('--sab').trim() || '0'} · standalone ${(navigator as any).standalone ?? matchMedia('(display-mode: standalone)').matches}`);
-    });
     this.update();
   }
 
+  /** plays a stand-in ad and applies the reward; warps show the results sheet */
+  ad(placement: AdPlacement, arg?: number) {
+    if (!adReady(this.g)) { this.toast(`Ad in ${Math.ceil(this.g.s.adCd)}s`); return; }
+    runAd(this.g, this.sheet, placement, arg, sum => { if (placement === 'time warp' && sum) showResults(this.g, this.sheet, 'Time warp', `${fmtDur(warpLen(this.g))} passed on everything.`, sum, false); this.bump(); });
+  }
+  /** the welcome-back sheet */
+  offline(off: Offline) {
+    const eff = `The ${TEXT.dish} ran at ${Math.round(off.eff * 100)}% while you were away${off.eff < 1 ? ' (Night shift in Genome raises it)' : ''}.`;
+    showResults(this.g, this.sheet, 'While you were away', (off.capped ? `Capped. Storage research raises the cap. ` : '') + eff, off.sum, true, () => this.bump());
+  }
   toast(msg: string, bad?: boolean) {
     const t = this.toastEl; t.textContent = msg; t.classList.toggle('bad', !!bad); t.classList.remove('on'); void t.offsetWidth; t.classList.add('on');
     clearTimeout(this.toastT); this.toastT = window.setTimeout(() => t.classList.remove('on'), msg.length > 80 ? 9000 : 2400);
   }
   /** the counter jellies when something lands in it */
   bump() { const c = this.cur.parentElement!; c.classList.remove('tick'); void c.offsetWidth; c.classList.add('tick'); }
+  readout() {
+    const cs = getComputedStyle(document.documentElement), ph = this.root.getBoundingClientRect(), tb = this.tabs.getBoundingClientRect(), vv = window.visualViewport;
+    this.toast(`v${__APP_VERSION__} · win ${innerWidth}×${innerHeight} · vv ${vv ? Math.round(vv.width) + '×' + Math.round(vv.height) + ' @' + Math.round(vv.offsetTop) : '-'} · frame ${Math.round(ph.top)}–${Math.round(ph.bottom)} · tabs ${Math.round(tb.top)}–${Math.round(tb.bottom)} · doc ${document.documentElement.scrollHeight}/${Math.round(scrollY)} · sa ${cs.getPropertyValue('--sat').trim() || '0'}/${cs.getPropertyValue('--sab').trim() || '0'} · standalone ${(navigator as any).standalone ?? matchMedia('(display-mode: standalone)').matches}`);
+  }
 
   /** cheap: runs every ~150 ms */
   update() {
@@ -72,9 +107,11 @@ export class App {
     setText(this.signSmall, `Tier ${s.tier + 1} · ${tierDef(s.tier).n}`);
     const prog = Math.min(1, d.p / cycleTime(g));
     this.barFill.style.width = (prog * 100).toFixed(1) + '%'; this.bar.classList.toggle('ready', d.ready);
-    this.harvest.disabled = !d.ready; setText(this.harvest, d.ready ? `${TEXT.collect}!` : `${TEXT.cycling} · ${fmtDur(cycleTime(g) - d.p)}`);
-    const open = sitesOpen(g), best = open[open.length - 1];
-    setHTML(this.lvBtn, s.trip ? `Trip out<small>back in ${fmtDur(s.trip.left)} · ${s.notes} notes</small>` : best ? `Send to ${best.n.toLowerCase()}<small>${fmtDur(best.time)} · ${s.notes} notes</small>` : `Field trips<small>open after 1-1</small>`); this.lvBtn.disabled = !!s.trip || !best;
+    setDis(this.harvest, !d.ready); setText(this.harvest, d.ready ? `${TEXT.collect}!` : `${TEXT.cycling} · ${fmtDur(cycleTime(g) - d.p)}`);
+    const fieldOpen = unlocked(g, 'field');
+    setHTML(this.fieldBtn, s.trip ? `Trip out<small>back in ${fmtDur(s.trip.left)} · ${s.notes} notes</small>` : fieldOpen ? `Field<small>${s.notes} notes · send a trip</small>` : `Field trips<small>open after ${unlockLabel('field')}</small>`); setDis(this.fieldBtn, !fieldOpen);
+    setHTML(this.warpBtn, adLabel(g, `Time warp +${fmtDur(warpLen(g))}`)); setDis(this.warpBtn, !adReady(g) || this.sheet.busy);
+    setHTML(this.boostBtn, boostOn(g) ? `✦ 2× for ${fmtDur(s.boost)}` : adLabel(g, '2× for 2 min')); setDis(this.boostBtn, boostOn(g) || !adReady(g) || this.sheet.busy);
     const gl = goal(g);
     setText(this.chEl, gl.kind === 'done' ? `${s.tier + 1} ✓` : gl.kind === 'bloom' ? '☠' : gl.no); setText(this.wdEl, `World ${s.tier + 1}`);
     const html = gl.kind === 'gather'
@@ -86,10 +123,12 @@ export class App {
       : gl.kind === 'done' ? `<span class="no">${gl.no}</span><span>Chapter done · ${TEXT.ascend} is open</span>`
       : `<span class="no">${gl.no}</span><span>No chapter here yet</span>`;
     setHTML(this.goalEl, html);
-    // tab badges and locks
+    // badges, counts and locks
     const has: Record<string, boolean> = { up: upAvailable(g) || eqAvailable(g), clinic: clinicHas(g), asc: canAscend(g) };
-    this.tabs.querySelectorAll<HTMLElement>('button[data-tab]').forEach(b => {
+    const cnt: Record<string, [number, boolean]> = { quests: [questsReady(g), true], field: [s.tickets, s.tickets > 0], splicer: [s.spOut ? 1 : 0, true], decor: [unplacedCount(g) + mergeableCount(g), true], brew: [!s.brew && medsRelevant(g).some(m => batchesAffordable(g, m) >= 1) ? 1 : 0, true] };
+    this.root.querySelectorAll<HTMLElement>('.tabs button[data-tab], .sbtn[data-tab]').forEach(b => {
       const k = b.dataset.tab!; b.classList.toggle('has', !!has[k]); b.setAttribute('aria-selected', String(this.panels.current === k));
+      const c = b.querySelector<HTMLElement>('.cnt'); if (c && cnt[k]) { const [n, ok] = cnt[k]; c.hidden = n <= 0; setText(c, k === 'splicer' || k === 'brew' ? '!' : String(n)); c.classList.toggle('ok', ok); }
       if (UNLOCK[k]) { const ok = unlocked(g, k); b.classList.toggle('locked', !ok); const lk = b.querySelector<HTMLElement>('.lk')!; lk.hidden = ok; setText(lk, unlockLabel(k)); }
     });
     this.panels.live();

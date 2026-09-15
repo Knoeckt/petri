@@ -1,0 +1,47 @@
+// Quests, Shop and Decor: short list panels.
+import { SIDE, SHOP, ARTS, ART, ART_MAX, ART_MERGE, TEXT } from '../../data';
+import type { Ctx } from '../../sim';
+import { sideRefill, sideProg, sideDone, doSide, tierMult, shopItems, shopCost, buyShop, artSpare, artDesc, artPerk, placeArt, unplaceArt, mergeArt, fmt } from '../../sim';
+import type { PanelDef } from '../panel';
+
+export const questsPanel: PanelDef = {
+  id: 'quests',
+  title: () => 'Side quests',
+  render(el, g) {
+    sideRefill(g);
+    const rows = g.s.side.map((x, idx) => { const q = SIDE[x.k], have = sideProg(g, x), ok = have >= q.n; return `<div class="card req small"><div class="who"><span class="face">${q.face}</span><div><b>${q.who}</b><div class="sub" style="margin:0">${q.verb} ${q.n} ${q.unit} · pays ${fmt(q.reward * tierMult(g))}</div></div></div><p class="say">“${q.say}”</p><div class="qprog"><div class="bar"><i style="width:${have / q.n * 100}%"></i></div><b>${have}/${q.n}</b></div><div class="acts" style="margin-top:8px"><button class="btn primary" data-act="side" data-i="${idx}" ${ok ? '' : 'disabled'}>${ok ? 'Collect ' + fmt(q.reward * tierMult(g)) : 'In progress'}</button></div></div>`; }).join('');
+    el.innerHTML = `<p class="sub">Odd jobs from around town. They count things you do anyway: harvesting, stirring, ranking the bench, boxing up biters. Collect the pay when the bar fills and a fresh one turns up.</p>` + rows;
+  },
+  act: { side: (b, g) => doSide(g, +b.dataset.i!) },
+};
+
+export const shopPanel: PanelDef = {
+  id: 'shop',
+  title: () => 'Shop',
+  render(el, g) {
+    el.innerHTML = `<p class="sub">Paid in ${TEXT.cur.toLowerCase()}. Nothing here you can't also earn; more appears as the town opens up.</p>` +
+      shopItems(g).map(it => { const c = shopCost(g, it.id); return `<div class="r" style="cursor:default"><div class="rn"><span class="e">${it.e}</span> ${it.n}</div><div class="rd">${it.d}</div><div class="rc">${fmt(c)}</div><div class="acts" style="grid-column:1 / span 2; margin-top:6px"><button class="btn primary" data-act="buy" data-id="${it.id}" ${g.s.cur >= c ? '' : 'disabled'}>Buy</button></div></div>`; }).join('');
+  },
+  live(el, g) { el.querySelectorAll<HTMLButtonElement>('[data-act="buy"]').forEach(b => { b.disabled = g.s.cur < shopCost(g, b.dataset.id!); }); },
+  act: { buy: (b, g) => buyShop(g, b.dataset.id!) },
+};
+
+export const decorPanel: PanelDef = {
+  id: 'decor',
+  title: () => 'Decor',
+  render(el, g) {
+    const s = g.s;
+    const slots = s.placed.map((p, k) => { const a = p && ART[p.id]; return a ? `<div class="slot full"><div class="e">${a.e}</div><div class="nm">${a.n} <b class="alv">Lv ${p.lv}</b></div><div class="pd">${artDesc(a, p.lv)}</div><button class="btn" data-act="unplace" data-i="${k}">Remove</button></div>` : `<div class="slot"><div class="e" style="opacity:.35">＋</div><div class="pd">Slot ${k + 1}</div><div class="pd">empty</div></div>`; }).join('');
+    const rows: string[] = [];
+    ARTS.forEach(a => { const c = s.arts[a.id] || {}; Object.keys(c).map(Number).sort((x, y) => y - x).forEach(lv => { if (!c[lv]) return; const spare = artSpare(g, a.id, lv), canMerge = lv < ART_MAX && spare >= ART_MERGE;
+      rows.push(`<div class="r" style="cursor:default"><div class="rn"><span class="e">${a.e}</span> ${a.n} <b class="alv">Lv ${lv}</b></div><div class="rd">${artDesc(a, lv)} · ×${c[lv]} owned, ${spare} spare${lv < ART_MAX ? ` · ${ART_MERGE} spare merge into Lv ${lv + 1} (${artDesc(a, lv + 1)})` : ' · max level'}</div><div class="acts" style="grid-column:1 / span 2; margin-top:6px"><button class="btn primary" data-act="place" data-id="${a.id}" data-lv="${lv}" ${spare > 0 && s.placed.includes(null) ? '' : 'disabled'}>Place</button>${lv < ART_MAX ? `<button class="btn" data-act="merge" data-id="${a.id}" data-lv="${lv}" ${canMerge ? '' : 'disabled'}>Merge ${Math.min(spare, ART_MERGE)}/${ART_MERGE}</button>` : ''}</div></div>`); }); });
+    const tot = { lv: artPerk(g, 'lv'), speed: artPerk(g, 'speed'), value: artPerk(g, 'value'), income: artPerk(g, 'income'), drop: artPerk(g, 'drop') };
+    el.innerHTML = `<p class="sub">Three things can sit in the ${TEXT.dish}. Only placed artifacts count. Three spare copies of the same level merge into one a level higher.</p><div class="slots">${slots}</div><div class="card" style="margin-top:10px"><div class="kv"><span>From decor</span><span>+${tot.lv} lv · −${Math.round(tot.speed * 100)}% cycle · +${Math.round(tot.value * 100)}% value · +${Math.round(tot.income * 100)}% income · +${tot.drop} ${TEXT.drops}</span></div></div><h4 class="gh">Collection</h4>` +
+      (rows.length ? rows.join('') : `<div class="card"><p class="sub" style="margin:0">No artifacts yet. Win them at the pipette (Field) or buy a mystery pebble in the Shop.</p></div>`);
+  },
+  act: {
+    place: (b, g) => placeArt(g, b.dataset.id!, +b.dataset.lv!),
+    unplace: (b, g) => unplaceArt(g, +b.dataset.i!),
+    merge: (b, g) => mergeArt(g, b.dataset.id!, +b.dataset.lv!),
+  },
+};
