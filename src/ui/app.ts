@@ -49,12 +49,18 @@ export class App {
     this.lvBtn.onclick = () => { const open = sitesOpen(g); const best = open[open.length - 1]; if (best && startTrip(g, best.id)) this.bump(); };
     this.tabs.addEventListener('click', e => { const b = (e.target as HTMLElement).closest<HTMLElement>('button[data-tab]'); if (b) this.panels.toggle(b.dataset.tab!); });
     g.on(e => { if (e.type === 'toast') this.toast(e.msg, e.bad); });
+    // tap the version for a layout readout (helps chase phone viewport quirks)
+    this.root.querySelector('.ver')!.addEventListener('click', () => {
+      const cs = getComputedStyle(document.documentElement), ph = this.root.getBoundingClientRect(), tb = this.tabs.getBoundingClientRect();
+      const vv = window.visualViewport;
+      this.toast(`v${__APP_VERSION__} · win ${innerWidth}×${innerHeight} · vv ${vv ? Math.round(vv.width) + '×' + Math.round(vv.height) + ' @' + Math.round(vv.offsetTop) : '-'} · frame ${Math.round(ph.top)}–${Math.round(ph.bottom)} · tabs ${Math.round(tb.top)}–${Math.round(tb.bottom)} · doc ${document.documentElement.scrollHeight}/${Math.round(scrollY)} · sa ${cs.getPropertyValue('--sat').trim() || '0'}/${cs.getPropertyValue('--sab').trim() || '0'} · standalone ${(navigator as any).standalone ?? matchMedia('(display-mode: standalone)').matches}`);
+    });
     this.update();
   }
 
   toast(msg: string, bad?: boolean) {
     const t = this.toastEl; t.textContent = msg; t.classList.toggle('bad', !!bad); t.classList.remove('on'); void t.offsetWidth; t.classList.add('on');
-    clearTimeout(this.toastT); this.toastT = window.setTimeout(() => t.classList.remove('on'), 2400);
+    clearTimeout(this.toastT); this.toastT = window.setTimeout(() => t.classList.remove('on'), msg.length > 80 ? 9000 : 2400);
   }
   /** the counter jellies when something lands in it */
   bump() { const c = this.cur.parentElement!; c.classList.remove('tick'); void c.offsetWidth; c.classList.add('tick'); }
