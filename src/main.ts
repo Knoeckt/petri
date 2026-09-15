@@ -29,7 +29,7 @@ let last = performance.now(), uiAcc = 0;
 function frame(now: number) {
   const dt = Math.min(0.25, (now - last) / 1000); last = now;
   tick(g, dt, now);
-  app.vessel.draw(now, g.paused);
+  app.vessel.draw(now, g.paused); app.panels.frame(now);
   uiAcc += dt; if (uiAcc > 0.15) { uiAcc = 0; app.update(); }
   requestAnimationFrame(frame);
 }

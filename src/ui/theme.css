@@ -199,3 +199,29 @@ button{font-family:var(--display); cursor:pointer}
 .it.unk{opacity:.7; background:var(--paper)} button.it{cursor:pointer}
 .ladder{display:flex; flex-direction:column; gap:3px; font:700 12.5px var(--ui)} .ladder div{padding:5px 8px; border-radius:8px; color:color-mix(in srgb, var(--ink) 55%, var(--cream))}
 .ladder div.cur{background:var(--teal); color:var(--ink)} .ladder div.done{color:var(--teal-deep)}
+
+/* ---- icons, portraits, scenes, guide, mute ---- */
+.ic{display:inline-block; vertical-align:middle; flex:none}
+.sbtn span .ic, .tabs .i .ic{filter:drop-shadow(0 1px 0 rgba(0,0,0,.25))}
+.chip .ic, .need .ic{margin-right:2px}
+canvas.face{width:46px; height:46px; flex:none; background:var(--cream-2); border:3px solid var(--ink); border-radius:50%; box-shadow:0 3px 0 var(--ink)}
+canvas.face.small{width:38px; height:38px}
+.scenewrap{margin:-4px -6px 10px; border-radius:18px; overflow:hidden}
+canvas.scene{display:block; width:100%; height:auto; touch-action:manipulation}
+.mute{position:absolute; left:10px; top:calc(78px + env(safe-area-inset-top)); z-index:31; width:34px; height:34px; border-radius:50%; border:3px solid var(--ink); background:var(--cream-2); box-shadow:0 3px 0 var(--ink); display:flex; align-items:center; justify-content:center; padding:0}
+.mute:active{transform:translateY(2px); box-shadow:0 1px 0 var(--ink)}
+.guide .gb{position:absolute; z-index:55; background:rgba(8,22,18,.58); pointer-events:auto; touch-action:none}
+.guide .spot{position:absolute; z-index:56; pointer-events:none; border:3px solid var(--gold); border-radius:14px; box-shadow:0 0 0 3px rgba(0,0,0,.35), 0 0 22px rgba(255,212,59,.85); animation:spotpulse 1.2s ease-in-out infinite}
+.guide .spot.round{border-radius:50%}
+@keyframes spotpulse{0%,100%{box-shadow:0 0 0 3px rgba(0,0,0,.35), 0 0 14px rgba(255,212,59,.6)} 50%{box-shadow:0 0 0 3px rgba(0,0,0,.35), 0 0 30px rgba(255,212,59,1)}}
+.guide .hand{position:absolute; left:0; top:0; z-index:60; pointer-events:none; display:flex; flex-direction:column; align-items:center; transform:translate(-50%,0); transition:left .25s, top .25s}
+.guide .hand .hp{display:block; width:40px; height:40px; filter:drop-shadow(0 3px 0 rgba(0,0,0,.35)); animation:handbob .9s ease-in-out infinite}
+.guide .hand .hp .ic{width:40px; height:40px}
+.guide .hand.up .hp{animation-name:handbobup}
+.guide .hand .hc{pointer-events:auto; background:var(--ink); color:var(--cream); font:800 12.5px var(--ui); padding:6px 26px 6px 10px; border-radius:10px; margin-top:2px; max-width:220px; text-align:center; position:relative; box-shadow:0 3px 0 rgba(0,0,0,.35)}
+.guide .hand .hc .hx{position:absolute; right:6px; top:4px; font-style:normal; opacity:.7; font-size:13px; padding:0 4px; cursor:pointer}
+.guide .hand.up{flex-direction:column-reverse} .guide .hand.up .hc{margin:0 0 2px}
+@keyframes handbob{0%,100%{transform:translateY(0) rotate(-8deg)} 50%{transform:translateY(7px) rotate(-8deg)}}
+@keyframes handbobup{0%,100%{transform:translateY(0) rotate(188deg)} 50%{transform:translateY(-7px) rotate(188deg)}}
+@media (prefers-reduced-motion: reduce){ .guide .hand .hp, .guide .spot{animation:none} }
+.guide .hand[hidden]{display:none}

@@ -910,6 +910,12 @@ panel open, side canvases at 8.
 
 ## 12. Art build spec (for the real build)
 
+*Status 2026-09-15:* the palette tokens, the icon sprite (inline SVG, `src/ui/icons.ts`),
+the code-drawn townsfolk (`src/ui/portraits.ts`), the motion set, the six-voice synth
+(`src/ui/sound.ts`) and the first-run guide are in the real build. Still to do from this
+section: the particle moments beyond harvest and quarantine, and the panel header scenes
+for the Clinic and Lab.
+
 The mockup proved the shape. The next build starts from these three lists rather than
 layering them onto the single file. See section 9 for the phone budget; all of this lives
 inside it.

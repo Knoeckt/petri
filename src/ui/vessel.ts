@@ -4,6 +4,10 @@ import { ART, HYB, OB_TIME } from '../data';
 import type { Ctx, Drop, Bounds } from '../sim';
 import { item, cycleTime, contain, collect, flashFinds, stir, hitBloom, spawned } from '../sim';
 import { drawCritter, lobed, rrect, INK } from './critter';
+import { icon } from './icons';
+
+const glyphs: Record<string, HTMLImageElement> = {};
+function glyph(id: string) { let im = glyphs[id]; if (!im) { im = new Image(); im.src = 'data:image/svg+xml;utf8,' + encodeURIComponent(icon(id, 48).replace(/class="[^"]*"/, '').replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"')); glyphs[id] = im; } return im.complete && im.naturalWidth ? im : null; }
 
 type C = CanvasRenderingContext2D;
 const lcg = (s: number) => () => (s = (s * 1664525 + 1013904223) % 4294967296) / 4294967296;
@@ -139,7 +143,7 @@ export class VesselView {
     // ambient bubbles, a 6 s loop
     if (V.shape === 'circle') for (const b of this.ambient) { const u = ((now / 6000) + b.o) % 1; c.fillStyle = 'rgba(255,255,255,.35)'; c.strokeStyle = 'rgba(255,255,255,.6)'; c.lineWidth = 1; c.beginPath(); c.arc(b.x * W + Math.sin(u * 9) * 5, H * (.85 - u * .7), b.s * (1 + u * .5), 0, 7); c.fill(); c.stroke(); }
     // placed artifacts (drawn as glyphs until the icon set lands)
-    s.placed.forEach((p, k) => { const a = p && ART[p.id]; if (!a) return; const [px, py] = V.slots[k]; c.fillStyle = 'rgba(0,0,0,.18)'; c.beginPath(); c.ellipse(px * W, py * H + 12, 16, 6, 0, 0, 7); c.fill(); c.font = '28px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(a.e, px * W, py * H + Math.sin(now / 600 + k) * 2); if (p.lv > 1) { c.fillStyle = '#ffd43b'; for (let i = 0; i < p.lv; i++) { c.beginPath(); c.arc(px * W + (i - (p.lv - 1) / 2) * 7, py * H + 22, 2.5, 0, 7); c.fill(); } } });
+    s.placed.forEach((p, k) => { const a = p && ART[p.id]; if (!a) return; const [px, py] = V.slots[k]; c.fillStyle = 'rgba(0,0,0,.18)'; c.beginPath(); c.ellipse(px * W, py * H + 12, 16, 6, 0, 0, 7); c.fill(); const im = glyph(a.id); if (im) c.drawImage(im, px * W - 18, py * H - 20 + Math.sin(now / 600 + k) * 2, 36, 36); if (p.lv > 1) { c.fillStyle = '#ffd43b'; for (let i = 0; i < p.lv; i++) { c.beginPath(); c.arc(px * W + (i - (p.lv - 1) / 2) * 7, py * H + 22, 2.5, 0, 7); c.fill(); } } });
     // the seeded hybrid sits at the bottom
     if (s.seed && HYB[s.seed]) { const sy = H * V.seedY; c.strokeStyle = 'rgba(255,255,255,.55)'; c.lineWidth = 3; c.setLineDash([6, 5]); c.lineDashOffset = -now / 80; c.beginPath(); c.arc(W * .5, sy, W * .08, 0, 7); c.stroke(); c.setLineDash([]); drawCritter(c, W * .5, sy, W * .05, HYB[s.seed].look, now, { seed: 42, ready: d.ready }); }
     // colonies: pop in, grow over the cycle, wander, bite, fade when eaten

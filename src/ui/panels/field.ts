@@ -4,6 +4,7 @@ import type { Ctx } from '../../sim';
 import { siteOpen, startTrip, mgStart, mgDrop, mgPos, item, fmtDur, eqLv } from '../../sim';
 import type { PanelDef } from '../panel';
 import { adLabel } from '../sheet';
+import { icon } from '../icons';
 
 const label = (u: [number, number]) => `${u[0] + 1}-${u[1]}`;
 
@@ -27,7 +28,7 @@ export const fieldPanel: PanelDef = {
     const mg = g.mg; const res = mg?.done && mg.result ? mg.result : null; const art = res ? ART[res.art] : null;
     const play = mg && !mg.done
       ? `<div class="card"><h3>Drop it!</h3><div class="mg"><div class="mgbar"><i class="zone"></i><b class="mark" data-live="mark"></b></div></div><div class="acts" style="margin-top:8px"><button class="btn primary" data-act="drop">Drop</button></div></div>`
-      : `<div class="card"><h3>Pipette drop</h3><p class="sub" style="margin:0 0 6px">Stop the drop over the green. The closer to the centre, the rarer the artifact. Artifacts go in the ${'dish'} and change your odds.</p>${res && art ? `<div class="kv"><span>${['Miss', 'Close', 'Nice', 'Perfect'][res.grade]}</span><span class="good">${art.e} ${art.n} · ${RAR[art.r].n}</span></div>` : ''}<div class="kv"><span>Tickets today</span><span>${s.tickets} / ${TICKETS_PER_DAY}</span></div><div class="acts" style="margin-top:8px"><button class="btn primary" data-act="play" ${s.tickets > 0 ? '' : 'disabled'}>Play · 1 ticket</button><button class="btn ad" data-act="adTicket" data-live="adT">${adLabel(g, '+1 ticket')}</button></div></div>`;
+      : `<div class="card"><h3>Pipette drop</h3><p class="sub" style="margin:0 0 6px">Stop the drop over the green. The closer to the centre, the rarer the artifact. Artifacts go in the ${'dish'} and change your odds.</p>${res && art ? `<div class="kv"><span>${['Miss', 'Close', 'Nice', 'Perfect'][res.grade]}</span><span class="good">${icon(art.id, 18)} ${art.n} · ${RAR[art.r].n}</span></div>` : ''}<div class="kv"><span>Tickets today</span><span>${s.tickets} / ${TICKETS_PER_DAY}</span></div><div class="acts" style="margin-top:8px"><button class="btn primary" data-act="play" ${s.tickets > 0 ? '' : 'disabled'}>Play · 1 ticket</button><button class="btn ad" data-act="adTicket" data-live="adT">${adLabel(g, '+1 ticket')}</button></div></div>`;
     el.innerHTML = status + `<h4 class="gh">Expeditions</h4>` + sites + `<h4 class="gh">The pipette · ${s.tickets} ticket${s.tickets === 1 ? '' : 's'}</h4>` + play + `<p class="sub">Microscope rank ${eqLv(g, 'scope')}: samples from trips count as found the moment they come home.</p>`;
   },
   live(el, g) {

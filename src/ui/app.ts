@@ -15,17 +15,21 @@ import { catalogPanel } from './panels/catalog';
 import { ladderPanel } from './panels/ladder';
 import { brewPanel, splicerPanel } from './panels/stations';
 import { openDev } from './dev';
+import { icon } from './icons';
+import { Guide } from './guide';
+import { play, unlockAudio, isMuted, setMuted } from './sound';
+import { spliceScene } from './panels/stations';
 
 const setText = (el: Element | null, s: string) => { if (el && el.textContent !== s) el.textContent = s; };
 const setHTML = (el: Element | null, s: string) => { if (el && el.innerHTML !== s) el.innerHTML = s; };
 const setDis = (el: HTMLButtonElement | null, d: boolean) => { if (el && el.disabled !== d) el.disabled = d; };
 
-const TABS: [string, string, string][] = [['up', '🧪', 'Upgrades'], ['lab', '🔬', 'Lab'], ['clinic', '💊', 'Clinic'], ['cat', '📖', 'Catalog'], ['asc', '🚀', TEXT.ascend]];
-const SIDE_L: [string, string, string][] = [['quests', '📜', 'Quests'], ['field', '🗺️', 'Field'], ['splicer', '🧬', 'Splicer']];
-const SIDE_R: [string, string, string][] = [['shop', '🛒', 'Shop'], ['decor', '🏺', 'Decor'], ['brew', '⚗️', 'Brewery']];
+const TABS: [string, string, string][] = [['up', 'flask', 'Upgrades'], ['lab', 'microscope', 'Lab'], ['clinic', 'pill', 'Clinic'], ['cat', 'book', 'Catalog'], ['asc', 'rocket', TEXT.ascend]];
+const SIDE_L: [string, string, string][] = [['quests', 'scroll', 'Quests'], ['field', 'map', 'Field'], ['splicer', 'dna', 'Splicer']];
+const SIDE_R: [string, string, string][] = [['shop', 'cart', 'Shop'], ['decor', 'vase', 'Decor'], ['brew', 'kettle', 'Brewery']];
 
 export class App {
-  root: HTMLDivElement; vessel: VesselView; panels: Panels; sheet: Sheet;
+  root: HTMLDivElement; vessel: VesselView; panels: Panels; sheet: Sheet; guide: Guide;
   private cur: HTMLElement; private rate: HTMLElement; private goalEl: HTMLElement; private bar: HTMLElement; private barFill: HTMLElement;
   private harvest: HTMLButtonElement; private fieldBtn: HTMLButtonElement; private warpBtn: HTMLButtonElement; private boostBtn: HTMLButtonElement;
   private signSmall: HTMLElement; private toastEl: HTMLElement; private tabs: HTMLElement; private chEl: HTMLElement; private wdEl: HTMLElement;
@@ -33,13 +37,14 @@ export class App {
 
   constructor(private g: Ctx) {
     this.root = document.createElement('div'); this.root.className = 'phone';
-    const sbtn = ([id, ic, n]: [string, string, string]) => `<button class="sbtn" data-tab="${id}"><span>${ic}</span><i>${n}</i><b class="cnt" hidden></b><b class="lk" hidden></b></button>`;
+    const sbtn = ([id, ic, n]: [string, string, string]) => `<button class="sbtn" data-tab="${id}"><span>${icon(ic, 26)}</span><i>${n}</i><b class="cnt" hidden></b><b class="lk" hidden></b></button>`;
     this.root.innerHTML = `
       <header class="top">
         <div class="sign"><small></small><b>${TEXT.name}</b></div>
         <div class="lvl"><b class="ch">1-1</b><small class="wd">World 1</small></div>
         <div class="cur"><b>0</b><small>+0.0/s</small></div>
       </header>
+      <button class="mute" aria-label="Sound">${icon(isMuted() ? 'mute' : 'speaker', 20)}</button>
       <div class="stage"><div class="sideL">${SIDE_L.map(sbtn).join('')}</div><div class="sideR">${SIDE_R.map(sbtn).join('')}</div></div>
       <div class="board">
         <div class="goal"></div>
@@ -53,29 +58,41 @@ export class App {
           <button class="btn ad boost"></button>
         </div>
       </div>
-      <nav class="tabs">${TABS.map(([id, ic, n]) => `<button data-tab="${id}"><span class="i">${ic}</span>${n}<i class="badge"></i><b class="lk" hidden></b></button>`).join('')}</nav>
+      <nav class="tabs">${TABS.map(([id, ic, n]) => `<button data-tab="${id}"><span class="i">${icon(ic, 24)}</span>${n}<i class="badge"></i><b class="lk" hidden></b></button>`).join('')}</nav>
       <b class="ver">v${__APP_VERSION__}</b>
       <div class="toast"></div>`;
-    this.vessel = new VesselView(g, { onHarvest: () => this.bump() });
+    this.vessel = new VesselView(g, { onHarvest: () => { this.bump(); play('harvest'); }, onStir: () => play('tap') });
     const stage = this.root.querySelector('.stage')!; stage.insertBefore(this.vessel.el, stage.querySelector('.sideR'));
     this.sheet = new Sheet();
     this.panels = new Panels(g, [upgradesPanel, labPanel, clinicPanel, catalogPanel, ladderPanel, fieldPanel, questsPanel, shopPanel, decorPanel, brewPanel, splicerPanel], open => this.root.classList.toggle('covered', !!open));
     this.panels.api.ad = (placement: AdPlacement, arg?: number) => this.ad(placement, arg);
     this.root.insertBefore(this.panels.el, this.root.querySelector('.tabs'));
     this.root.appendChild(this.sheet.el);
+    this.guide = new Guide(g, this.root, () => this.panels.current); this.root.appendChild(this.guide.el);
     const q = <T extends Element>(sel: string) => this.root.querySelector<T>(sel)!;
     this.cur = q('.cur b'); this.rate = q('.cur small'); this.chEl = q('.lvl .ch'); this.wdEl = q('.lvl .wd');
     this.goalEl = q('.goal'); this.bar = q('.bar'); this.barFill = q('.bar i');
     this.harvest = q('.harvest'); this.fieldBtn = q('.field'); this.warpBtn = q('.warp'); this.boostBtn = q('.boost');
     this.signSmall = q('.sign small'); this.toastEl = q('.toast'); this.tabs = q('.tabs');
-    this.harvest.onclick = () => { const sum = collect(g, 0); if (sum) { flashFinds(g, sum); this.bump(); } };
+    this.harvest.onclick = () => { const sum = collect(g, 0); if (sum) { flashFinds(g, sum); this.bump(); play('harvest'); } };
     this.fieldBtn.onclick = () => this.panels.open('field');
     this.warpBtn.onclick = () => this.ad('time warp');
     this.boostBtn.onclick = () => this.ad('boost');
     this.root.addEventListener('click', e => { const b = (e.target as HTMLElement).closest<HTMLElement>('.tabs button[data-tab], .sbtn[data-tab]'); if (b) this.panels.toggle(b.dataset.tab!); });
     q('.sign').addEventListener('click', () => { const now = performance.now(); if (now - this.signT > 1500) this.signTaps = 0; this.signT = now; if (++this.signTaps >= 5) { this.signTaps = 0; openDev(g, this.sheet, this); } });
     q('.ver').addEventListener('click', () => this.readout());
-    g.on(e => { if (e.type === 'toast') this.toast(e.msg, e.bad); });
+    const mute = q<HTMLButtonElement>('.mute'); mute.onclick = () => { setMuted(!isMuted()); mute.innerHTML = icon(isMuted() ? 'mute' : 'speaker', 20); if (!isMuted()) play('tap'); };
+    this.root.addEventListener('pointerdown', unlockAudio, { once: true });
+    g.on(e => {
+      if (e.type === 'toast') this.toast(e.msg, e.bad);
+      else if (e.type === 'chomp') play('danger');
+      else if (e.type === 'find') play('find');
+      else if (e.type === 'unlock' || e.type === 'chapterDone') play('deliver');
+      else if (e.type === 'ascend') play('level');
+      else if (e.type === 'genesis') play('genesis');
+      else if (e.type === 'burst') spliceScene(g).burst(e.col);
+      else if (e.type === 'smoke') spliceScene(g).smoke();
+    });
     this.update();
   }
 
@@ -113,13 +130,13 @@ export class App {
     setHTML(this.warpBtn, adLabel(g, `Time warp +${fmtDur(warpLen(g))}`)); setDis(this.warpBtn, !adReady(g) || this.sheet.busy);
     setHTML(this.boostBtn, boostOn(g) ? `✦ 2× for ${fmtDur(s.boost)}` : adLabel(g, '2× for 2 min')); setDis(this.boostBtn, boostOn(g) || !adReady(g) || this.sheet.busy);
     const gl = goal(g);
-    setText(this.chEl, gl.kind === 'done' ? `${s.tier + 1} ✓` : gl.kind === 'bloom' ? '☠' : gl.no); setText(this.wdEl, `World ${s.tier + 1}`);
+    setText(this.chEl, gl.kind === 'done' ? `${s.tier + 1} ✓` : gl.kind === 'bloom' ? '!!' : gl.no); setText(this.wdEl, `World ${s.tier + 1}`);
     const html = gl.kind === 'gather'
-      ? `<span class="no">${gl.no}</span><span>${gl.who}</span>` + gl.needs!.map(n => `<span class="need ${n.ok ? 'ok' : ''} ${n.med ? 'med' : ''}">${n.med ? '💊' : `<i style="background:${RAR[n.r].col}"></i>`}${n.have}/${n.n} ${n.name}</span>`).join('')
+      ? `<span class="no">${gl.no}</span><span>${gl.who}</span>` + gl.needs!.map(n => `<span class="need ${n.ok ? 'ok' : ''} ${n.med ? 'med' : ''}">${n.med ? icon('pill', 14) : `<i style="background:${RAR[n.r].col}"></i>`}${n.have}/${n.n} ${n.name}</span>`).join('')
       : gl.kind === 'deliver' ? `<span class="no">${gl.no}</span><span>Deliver to ${gl.who}</span>`
       : gl.kind === 'brewing' ? `<span class="no">${gl.no}</span><span>Brewing ${gl.brew!.n} ${gl.brew!.id} · ${fmtDur(gl.brew!.left)}</span>`
       : gl.kind === 'face' ? `<span class="no">${gl.no}</span><span>${gl.who}: face the bloom</span>`
-      : gl.kind === 'bloom' ? `<span class="no">☠</span><span>Bloom in progress · tap it!</span>`
+      : gl.kind === 'bloom' ? `<span class="no">!!</span><span>Bloom in progress · tap it!</span>`
       : gl.kind === 'done' ? `<span class="no">${gl.no}</span><span>Chapter done · ${TEXT.ascend} is open</span>`
       : `<span class="no">${gl.no}</span><span>No chapter here yet</span>`;
     setHTML(this.goalEl, html);
@@ -132,5 +149,6 @@ export class App {
       if (UNLOCK[k]) { const ok = unlocked(g, k); b.classList.toggle('locked', !ok); const lk = b.querySelector<HTMLElement>('.lk')!; lk.hidden = ok; setText(lk, unlockLabel(k)); }
     });
     this.panels.live();
+    this.guide.tick();
   }
 }

@@ -2,6 +2,7 @@
 import { RAR, TEXT, AD_LEN } from '../data';
 import type { Ctx } from '../sim';
 import { adClaim, adReady, item, fmt, fmtDur, guardChance, type AdPlacement, type Summary } from '../sim';
+import { icon } from './icons';
 
 export class Sheet {
   el: HTMLDivElement; private box: HTMLDivElement; private scrim: HTMLDivElement; busy = false;
@@ -17,7 +18,7 @@ export class Sheet {
 }
 
 /** the ad label a button shows: the placement text, or the cooldown */
-export const adLabel = (g: Ctx, text: string) => adReady(g) ? `▶ ${text}` : `▶ Ad in ${Math.ceil(g.s.adCd)}s`;
+export const adLabel = (g: Ctx, text: string) => `${icon('play', 14)} ${adReady(g) ? text : `Ad in ${Math.ceil(g.s.adCd)}s`}`;
 
 /** plays a stand-in rewarded ad (three seconds), then claims the reward through the sim */
 export function runAd(g: Ctx, sheet: Sheet, placement: AdPlacement, arg?: number, then?: (sum?: Summary) => void) {
