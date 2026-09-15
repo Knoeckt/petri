@@ -5,6 +5,7 @@ import { goal, genRate, cycleTime, collect, flashFinds, tierDef, fmt, fmtDur, cl
 import { VesselView } from './vessel';
 import { Panels } from './panel';
 import { clinicPanel } from './panels/clinic';
+import { upgradesPanel } from './panels/upgrades';
 
 const setText = (el: Element | null, s: string) => { if (el && el.textContent !== s) el.textContent = s; };
 const setHTML = (el: Element | null, s: string) => { if (el && el.innerHTML !== s) el.innerHTML = s; };
@@ -38,12 +39,12 @@ export class App {
       <div class="toast"></div>`;
     this.vessel = new VesselView(g, { onHarvest: () => this.bump() });
     this.root.querySelector('.stage')!.appendChild(this.vessel.el);
-    this.panels = new Panels(g, [clinicPanel], open => this.root.classList.toggle('covered', !!open));
+    this.panels = new Panels(g, [upgradesPanel, clinicPanel], open => this.root.classList.toggle('covered', !!open));
     this.root.insertBefore(this.panels.el, this.root.querySelector('.tabs'));
     this.cur = this.root.querySelector('.cur b')!; this.rate = this.root.querySelector('.cur small')!;
     this.goalEl = this.root.querySelector('.goal')!; this.bar = this.root.querySelector('.bar')!; this.barFill = this.root.querySelector('.bar i')!;
     this.harvest = this.root.querySelector('.harvest')!; this.lvBtn = this.root.querySelector('.lv')!; this.signSmall = this.root.querySelector('.sign small')!; this.toastEl = this.root.querySelector('.toast')!; this.tabs = this.root.querySelector('.tabs')!;
-    this.harvest.onclick = () => { const sum = collect(g, 0); if (sum) { flashFinds(g, sum); this.vessel.jelly(); this.bump(); } };
+    this.harvest.onclick = () => { const sum = collect(g, 0); if (sum) { flashFinds(g, sum); this.bump(); } };
     this.lvBtn.onclick = () => { const open = sitesOpen(g); const best = open[open.length - 1]; if (best && startTrip(g, best.id)) this.bump(); };
     this.tabs.addEventListener('click', e => { const b = (e.target as HTMLElement).closest<HTMLElement>('button[data-tab]'); if (b) this.panels.toggle(b.dataset.tab!); });
     g.on(e => { if (e.type === 'toast') this.toast(e.msg, e.bad); });

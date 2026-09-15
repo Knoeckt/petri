@@ -120,18 +120,17 @@ export class VesselView {
     const g = this.g, s = g.s, d = s.dishes[0], W = this.W, now = performance.now();
     const rect = this.canvas.getBoundingClientRect(); const x = (e.clientX - rect.left) / rect.width * W, y = (e.clientY - rect.top) / rect.height * W;
     if (s.ob) { if (Math.hypot(x - W * .5, y - W * .45) < W * .3) { hitBloom(g); this.hitAt = now; this.ripples.push({ x, y, t: now, col: '#ff2e4d', w: 4 }); this.burst(x, y, ['#22222c', '#ff2e4d'], 4); } return; }
-    if (d.ready) { flashFinds(g, collect(g, 0)); this.burst(W * .5, W * .5, ['#ffd43b', '#fff', '#22d3b0'], 14); this.jelly(); this.opts.onHarvest?.(); return; }
+    if (d.ready) { flashFinds(g, collect(g, 0)); this.burst(W * .5, W * .5, ['#ffd43b', '#fff', '#22d3b0'], 14); this.opts.onHarvest?.(); return; }
     const prog = d.p / cycleTime(g);
     let hit: Drop | null = null, hd = 1e9;
     for (const dr of d.drops) { if (dr.dead || !spawned(dr, prog)) continue; const dd = Math.hypot(dr.x * W - x, dr.y * W - y); if (dd < this.dropSize(dr) * 1.7 && dd < hd) { hd = dd; hit = dr; } }
     if (hit && item(s.tier, hit.r, hit.i).danger && !hit.contained) { contain(g, hit); this.ripples.push({ x: hit.x * W, y: hit.y * W, t: now, col: '#fff', w: 5 }); return; }
-    stir(g); this.jelly(); this.ripples.push({ x, y, t: now, col: 'rgba(255,255,255,.9)', w: 3 }); this.opts.onStir?.();
+    stir(g); this.ripples.push({ x, y, t: now, col: 'rgba(255,255,255,.7)', w: 2 }); this.opts.onStir?.();
   }
 
   draw(now: number, slow = false) {
     if (now - this.lastDraw < (slow ? 83 : 33)) return; this.lastDraw = now;
     const g = this.g, s = g.s, c = this.c, W = this.W, H = W, d = s.dishes[0], ct = cycleTime(g), prog = d.p / ct, V = sceneFor(s.tier);
-    this.el.classList.toggle('ready', d.ready);
     c.clearRect(0, 0, W, H);
     c.save();
     if (now - this.shakeT < 240) { const k = 1 - (now - this.shakeT) / 240; c.translate((Math.random() - .5) * 12 * k, (Math.random() - .5) * 12 * k); }
