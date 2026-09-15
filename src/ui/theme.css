@@ -120,3 +120,4 @@ button{font-family:var(--display); cursor:pointer}
 .req .who b{font:700 15px var(--display)}
 .req .say{font:500 13.5px/1.3 var(--display); margin:8px 0 6px}
 .tabbody .btn{width:100%}
+.ver{position:absolute; right:8px; top:6px; z-index:31; font:700 9px var(--ui); color:var(--cream); opacity:.55; pointer-events:none}

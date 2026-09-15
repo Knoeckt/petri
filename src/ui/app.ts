@@ -34,6 +34,7 @@ export class App {
         </div>
       </div>
       <nav class="tabs">${TABS.map(([id, ic, n]) => `<button data-tab="${id}"><span class="i">${ic}</span>${n}<i class="badge"></i><b class="lk" hidden></b></button>`).join('')}</nav>
+      <b class="ver">v${__APP_VERSION__}</b>
       <div class="toast"></div>`;
     this.vessel = new VesselView(g, { onHarvest: () => this.bump() });
     this.root.querySelector('.stage')!.appendChild(this.vessel.el);

@@ -30,3 +30,5 @@ requestAnimationFrame(frame);
 setInterval(save, 3000);
 document.addEventListener('visibilitychange', () => { if (document.hidden) save(); else { last = performance.now(); const o = checkOffline(g, Date.now()); if (o) app.toast(`Away ${fmtDur(o.away)}: +${fmt(o.sum.cur)}`); } });
 window.addEventListener('beforeunload', save);
+// installable on the phone: the worker is scoped to this folder and does not touch the mockup's
+if (import.meta.env.PROD && 'serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => { /* no offline shell, the game still runs */ });
