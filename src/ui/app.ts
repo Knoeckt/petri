@@ -24,7 +24,7 @@ const setText = (el: Element | null, s: string) => { if (el && el.textContent !=
 const setHTML = (el: Element | null, s: string) => { if (el && el.innerHTML !== s) el.innerHTML = s; };
 const setDis = (el: HTMLButtonElement | null, d: boolean) => { if (el && el.disabled !== d) el.disabled = d; };
 
-const TABS: [string, string, string][] = [['up', 'flask', 'Upgrades'], ['lab', 'microscope', 'Lab'], ['clinic', 'pill', 'Clinic'], ['cat', 'book', 'Catalog'], ['asc', 'rocket', TEXT.ascend]];
+const TABS: [string, string, string][] = [['up', 'flask', 'Upgrades'], ['lab', 'microscope', 'Lab'], ['clinic', 'pill', 'Clinic'], ['cat', 'book', 'Shelf'], ['asc', 'rocket', TEXT.ascend]];
 const SIDE_L: [string, string, string][] = [['quests', 'scroll', 'Quests'], ['field', 'map', 'Field'], ['splicer', 'dna', 'Splicer']];
 const SIDE_R: [string, string, string][] = [['shop', 'cart', 'Shop'], ['decor', 'vase', 'Decor'], ['brew', 'kettle', 'Brewery']];
 

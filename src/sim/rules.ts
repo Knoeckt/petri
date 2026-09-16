@@ -24,9 +24,10 @@ export function tierDef(t: number): TierDef {
 export const TIER_COUNT = TIERS.length + MORE.length;
 export const item = (t: number, r: number, i: number): Strain => tierDef(t).items[r][i];
 export const found = (g: Ctx, t: number) => Object.keys(g.s.cat[t] || {}).length;
-export const stock = (g: Ctx, r: number, i: number, t = g.s.tier) => Math.max(0, ((g.s.cat[t] || {})[`${r}-${i}`] || 0) - 1);
-export function totalStock(g: Ctx) { let n = 0; const c = g.s.cat[g.s.tier] || {}; for (const k in c) n += Math.max(0, c[k] - 1); return n; }
-export function rarityStock(g: Ctx, r: number) { let n = 0; const c = g.s.cat[g.s.tier] || {}; for (const k in c) if (+k[0] >= r) n += Math.max(0, c[k] - 1); return n; }
+/** what is on the shelf: every specimen found is usable, the entry's existence is the discovery */
+export const stock = (g: Ctx, r: number, i: number, t = g.s.tier) => Math.max(0, (g.s.cat[t] || {})[`${r}-${i}`] || 0);
+export function totalStock(g: Ctx) { let n = 0; const c = g.s.cat[g.s.tier] || {}; for (const k in c) n += Math.max(0, c[k] || 0); return n; }
+export function rarityStock(g: Ctx, r: number) { let n = 0; const c = g.s.cat[g.s.tier] || {}; for (const k in c) if (+k[0] >= r) n += Math.max(0, c[k] || 0); return n; }
 /** the tallies side quests count */
 export function bump(g: Ctx, k: string, n = 1) { g.s.st[k] = (g.s.st[k] || 0) + n; }
 

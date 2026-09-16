@@ -2,7 +2,7 @@
 import { STORY, SIDE, ART, TICKETS_PER_DAY } from '../data';
 import { validState } from './validate';
 
-export const SAVE_VERSION = 4;
+export const SAVE_VERSION = 5;
 
 export interface Meet { until: number; em: string; dir: number }
 export interface Attack { phase: 'wind' | 'lunge' | 'back'; t0: number; vi: number; ox: number; oy: number; sx?: number; sy?: number }
@@ -87,7 +87,7 @@ function migrateSave(raw: unknown, now: number): State | null {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
   const s = structuredClone(raw) as any;
   // Only known schemas may be migrated. In particular, never downgrade a future save.
-  if (s.v !== undefined && s.v !== 3 && s.v !== SAVE_VERSION) return null;
+  if (s.v !== undefined && s.v !== 3 && s.v !== 4 && s.v !== SAVE_VERSION) return null;
   if (s.v === SAVE_VERSION && !validState(s)) return null;
   if (!Array.isArray(s.dishes)) return null;
   for (const d of s.dishes) for (const g of d.drops || []) {
@@ -107,6 +107,8 @@ function migrateSave(raw: unknown, now: number): State | null {
   s.hasSplicer = !!s.hasSplicer;
   s.sp = s.sp || [null, null]; s.spOut = s.spOut || null;
   s.ups = s.ups || {}; s.res = s.res || {}; s.cat = s.cat || {}; s.meds = s.meds || {};
+  // v5: the catalog's keeper copy dissolved. A count is now what is on the shelf, so what the player could use stays the same.
+  if (s.v !== SAVE_VERSION) for (const t in s.cat) for (const k in s.cat[t]) s.cat[t][k] = Math.max(0, (typeof s.cat[t][k] === 'number' ? s.cat[t][k] : 1) - 1);
   s.active = s.active ?? null;
   if (s.tickets === undefined) s.tickets = TICKETS_PER_DAY;
   s.tDay = s.tDay || ''; s.shopT = s.shopT || 0; s.shopC = s.shopC || 0; s.icepack = !!s.icepack;

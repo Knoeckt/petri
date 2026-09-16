@@ -11,7 +11,7 @@ export const UPI: Record<string, Upgrade> = Object.fromEntries(UPT.flatMap(t => 
 /** Shop items. Prices are functions of state, so they live in sim/actions; this is the catalogue. */
 export interface ShopItem { id: string; n: string; e: string; d: string }
 export const SHOP: ShopItem[] = [
-  { id: 'crate', n: 'Sample crate', e: '📦', d: 'Three spare samples of common strains you have already found. Doc Ferro keeps a fridge. Price climbs each time today.' },
+  { id: 'crate', n: 'Sample crate', e: '📦', d: 'Three samples of common strains you have already found. Doc Ferro keeps a fridge. Price climbs each time today.' },
   { id: 'boost', n: 'Heat lamp', e: '🔥', d: '2× growth and income for {boost}.' },
   { id: 'icepack', n: 'Ice pack', e: '🧊', d: 'The dish keeps working two hours longer while you are away. Once.' },
   { id: 'ticket', n: 'Extra ticket', e: '🎟️', d: 'One more go at the pipette today. Price climbs each time.' },

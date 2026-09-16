@@ -1,7 +1,7 @@
 # Petri — Long-Term Roadmap
 
 **Last updated:** 2026-09-16  
-**Current version:** v0.11.4  
+**Current version:** v0.11.6  
 **Current stage:** Pre-alpha / balance & polish  
 **Immediate milestone:** Make Chapter 1 fun at real timings without ads.
 
@@ -46,7 +46,7 @@ Phase by phase, against the original generic idle-game roadmap:
 | 0 Foundation | **Done.** `src/sim` (pure, DOM-free, tested), `src/data` (all content and balance values), `src/ui`, `src/runtime` (lifecycle, storage), `build/` (offline shell), `tests/` |
 | 1 Core loop | **Done.** Dish → harvest colonies → biomass and catalog → upgrades and bench equipment ranked with Notes from field trips |
 | 2 Clinic & story | **Done.** Three chapters authored (9, 7 and 7 requests), each request gates an unlock; side quests; the first-run guide |
-| 3 Save system | **Done.** Save v4, migration from every mockup save, validation, backup snapshot, recovery archive, progress download. No player-facing reset yet (dev cheats only) |
+| 3 Save system | **Done.** Save v5, migration from every mockup save, validation, backup snapshot, recovery archive, progress download. No player-facing reset yet (dev cheats only) |
 | 4 Offline progression | **Done.** Chronological catch-up, production cap from Storage research, Night shift efficiency, welcome-back sheet, double-it ad |
 | 5 Balance foundation | **Partial.** All values live in `src/data/content.ts`; dev cheats exist. No prototype-vs-playtest balance split, no measured time-to-unlock. This is the current work |
 | 6 UI/UX polish | **Partial.** Palette tokens, icon set, portraits, station scenes, sound. No consistency pass, empty/error states or unlock animations |

@@ -152,7 +152,7 @@ export function dangerInstant(g: Ctx, drops: Drop[], ct: number, sum: Summary) {
   advanceDanger(g, { p: 0, ready: false, drops }, ct, ct, sum);
 }
 
-/** bank a dish's colonies: new finds go in the catalog, duplicates sell and stock the shelf up to its cap */
+/** bank a dish's colonies: a new find opens its catalog entry and goes on the shelf, usable at once; duplicates sell and stock the shelf up to its cap */
 export function resolve(g: Ctx, drops: Drop[], sum: Summary) {
   const t = g.s.tier; const c = g.s.cat[t] = g.s.cat[t] || {};
   let gained = 0;
@@ -160,9 +160,9 @@ export function resolve(g: Ctx, drops: Drop[], sum: Summary) {
     if (d.dead) continue;
     let key = `${d.r}-${d.i}`;
     // the microscope: a duplicate may turn out to be a strain of that rarity you had not found
-    if (c[key] && rerollChance(g) > 0 && g.rng() < rerollChance(g)) { const unfound = tierDef(t).items[d.r].map((_, i) => i).filter(i => !c[`${d.r}-${i}`]); if (unfound.length) { d.i = unfound[Math.floor(g.rng() * unfound.length)]; key = `${d.r}-${d.i}`; } }
-    const isNew = !c[key];
-    c[key] = Math.min((c[key] || 0) + 1, 1 + shelfCap(g));
+    if (key in c && rerollChance(g) > 0 && g.rng() < rerollChance(g)) { const unfound = tierDef(t).items[d.r].map((_, i) => i).filter(i => !(`${d.r}-${i}` in c)); if (unfound.length) { d.i = unfound[Math.floor(g.rng() * unfound.length)]; key = `${d.r}-${d.i}`; } }
+    const isNew = !(key in c);
+    c[key] = Math.min((c[key] || 0) + 1, shelfCap(g));
     if (isNew) {
       bump(g, 'find');
       if (seenBefore(g, t, key)) { const bonus = VAL[d.r] * tierMult(g) * 10; gained += bonus; toast(g, `Seen before: ${item(t, d.r, d.i).n}. +${Math.round(bonus)}`); }

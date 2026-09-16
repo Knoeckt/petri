@@ -117,8 +117,10 @@ privacy/support information, and store submission.
 - Offline harvests remain automatic before auto-harvest research, matching the prototype.
 - Outbreaks wait for the player during catch-up. Offline bite resolution omits visual
   wind-up/travel animations; it retains biological bite timers and only eats spawned prey.
-- The current key is `petri-v4`; `petri-v4-backup` stores the previous valid snapshot.
-  `petri-v4-recovery` retains unreadable source text before any replacement. Future-version
+- The current key is `petri-v5`; `petri-v5-backup` stores the previous valid snapshot.
+  `petri-v5-recovery` retains unreadable source text before any replacement. v5 (0.11.6)
+  dissolved the catalog's keeper copy: a count is what sits on the Shelf, 0 means found and
+  empty, and migration subtracts one from every pre-v5 count so usable stock is unchanged. Future-version
   saves and saves that could not be read are protected from writes until reload/update.
 - The progress download includes the current state and available recovery material. It is
   a development/support recovery file; an in-game file-import interface is not implemented.

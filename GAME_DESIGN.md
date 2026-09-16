@@ -257,9 +257,11 @@ it is the system the game leans on hardest.
 
 ### Stock
 
-A duplicate still sells for biomass at harvest, and it also counts as **stock**: the catalog
-count minus the one you keep. Medicines, splices and studies consume stock. You can never
-lose a found entry, only spares. The **shelf** holds 5 spares of each strain; anything past
+Every specimen you harvest goes on the **shelf** and is usable at once, the first one
+included (until 0.11.6 the first copy was locked in the catalog as a keeper; it is not any
+more, and the tab is called the Shelf). A duplicate also sells for biomass at harvest.
+Medicines, splices, studies and deliveries consume shelf stock. A found entry is never
+lost: at zero on the shelf the strain stays in the catalog with its bonus. The shelf holds 5 of each strain; anything past
 that still sells but is not kept, so idling never piles up hundreds. Sample fridge research
 adds 5 per rank (ten ranks) and Cold storage doubles the shelf. Stock is a managed
 resource: a request for two Mirror wash means a trip to the dish, not a rummage. This gives every duplicate a second use without touching the income
@@ -293,14 +295,13 @@ want medicines in quantity. That is the chain: harvest strains, brew medicines, 
 
 A request is a list of **requirements**, each one of four kinds, and every kind is shown the
 same way: a chip with what, how many you have of how many, and a Deliver button that lights
-when all chips are full. Delivering takes exactly those items (never the catalog's keeper
-copy) and pays.
+when all chips are full. Delivering takes exactly those items off the shelf and pays.
 
 | Kind | Reads as | Counts |
 |---|---|---|
-| strain ×n | "2 Blubb" | spares of that one strain |
-| any ×n | "5 samples of anything" | all spares in the tier, taken commons-first |
-| rarity ×n | "1 uncommon or better" | spares of that rarity or higher |
+| strain ×n | "2 Blubb" | that strain on the shelf |
+| any ×n | "5 samples of anything" | everything on the shelf, taken commons-first |
+| rarity ×n | "1 uncommon or better" | that rarity or higher on the shelf |
 | medicine ×n | "2 Fizz-Fix" | bottles on the Apothecary shelf |
 
 Two kinds of request sit on the board:
@@ -325,7 +326,7 @@ Two kinds of request sit on the board:
 
 | # | Who | Problem | Wants | Teaches / opens | Pays | Afterwards |
 |---|---|---|---|---|---|---|
-| 1 | Mayor Bramble | The tap water has gone fizzy | 5 samples of anything | harvest, spares vs the keeper copy; opens Field trips | 40 | "Fizzy. Definitely fizzy." |
+| 1 | Mayor Bramble | The tap water has gone fizzy | 5 samples of anything | harvest, everything goes on the shelf; opens Field trips | 40 | "Fizzy. Definitely fizzy." |
 | 2 | Ida the baker | The bread is singing | 2 Fuzzwald | a specific strain; opens Quests and Shop | 70 | "It is always the fuzzy one." |
 | 3 | Pip | The cat glows at night | 1 uncommon or better | rarity, the odds bar, levelling, the Catalog; opens the Lab | 150 | Same glow as the cat. |
 | 4 | Doc Ferro | Purple spots, six patients | 2 Fuzzwald, 1 Dotto | two targets at once; opens the Apothecary | 220 | "Something is spreading." |

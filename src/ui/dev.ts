@@ -11,7 +11,7 @@ export function openDev(g: Ctx, sheet: Sheet, app: { offline: (o: any) => void; 
       const k = b.dataset.dev, s = g.s;
       if (k === 'cur') s.cur += 1000;
       else if (k === 'notes') s.notes += 50;
-      else if (k === 'stock') { const c = s.cat[s.tier] = s.cat[s.tier] || {}; COUNTS.forEach((n, r) => { for (let i = 0; i < n; i++) { const it = item(s.tier, r, i); if (!it.danger || c[`${r}-${i}`]) c[`${r}-${i}`] = (c[`${r}-${i}`] || 1) + 4; } }); }
+      else if (k === 'stock') { const c = s.cat[s.tier] = s.cat[s.tier] || {}; COUNTS.forEach((n, r) => { for (let i = 0; i < n; i++) { const it = item(s.tier, r, i); if (!it.danger || c[`${r}-${i}`]) c[`${r}-${i}`] = (c[`${r}-${i}`] || 0) + 4; } }); }
       else if (k === 'tix') s.tickets += 3;
       else if (k === 'away') { sheet.close(); const sum = simulate(g, 3600, 1); app.offline({ away: 3600, capped: false, eff: 1, sum }); return; }
       else if (k === 'step') { const st = s.story[s.tier]; if (st && !st.done) { st.step++; } }

@@ -46,7 +46,7 @@ export function validState(value: unknown): value is State {
     return !!def && (def.max ? integer(v) && v <= def.max : bool(v));
   })) return false;
   if (!map(s.studies, (v, k) => studyKey(k) && v === true)) return false;
-  if (!map(s.cat, (v, k) => tierKey(k) && map(v, (n, key) => strainKey(key) && integer(n) && n >= 1))) return false;
+  if (!map(s.cat, (v, k) => tierKey(k) && map(v, (n, key) => strainKey(key) && integer(n)))) return false; // 0 = found, none on the shelf
   if (!map(s.meds, (v, k) => tierKey(k) && map(v, (n, id) => medicine(+k, id) && integer(n)))) return false;
   if (!map(s.hyb, (v, k) => owns(HYB, k) && integer(v))) return false;
   if (s.seed !== null) {

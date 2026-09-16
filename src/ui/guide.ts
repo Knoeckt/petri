@@ -19,7 +19,7 @@ export function guideTarget(g: Ctx, tab: string | null): Target | null {
     if (!seen.buy && eqCanBuy(g, 'dish')) return ['.tabs button[data-tab="up"]', eqCost(g, 'dish').notes ? 'You have Notes. Rank up the Petri dish' : 'The bench: your first Petri dish rank is free'];
     if (unlocked(g, 'quests') && !seen.quests) return ['.sbtn[data-tab="quests"]', 'Quests pay for things you already do'];
     if (unlocked(g, 'lab') && !seen.lab) return ['.tabs button[data-tab="lab"]', 'Doc Ferro gave you a bench. Research something'];
-    if (unlocked(g, 'brew') && !seen.brew) return ['.sbtn[data-tab="brew"]', 'The kettle: spare samples become medicine'];
+    if (unlocked(g, 'brew') && !seen.brew) return ['.sbtn[data-tab="brew"]', 'The kettle: samples from the Shelf become medicine'];
     if (unlocked(g, 'decor') && !seen.decor && unplacedCount(g) > 0) return ['.sbtn[data-tab="decor"]', 'Place your artifact in the dish'];
     if (st.step < 5 && !clinicHas(g) && s.cycles >= 3 && (s.st.stir || 0) < 12 && !dish.ready) return ['.vwrap', 'Tapping the dish speeds it up', 'in soft'];
     return null;

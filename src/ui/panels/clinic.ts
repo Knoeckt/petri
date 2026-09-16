@@ -31,9 +31,9 @@ export const clinicPanel: PanelDef = {
       const act = step.outbreak
         ? (s.ob ? `<button class="btn primary" disabled>Bloom in progress</button>` : `<button class="btn primary" data-act="face">Face the bloom</button>`)
         : `<button class="btn primary" data-act="deliver" ${ok ? '' : 'disabled'}>Deliver to ${esc(step.who)}</button>`;
-      const hint = step.outbreak || ok ? '' : list.some(q => q.t === 'med') ? (unlocked(g, 'brew') ? `<p class="sub" style="margin:6px 0 0">Medicines are brewed at the Apothecary from spare samples.</p>` : '')
+      const hint = step.outbreak || ok ? '' : list.some(q => q.t === 'med') ? (unlocked(g, 'brew') ? `<p class="sub" style="margin:6px 0 0">Medicines are brewed at the Apothecary from samples on the Shelf.</p>` : '')
         : list.some(q => q.t === 'rarity') ? `<p class="sub" style="margin:6px 0 0">Rarer strains show up as the Petri dish ranks up on the bench. The odds bar there shows your chances.</p>`
-        : `<p class="sub" style="margin:6px 0 0">Spare samples are copies beyond the one the Catalog keeps. Harvest until you have enough.</p>`;
+        : `<p class="sub" style="margin:6px 0 0">Everything you harvest goes on the Shelf and can be delivered. Harvest until you have enough.</p>`;
       main = `<div class="card req"><div class="who">${faceCanvas(step.who)}<div><b>${esc(step.who)}</b><div class="sub" style="margin:0">${step.outbreak ? 'needs you at the ' + TEXT.dish : 'wants ' + esc(reqSummary(g, list))} · pays ${fmt(step.reward * tierMult(g))}</div></div></div><p class="say">“${esc(say)}”</p>${step.outbreak ? '' : reqChips(g, list)}${hint}<div class="acts" style="margin-top:8px">${act}</div></div>`;
     }
     const apo = !st.done && unlocked(g, 'brew') && stepReqs(s.tier, st.step).some(q => q.t === 'med') ? `<div class="acts" style="margin:2px 0 8px"><button class="btn" data-act="open" data-tab="brew">${icon('kettle', 18)} Brew medicines at the Apothecary${s.brew ? ' · brewing' : ''}</button></div>` : '';

@@ -13,9 +13,9 @@ const game = (seed = 1, save?: unknown) => createGame({ rng: seeded(seed), now: 
 const give = (g: Ctx, list: Req[]) => {
   const c = g.s.cat[0] = g.s.cat[0] || {};
   for (const q of list) {
-    if (q.t === 'strain') { const k = `${q.r}-${q.i}`; c[k] = Math.max(c[k] || 0, 1) + q.n; }
-    else if (q.t === 'any') c['0-0'] = (c['0-0'] || 1) + q.n;
-    else if (q.t === 'rarity') c[`${q.r}-0`] = (c[`${q.r}-0`] || 1) + q.n;
+    if (q.t === 'strain') { const k = `${q.r}-${q.i}`; c[k] = (c[k] || 0) + q.n; }
+    else if (q.t === 'any') c['0-0'] = (c['0-0'] || 0) + q.n;
+    else if (q.t === 'rarity') c[`${q.r}-0`] = (c[`${q.r}-0`] || 0) + q.n;
     else { g.s.meds[0] = g.s.meds[0] || {}; g.s.meds[0][q.id] = (g.s.meds[0][q.id] || 0) + q.n; }
   }
 };
@@ -44,7 +44,7 @@ describe('chapter 1', () => {
       const rq = stepReqs(0, k); expect(clinicHas(g)).toBe(false);
       give(g, rq); expect(clinicHas(g)).toBe(true); expect(deliver(g)).toBe(true); expect(story(g).step).toBe(k + 1);
     }
-    expect(g.s.cat[0]).toEqual({ '0-0': 1, '1-0': 1, '0-1': 1, '0-2': 1, '1-2': 1, '2-0': 1 });
+    expect(g.s.cat[0]).toEqual({ '0-0': 0, '1-0': 0, '0-1': 0, '0-2': 0, '1-2': 0, '2-0': 0 }); // every delivery emptied its shelf, the strains stay found
     expect(Object.values(g.s.meds[0])).toEqual([0, 0, 0, 0]);
     expect(g.s.hasSplicer).toBe(true);
     expect(opened).toEqual([['field'], ['quests', 'shop'], ['lab'], ['brew'], ['tickets', 'decor'], ['splicer'], ['asc']]);
@@ -68,7 +68,7 @@ describe('the dish', () => {
     d.drops = Array.from({ length: 12 }, () => ({ r: 0, i: 0, x: .5, y: .5, t0: 0, s: 1, seed: 0, dead: false, contained: false, eatT: 0, ate: 0 }));
     d.ready = true; const before = g.s.cur;
     const sum = collect(g, 0)!;
-    expect(g.s.cat[0]['0-0']).toBe(1 + shelfCap(g)); expect(stock(g, 0, 0)).toBe(5);
+    expect(g.s.cat[0]['0-0']).toBe(shelfCap(g)); expect(stock(g, 0, 0)).toBe(5);
     expect(sum.finds.length).toBe(1); expect(g.s.cur - before).toBeCloseTo(11 * 3);
     expect(d.ready).toBe(false); expect(d.drops.length).toBe(1);
   });
@@ -125,7 +125,7 @@ describe('the economy', () => {
     expect(startResearch(g, 'fast')).toBe(false);
     expect(startResearch(g, 'auto')).toBe(true); g.s.active!.left = 0; tick(g, 0.1, 0); expect(g.s.res.auto).toBe(true);
     g.s.cat[0] = { '0-0': 3, '1-2': 2 }; const base = genRate(g);
-    expect(startStudy(g, '0:0-0')).toBe(true); expect(stock(g, 0, 0)).toBe(1); completeResearch(g);
+    expect(startStudy(g, '0:0-0')).toBe(true); expect(stock(g, 0, 0)).toBe(2); completeResearch(g);
     expect(genRate(g)).toBeCloseTo(base * 1.03);
     expect(startStudy(g, '0:1-2')).toBe(true); completeResearch(g); expect(g.s.studies['0:1-2']).toBe(true);
     g.s.tier = 1; expect(RES_DEF.filter(r => resVisible(g, r)).map(r => r.id)).toContain('filter');
@@ -133,7 +133,7 @@ describe('the economy', () => {
   });
   it('brews from spares and the shelf research widens it', () => {
     const g = game(); g.s.story[0] = { step: 4, brewing: null, brewed: false, log: [], done: false }; g.s.cat[0] = { '0-0': 5 };
-    expect(brewMed(g, 'Fizz-Fix')).toBe(true); expect(stock(g, 0, 0)).toBe(2); g.s.brew!.left = 0; tick(g, 0.1, 0);
+    expect(brewMed(g, 'Fizz-Fix')).toBe(true); expect(stock(g, 0, 0)).toBe(3); g.s.brew!.left = 0; tick(g, 0.1, 0);
     expect(medHave(g, 'Fizz-Fix')).toBe(1);
     expect(shelfCap(g)).toBe(5); g.s.res.fridge = 2; expect(shelfCap(g)).toBe(15); g.s.res.storage = true; expect(shelfCap(g)).toBe(30);
   });
@@ -225,7 +225,7 @@ describe('saves', () => {
   it('round-trips through JSON', () => {
     const g = game(8); for (let i = 0; i < 80; i++) tick(g, 0.5, i * 500);
     const back = migrate(JSON.parse(JSON.stringify(g.s)))!;
-    expect(back.cycles).toBe(g.s.cycles); expect(back.v).toBe(4);
+    expect(back.cycles).toBe(g.s.cycles); expect(back.v).toBe(5);
   });
   it('imports a mockup save with every legacy shape', () => {
     const old = { ...fresh(0), theme: 'bio', v: undefined, lv: 12, notes: undefined, eq: undefined, arts: { chime: 7, pebble: 2 }, placed: ['chime', null, 'bogus'], story: { 0: { step: 3, brewing: null, brewed: false, log: ['a'], done: false } }, res: { wash: true }, side: [{ k: 1 }], gen: undefined, tut: undefined };
@@ -233,7 +233,7 @@ describe('saves', () => {
     const g = game(1, old);
     expect(g.s.arts).toEqual({ chime: { 1: 7 }, pebble: { 1: 2 } }); expect(g.s.placed).toEqual([{ id: 'chime', lv: 1 }, null, null]);
     expect(g.s.story[0].step).toBe(6); expect(g.s.res.wash).toBe(20); expect(g.s.side).toEqual([]); expect(g.s.gen.runs).toBe(0); expect(g.s.tut.done).toBe(true);
-    expect(g.s.v).toBe(4); expect((g.s as any).theme).toBeUndefined(); expect((g.s as any).lv).toBeUndefined(); expect(g.s.eq.dish).toBe(11); expect(g.s.notes).toBe(0);
+    expect(g.s.v).toBe(5); expect((g.s as any).theme).toBeUndefined(); expect((g.s as any).lv).toBeUndefined(); expect(g.s.eq.dish).toBe(11); expect(g.s.notes).toBe(0);
   });
   it('a current save mid-chapter is left alone', () => {
     const g = game(1); g.s.story[0] = { step: 3, brewing: null, brewed: false, log: [], done: false };

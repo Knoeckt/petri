@@ -24,7 +24,7 @@ export const labPanel: PanelDef = {
     // studies
     const t = s.tier, c = s.cat[t] || {}, def = tierDef(t); const rows: string[] = []; let done = 0, total = 0;
     RAR.forEach((R, r) => def.items[r].forEach((it, i) => {
-      const key = studyKey(t, r, i); if (!c[`${r}-${i}`]) return; total++;
+      const key = studyKey(t, r, i); if (!(`${r}-${i}` in c)) return; total++; // found strains stay listed at zero on the shelf
       const isDone = s.studies[key]; if (isDone) done++;
       const act = s.active && s.active.id === 'study' && s.active.key === key; const pt = perkText(studyPerk(t, r, i)); const cost = studyCost(g, t, r), sp = stock(g, r, i, t);
       if (isDone) rows.push(`<div class="r done"><div class="rn"><i class="sw" style="background:${R.col}"></i>${it.n} <span class="tag on">studied</span></div><div class="rd">${pt}</div><div class="rc">✓</div></div>`);
@@ -32,7 +32,7 @@ export const labPanel: PanelDef = {
       else { const can = !s.active && sp >= 1 && s.cur >= cost; rows.push(`<button class="r ${can ? '' : 'poor'}" data-act="study" data-key="${key}"><div class="rn"><i class="sw" style="background:${R.col}"></i>${it.n}${it.danger ? ' ⚠️' : ''}</div><div class="rd">${pt} · ${fmtDur(STUDY_TIME[r])} · uses 1 spare (have ${sp})${s.active ? ' · bench busy' : ''}</div><div class="rc">${fmt(cost)}</div></button>`); }
     }));
     el.innerHTML = `<h4 class="gh" style="margin-top:0">Research</h4><p class="sub">One at a time. Research survives ${TEXT.ascend.toLowerCase()} and resets at Genesis. Every timer can be finished with an ad.${hidden ? ` ${hidden} more open with the Apothecary.` : ''}${nextN ? ` ${nextN} more open at the ${tierDef(nextT).n}.` : ''}</p>` + research +
-      `<h4 class="gh">Specimen studies · ${done}/${total}</h4><p class="sub">Put a spare under the microscope for a permanent perk. Rarer strains teach more; biters teach quarantine.</p>` + (rows.length ? rows.join('') : `<div class="card"><p class="sub" style="margin:0">Find something in the ${TEXT.dish} first.</p></div>`);
+      `<h4 class="gh">Specimen studies · ${done}/${total}</h4><p class="sub">Put a specimen from the Shelf under the microscope for a permanent perk. Rarer strains teach more; biters teach quarantine.</p>` + (rows.length ? rows.join('') : `<div class="card"><p class="sub" style="margin:0">Find something in the ${TEXT.dish} first.</p></div>`);
   },
   live(el, g) {
     const a = g.s.active;

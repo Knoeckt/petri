@@ -45,10 +45,10 @@ export function reqHave(g: Ctx, q: Req) { return q.t === 'strain' ? stock(g, q.r
 export function reqName(g: Ctx, q: Req) { return q.t === 'strain' ? item(g.s.tier, q.r, q.i).n : q.t === 'med' ? q.id : q.t === 'any' ? 'samples of anything' : `${RAR[q.r].n.toLowerCase()} or better`; }
 export const reqOk = (g: Ctx, list: Req[]) => list.every(q => reqHave(g, q) >= q.n);
 export const reqSummary = (g: Ctx, list: Req[]) => list.map(q => `${q.n} ${reqName(g, q)}`).join(', ');
-/** take exactly what a request wants, never the catalog's keeper copy; 'any'/'rarity' take commons first */
+/** take exactly what a request wants off the shelf; the entry stays (found forever) even at zero; 'any'/'rarity' take commons first */
 export function reqTake(g: Ctx, list: Req[]) {
   const c = g.s.cat[g.s.tier] = g.s.cat[g.s.tier] || {};
-  const takeFrom = (key: string, n: number) => { const spare = Math.max(0, (c[key] || 0) - 1), take = Math.min(spare, n); c[key] -= take; return take; };
+  const takeFrom = (key: string, n: number) => { const have = Math.max(0, c[key] || 0), take = Math.min(have, n); c[key] = have - take; return take; };
   for (const q of list) {
     if (q.t === 'strain') takeFrom(`${q.r}-${q.i}`, q.n);
     else if (q.t === 'med') medsTake(g, [[q.id, q.n]]);

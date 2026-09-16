@@ -47,8 +47,8 @@ export function finishTrip(g: Ctx) {
   const notes = x.notes[0] + Math.floor(g.rng() * (x.notes[1] - x.notes[0] + 1)); s.notes += notes;
   let sample: { r: number; i: number; isNew: boolean } | null = null;
   if (g.rng() < x.sample) {
-    const r = x.sampleR, i = Math.floor(g.rng() * COUNTS[r]), c = s.cat[s.tier] = s.cat[s.tier] || {}, key = `${r}-${i}`; const isNew = !c[key];
-    c[key] = (c[key] || 0) + 1; if (isNew) { bump(g, 'find'); s.shelf = [{ t: s.tier, r, i }, ...s.shelf].slice(0, 5); }
+    const r = x.sampleR, i = Math.floor(g.rng() * COUNTS[r]), c = s.cat[s.tier] = s.cat[s.tier] || {}, key = `${r}-${i}`; const isNew = !(key in c);
+    c[key] = Math.min((c[key] || 0) + 1, shelfCap(g)); if (isNew) { bump(g, 'find'); s.shelf = [{ t: s.tier, r, i }, ...s.shelf].slice(0, 5); }
     sample = { r, i, isNew };
   }
   s.lastTrip = { site: x.id, notes, sample, at: Date.now() };
@@ -226,10 +226,10 @@ export function buyShop(g: Ctx, id: string): boolean {
   const s = g.s; if (!SHOP.find(x => x.id === id) || !shopShow(g, id)) return false;
   const c = shopCost(g, id); if (s.cur < c) { toast(g, `Needs ${fmt(c)} ${TEXT.cur.toLowerCase()}.`); return false; }
   if (id === 'crate') {
-    const cat = s.cat[s.tier] = s.cat[s.tier] || {}; const found0 = Object.keys(cat).filter(k => k[0] === '0' && cat[k] > 0);
+    const cat = s.cat[s.tier] = s.cat[s.tier] || {}; const found0 = Object.keys(cat).filter(k => k[0] === '0');
     if (!found0.length) { toast(g, 'The fridge is empty until you have found a common strain.'); return false; }
     s.cur -= c; const got: string[] = [];
-    for (let k = 0; k < 3; k++) { const key = pick(g.rng, found0); cat[key] = Math.min(cat[key] + 1, 1 + shelfCap(g)); got.push(item(s.tier, +key[0], +key.slice(2)).n); }
+    for (let k = 0; k < 3; k++) { const key = pick(g.rng, found0); cat[key] = Math.min((cat[key] || 0) + 1, shelfCap(g)); got.push(item(s.tier, +key[0], +key.slice(2)).n); }
     s.shopC++; toast(g, `Crate: ${got.join(', ')}`); return done(g);
   }
   s.cur -= c;
@@ -251,7 +251,7 @@ export const canGenesis = (g: Ctx) => g.s.tier >= GEN_TIER && !!(g.s.story[GEN_T
 export function genesis(g: Ctx): boolean {
   const s = g.s; if (!canGenesis(g)) return false;
   const gen = s.gen; const pts = genPoints(g); gen.pts += pts; gen.runs++;
-  for (const t in s.cat) { gen.seen[+t] = gen.seen[+t] || {}; for (const k in s.cat[+t]) if (s.cat[+t][k] > 0) gen.seen[+t][k] = true; }
+  for (const t in s.cat) { gen.seen[+t] = gen.seen[+t] || {}; for (const k in s.cat[+t]) gen.seen[+t][k] = true; }
   const keepHyb = s.seed, keepArt = s.placed[0] && ART[s.placed[0].id] ? s.placed[0] : null;
   Object.assign(s, {
     tier: 0, cur: 0, notes: 0, eq: genLv(g, 'head') ? { dish: 2 * genLv(g, 'head') } : {}, trip: null, lastTrip: null, ups: {}, res: {}, active: null, cat: {}, dishes: [newDish()], boost: 0, recent: [], shelf: [], cycles: 0, eaten: 0,
@@ -259,7 +259,7 @@ export function genesis(g: Ctx): boolean {
     arts: keepArt ? { [keepArt.id]: { [keepArt.lv]: 1 } } : {}, placed: [keepArt ? { id: keepArt.id, lv: keepArt.lv } : null, null, null],
     meds: {}, brew: null, icepack: false, st: {}, studies: {}, freeRes: genLv(g, 'bench') > 0,
   });
-  if (genLv(g, 'starter') && gen.seen[0]) { s.cat[0] = {}; for (const k in gen.seen[0]) if (k[0] === '0') s.cat[0][k] = 3; }
+  if (genLv(g, 'starter') && gen.seen[0]) { s.cat[0] = {}; for (const k in gen.seen[0]) if (k[0] === '0') s.cat[0][k] = 2; }
   for (const d of s.dishes) d.drops = rollDrops(g);
   g.emit({ type: 'genesis', runs: gen.runs }); toast(g, `Genesis ${gen.runs}: +${pts} Genome. The dish is small again.`); return done(g);
 }
