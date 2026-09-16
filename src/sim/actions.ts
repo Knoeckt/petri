@@ -1,7 +1,7 @@
 // Everything the player can do. Each action checks its own preconditions and returns true when it happened.
 import {
   RES_DEF, UPT, UPI, TEXT, STORY, SIDE, HYBRIDS, HYB, ARTS, ART, GEN_DEF, SHOP, PIPETTE_W, UNLOCK,
-  SPLICE_COST, OB_HP, OB_TIME, ART_MAX, ART_MERGE, GEN_TIER, TIER_MULT, EQ, SITE, COUNTS,
+  SPLICE_COST, OB_HP, OB_TIME, ART_MAX, ART_MERGE, GEN_TIER, TIER_MULT, EQ, SITE, COUNTS, IAP_BY,
 } from '../data';
 import type { Ctx } from './ctx';
 import { toast, dirty, fmt, fmtDur } from './ctx';
@@ -190,6 +190,15 @@ export function placeArt(g: Ctx, id: string, lv = 1): boolean {
 export function unplaceArt(g: Ctx, slot: number): boolean { if (g.s.placed[slot] == null) return false; g.s.placed[slot] = null; return done(g); }
 export function unplacedCount(g: Ctx) { let n = 0; for (const id in g.s.arts) for (const lv in g.s.arts[id]) n += Math.max(0, artSpare(g, id, +lv)); return n; }
 export function mergeableCount(g: Ctx) { let n = 0; for (const id in g.s.arts) for (const lv in g.s.arts[id]) if (+lv < ART_MAX && artSpare(g, id, +lv) >= ART_MERGE) n++; return n; }
+
+// ---- real-money products (stand-ins until StoreKit): the platform layer calls this after a purchase completes ----
+export function iapGrant(g: Ctx, id: string): boolean {
+  const s = g.s, p = IAP_BY[id]; if (!p || s.iap[id]) return false;
+  s.iap[id] = true;
+  if (id === 'starter') { s.cur += 500 * tierMult(g); s.notes += 20; s.tickets += 3; }
+  toast(g, id === 'supporter' ? 'Thank you. The sign has a heart now.' : `${p.n}: yours.`);
+  return done(g);
+}
 
 // ---- the pipette ----
 export function mgStart(g: Ctx, now: number): boolean {

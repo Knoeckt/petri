@@ -2,7 +2,7 @@
 import { STORY, SIDE, ART, TICKETS_PER_DAY } from '../data';
 import { validState } from './validate';
 
-export const SAVE_VERSION = 5;
+export const SAVE_VERSION = 6;
 
 export interface Meet { until: number; em: string; dir: number }
 export interface Attack { phase: 'wind' | 'lunge' | 'back'; t0: number; vi: number; ox: number; oy: number; sx?: number; sy?: number }
@@ -51,6 +51,8 @@ export interface State {
   st: Record<string, number>;
   studies: Record<string, boolean>;
   gen: Genome; freeRes: boolean;
+  /** real-money products owned, by id; survives Scale-up and Genesis */
+  iap: Record<string, true>;
   tut: { seen: Record<string, boolean>; done: boolean };
   /** Wall-clock time through which progress has been accounted for; storage writes do not change it. */
   last: number;
@@ -66,7 +68,7 @@ export function fresh(now: number): State {
     hasSplicer: false, hyb: {}, seed: null, splice: null, sp: [null, null], spOut: null,
     story: {}, side: [], ob: null, tickets: TICKETS_PER_DAY, tDay: '', shopT: 0, shopC: 0,
     arts: {}, placed: [null, null, null], meds: {}, brew: null, icepack: false, st: {}, studies: {},
-    gen: freshGenome(), freeRes: false, tut: { seen: {}, done: false }, last: now,
+    gen: freshGenome(), freeRes: false, iap: {}, tut: { seen: {}, done: false }, last: now,
   };
 }
 
@@ -87,7 +89,7 @@ function migrateSave(raw: unknown, now: number): State | null {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
   const s = structuredClone(raw) as any;
   // Only known schemas may be migrated. In particular, never downgrade a future save.
-  if (s.v !== undefined && s.v !== 3 && s.v !== 4 && s.v !== SAVE_VERSION) return null;
+  if (s.v !== undefined && ![3, 4, 5, SAVE_VERSION].includes(s.v)) return null;
   if (s.v === SAVE_VERSION && !validState(s)) return null;
   if (!Array.isArray(s.dishes)) return null;
   for (const d of s.dishes) for (const g of d.drops || []) {
@@ -96,6 +98,7 @@ function migrateSave(raw: unknown, now: number): State | null {
   s.hyb = s.hyb || {}; s.story = s.story || {}; s.st = s.st || {}; s.studies = s.studies || {};
   s.gen = s.gen || freshGenome(); s.gen.perks = s.gen.perks || {}; s.gen.seen = s.gen.seen || {};
   s.freeRes = !!s.freeRes;
+  s.iap = s.iap || {}; // v6
   // the repeatable dish level became Petri dish ranks on the bench (one for one); Notes and trips are new
   s.notes = s.notes || 0; s.eq = s.eq || {}; s.trip = s.trip && s.trip.site ? s.trip : null; s.lastTrip = s.lastTrip || null;
   if ((!s.v || s.v === 3) && typeof s.lv === 'number') { s.eq.dish = Math.min(30, Math.max(s.eq.dish || 0, s.lv - 1)); delete s.lv; }
@@ -108,7 +111,7 @@ function migrateSave(raw: unknown, now: number): State | null {
   s.sp = s.sp || [null, null]; s.spOut = s.spOut || null;
   s.ups = s.ups || {}; s.res = s.res || {}; s.cat = s.cat || {}; s.meds = s.meds || {};
   // v5: the catalog's keeper copy dissolved. A count is now what is on the shelf, so what the player could use stays the same.
-  if (s.v !== SAVE_VERSION) for (const t in s.cat) for (const k in s.cat[t]) s.cat[t][k] = Math.max(0, (typeof s.cat[t][k] === 'number' ? s.cat[t][k] : 1) - 1);
+  if (s.v === undefined || s.v <= 4) for (const t in s.cat) for (const k in s.cat[t]) s.cat[t][k] = Math.max(0, (typeof s.cat[t][k] === 'number' ? s.cat[t][k] : 1) - 1);
   s.active = s.active ?? null;
   if (s.tickets === undefined) s.tickets = TICKETS_PER_DAY;
   s.tDay = s.tDay || ''; s.shopT = s.shopT || 0; s.shopC = s.shopC || 0; s.icepack = !!s.icepack;

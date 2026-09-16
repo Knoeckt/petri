@@ -1,7 +1,7 @@
 # Petri — Long-Term Roadmap
 
 **Last updated:** 2026-09-16  
-**Current version:** v0.11.6  
+**Current version:** v0.11.8  
 **Current stage:** Pre-alpha / balance & polish  
 **Immediate milestone:** Make Chapter 1 fun at real timings without ads.
 
@@ -56,7 +56,7 @@ Phase by phase, against the original generic idle-game roadmap:
 | 13 Audio & haptics | **Audio done, haptics not started** |
 | 14–15 Capacitor / iOS lifecycle | **Not started.** The web lifecycle (`src/runtime/session.ts`) is the model for it |
 | 16 Analytics | **Not started** |
-| 17 Monetization | **Stand-ins only.** Rewarded ad placements play a 3-second placeholder; the Shop is a stand-in. No SDK, no IAP |
+| 17 Monetization | **Stand-ins only.** Rewarded ad placements play a placeholder video; the Shop's Supporter's counter has four IAP stand-ins with real effects behind a mock store sheet (`runPurchase`). No SDK |
 | 18–28 TestFlight, store, launch, live | **Not started** |
 
 This roadmap therefore does **not** treat major system implementation as the primary development problem.

@@ -1,4 +1,4 @@
-import { ART, ART_MAX, COUNTS, EQ, GEN_DEF, HYB, MORE, RES_DEF, SIDE, SITE, STORY, TIERS, UPI } from '../data';
+import { ART, ART_MAX, COUNTS, EQ, GEN_DEF, HYB, IAP_BY, MORE, RES_DEF, SIDE, SITE, STORY, TIERS, UPI } from '../data';
 import type { State } from './state';
 
 const record = (value: unknown): value is Record<string, unknown> =>
@@ -41,6 +41,7 @@ export function validState(value: unknown): value is State {
   if (!text(s.tDay) || !map(s.st, integer) || !map(s.adUse, integer)) return false;
   if (!map(s.eq, (v, k) => owns(EQ, k) && integer(v) && v <= EQ[k].max)) return false;
   if (!map(s.ups, (v, k) => owns(UPI, k) && v === true)) return false;
+  if (!map(s.iap, (v, k) => owns(IAP_BY, k) && v === true)) return false;
   if (!map(s.res, (v, k) => {
     const def = RES_DEF.find(r => r.id === k);
     return !!def && (def.max ? integer(v) && v <= def.max : bool(v));

@@ -6,7 +6,7 @@ import {
   shelfCap, stock, weights, rarLv, rarCap, effLv, cycleTime, genRate, offlineEff, dropsPer, guardChance,
   addArt, mergeArt, placeArt, artPerk, artSpare, sideRefill, sideProg, sideDone, doSide, bump,
   ascend, canAscend, genesis, canGenesis, buyGen, genLv, buyShop, shopCost, adClaim, mgStart, mgDrop,
-  type Ctx, type Req, resVisible, RES_DEF, TIER_COUNT, STORY, SIDE, GEN_TIER,
+  type Ctx, type Req, resVisible, RES_DEF, TIER_COUNT, STORY, SIDE, GEN_TIER, SAVE_VERSION,
 } from './index';
 
 const game = (seed = 1, save?: unknown) => createGame({ rng: seeded(seed), now: 1_000_000, today: () => 'day1', save });
@@ -225,7 +225,7 @@ describe('saves', () => {
   it('round-trips through JSON', () => {
     const g = game(8); for (let i = 0; i < 80; i++) tick(g, 0.5, i * 500);
     const back = migrate(JSON.parse(JSON.stringify(g.s)))!;
-    expect(back.cycles).toBe(g.s.cycles); expect(back.v).toBe(5);
+    expect(back.cycles).toBe(g.s.cycles); expect(back.v).toBe(SAVE_VERSION);
   });
   it('imports a mockup save with every legacy shape', () => {
     const old = { ...fresh(0), theme: 'bio', v: undefined, lv: 12, notes: undefined, eq: undefined, arts: { chime: 7, pebble: 2 }, placed: ['chime', null, 'bogus'], story: { 0: { step: 3, brewing: null, brewed: false, log: ['a'], done: false } }, res: { wash: true }, side: [{ k: 1 }], gen: undefined, tut: undefined };
@@ -233,7 +233,7 @@ describe('saves', () => {
     const g = game(1, old);
     expect(g.s.arts).toEqual({ chime: { 1: 7 }, pebble: { 1: 2 } }); expect(g.s.placed).toEqual([{ id: 'chime', lv: 1 }, null, null]);
     expect(g.s.story[0].step).toBe(6); expect(g.s.res.wash).toBe(20); expect(g.s.side).toEqual([]); expect(g.s.gen.runs).toBe(0); expect(g.s.tut.done).toBe(true);
-    expect(g.s.v).toBe(5); expect((g.s as any).theme).toBeUndefined(); expect((g.s as any).lv).toBeUndefined(); expect(g.s.eq.dish).toBe(11); expect(g.s.notes).toBe(0);
+    expect(g.s.v).toBe(SAVE_VERSION); expect((g.s as any).theme).toBeUndefined(); expect((g.s as any).lv).toBeUndefined(); expect(g.s.eq.dish).toBe(11); expect(g.s.notes).toBe(0);
   });
   it('a current save mid-chapter is left alone', () => {
     const g = game(1); g.s.story[0] = { step: 3, brewing: null, brewed: false, log: [], done: false };

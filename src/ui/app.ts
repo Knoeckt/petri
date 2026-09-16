@@ -2,10 +2,10 @@
 // Structure is built once; live values are patched in place.
 import { RAR, TEXT, UNLOCK } from '../data';
 import type { Ctx, AdPlacement } from '../sim';
-import { goal, genRate, cycleTime, collect, flashFinds, tierDef, fmt, fmtDur, clinicHas, unlocked, unlockLabel, upAvailable, eqAvailable, canAscend, questsReady, unplacedCount, mergeableCount, medsRelevant, batchesAffordable, adReady, boostOn, warpLen, boostLen, tutSeen, type Offline } from '../sim';
+import { goal, genRate, cycleTime, collect, flashFinds, tierDef, fmt, fmtDur, clinicHas, unlocked, unlockLabel, upAvailable, eqAvailable, canAscend, questsReady, unplacedCount, mergeableCount, medsRelevant, batchesAffordable, adReady, boostOn, warpLen, boostLen, tutSeen, iapOwned, type Offline } from '../sim';
 import { VesselView } from './vessel';
 import { Panels } from './panel';
-import { Sheet, runAd, showResults, adLabel } from './sheet';
+import { Sheet, runAd, runPurchase, showResults, adLabel } from './sheet';
 import { clinicPanel } from './panels/clinic';
 import { upgradesPanel } from './panels/upgrades';
 import { labPanel } from './panels/lab';
@@ -40,7 +40,7 @@ export class App {
     const sbtn = ([id, ic, n]: [string, string, string]) => `<button class="sbtn" data-tab="${id}"><span>${icon(ic, 26)}</span><i>${n}</i><b class="cnt" hidden></b><b class="lk" hidden></b></button>`;
     this.root.innerHTML = `
       <header class="top">
-        <div class="sign"><small></small><b>${TEXT.name}</b></div>
+        <div class="sign"><small></small><b>${TEXT.name}</b><i class="heart" hidden>❤️</i></div>
         <div class="lvl"><b class="ch">1-1</b><small class="wd">World 1</small></div>
         <div class="cur"><b>0</b><small>+0.0/s</small></div>
       </header>
@@ -66,6 +66,7 @@ export class App {
     this.sheet = new Sheet();
     this.panels = new Panels(g, [upgradesPanel, labPanel, clinicPanel, catalogPanel, ladderPanel, fieldPanel, questsPanel, shopPanel, decorPanel, brewPanel, splicerPanel], open => { this.root.classList.toggle('covered', !!open); if (open) tutSeen(g, open); }); // a visited panel clears its guide prompt
     this.panels.api.ad = (placement: AdPlacement, arg?: number) => this.ad(placement, arg);
+    this.panels.api.buy = (id: string) => runPurchase(this.g, this.sheet, id, () => { this.bump(); this.panels.rerender(); });
     this.root.insertBefore(this.panels.el, this.root.querySelector('.tabs'));
     this.root.appendChild(this.sheet.el);
     this.guide = new Guide(g, this.root, () => this.panels.current, () => this.sheet.isOpen); this.root.appendChild(this.guide.el);
@@ -148,6 +149,7 @@ export class App {
       const c = b.querySelector<HTMLElement>('.cnt'); if (c && cnt[k]) { const [n, ok] = cnt[k]; c.hidden = n <= 0 || (k === 'field' && !unlocked(g, 'tickets')); setText(c, k === 'splicer' || k === 'brew' ? '!' : String(n)); c.classList.toggle('ok', ok); }
       if (UNLOCK[k]) { const ok = unlocked(g, k); b.classList.toggle('locked', !ok); const lk = b.querySelector<HTMLElement>('.lk')!; lk.hidden = ok; setText(lk, unlockLabel(k)); }
     });
+    const heart = this.root.querySelector<HTMLElement>('.sign .heart'); if (heart && heart.hidden === iapOwned(g, 'supporter')) heart.hidden = !iapOwned(g, 'supporter');
     this.panels.live();
     this.guide.tick();
   }

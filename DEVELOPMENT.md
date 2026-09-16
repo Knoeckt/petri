@@ -88,8 +88,8 @@ cycles, pond ten minutes away, research 7–8 min, brewing 3–6 min). Session =
 | First trip sent / back | 5 min / 15 min | the first reason to put the phone down |
 | First equipment rank (3 notes) | 15–20 min | end of session 1 |
 | 1-2 Ida (5 of anything) | 10–15 min | never a stall |
-| 1-3 Pip (an uncommon) | 20–40 min | the first designed wait; the rank-up prompt fires here |
-| 1-4 Ferro, Lab opens | 45–75 min, session 2 | first research started within a minute of opening |
+| 1-3 Ferro (2 Fuzzwald, 1 Dotto), Lab opens | 15–25 min | still commons, no wall; first research started within a minute of opening |
+| 1-4 Pip (an uncommon) | 30–60 min, session 2 | the first designed wait; Notes and dish ranks carry it (swapped ahead of Ferro 2026-09-16 because the uncommon took 15+ min of play) |
 | 1-5 Ferro, Apothecary opens | 1.5–2.5 h of play, day 1–2 | first brew waits 3–6 min |
 | First overnight return | day 1 → 2 | offline cap 4 h bites; the welcome-back is worth reading |
 | Auto-harvest researched | day 2 | the automation milestone before the midpoint |
@@ -117,8 +117,9 @@ privacy/support information, and store submission.
 - Offline harvests remain automatic before auto-harvest research, matching the prototype.
 - Outbreaks wait for the player during catch-up. Offline bite resolution omits visual
   wind-up/travel animations; it retains biological bite timers and only eats spawned prey.
-- The current key is `petri-v5`; `petri-v5-backup` stores the previous valid snapshot.
-  `petri-v5-recovery` retains unreadable source text before any replacement. v5 (0.11.6)
+- The current key is `petri-v6`; `petri-v6-backup` stores the previous valid snapshot.
+  `petri-v6-recovery` retains unreadable source text before any replacement. v6 (0.11.8) adds
+  `iap`, the real-money purchase record, kept through Scale-up and Genesis. v5 (0.11.6)
   dissolved the catalog's keeper copy: a count is what sits on the Shelf, 0 means found and
   empty, and migration subtracts one from every pre-v5 count so usable stock is unchanged. Future-version
   saves and saves that could not be read are protected from writes until reload/update.

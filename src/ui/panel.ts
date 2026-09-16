@@ -2,7 +2,7 @@
 import type { Ctx, AdPlacement } from '../sim';
 import { unlocked, unlockName, unlockLabel, unlockHint, toast } from '../sim';
 
-export interface PanelApi { open: (id: string) => void; close: () => void; rerender: () => void; ad?: (placement: AdPlacement, arg?: number) => void }
+export interface PanelApi { open: (id: string) => void; close: () => void; rerender: () => void; ad?: (placement: AdPlacement, arg?: number) => void; buy?: (id: string) => void }
 export interface PanelDef {
   id: string;
   title: (g: Ctx) => string;

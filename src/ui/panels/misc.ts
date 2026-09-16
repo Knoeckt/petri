@@ -1,7 +1,7 @@
 // Quests, Shop and Decor: short list panels.
-import { SIDE, ARTS, ART, ART_MAX, ART_MERGE, TEXT } from '../../data';
+import { SIDE, ARTS, ART, ART_MAX, ART_MERGE, TEXT, IAP } from '../../data';
 import type { Ctx } from '../../sim';
-import { sideRefill, sideProg, sideDone, doSide, tierMult, shopItems, shopCost, buyShop, artSpare, artDesc, artPerk, placeArt, unplaceArt, mergeArt, fmt, fmtDur, boostLen } from '../../sim';
+import { sideRefill, sideProg, sideDone, doSide, tierMult, shopItems, shopCost, buyShop, artSpare, artDesc, artPerk, placeArt, unplaceArt, mergeArt, fmt, fmtDur, boostLen, iapOwned, toast } from '../../sim';
 import type { PanelDef } from '../panel';
 import { icon, iconFor } from '../icons';
 import { faceCanvas, drawPortraits } from '../portraits';
@@ -25,10 +25,17 @@ export const shopPanel: PanelDef = {
   title: () => 'Shop',
   render(el, g) {
     el.innerHTML = `<p class="sub">Paid in ${TEXT.cur.toLowerCase()}. Nothing here you can't also earn; more appears as the town opens up.</p>` +
-      shopItems(g).map(it => { const c = shopCost(g, it.id); return `<div class="r" style="cursor:default"><div class="rn">${icon(iconFor(it.id), 20)} ${it.n}</div><div class="rd">${it.d.replace('{boost}', fmtDur(boostLen(g)))}</div><div class="rc">${fmt(c)}</div><div class="acts" style="grid-column:1 / span 2; margin-top:6px"><button class="btn primary" data-act="buy" data-id="${it.id}" ${g.s.cur >= c ? '' : 'disabled'}>Buy</button></div></div>`; }).join('');
+      shopItems(g).map(it => { const c = shopCost(g, it.id); return `<div class="r" style="cursor:default"><div class="rn">${icon(iconFor(it.id), 20)} ${it.n}</div><div class="rd">${it.d.replace('{boost}', fmtDur(boostLen(g)))}</div><div class="rc">${fmt(c)}</div><div class="acts" style="grid-column:1 / span 2; margin-top:6px"><button class="btn primary" data-act="buy" data-id="${it.id}" ${g.s.cur >= c ? '' : 'disabled'}>Buy</button></div></div>`; }).join('') +
+      `<h4 class="gh">Supporter's counter</h4><p class="sub">Real money. Stand-ins for now: the store sheet is a mock until the native build. Nothing here is needed to play.</p>` +
+      IAP.map(p => { const owned = iapOwned(g, p.id); return `<div class="r ${owned ? 'done' : ''}" style="cursor:default"><div class="rn">${p.e} ${p.n}</div><div class="rd">${p.d}</div><div class="rc">${owned ? '✓' : p.price}</div><div class="acts" style="grid-column:1 / span 2; margin-top:6px"><button class="btn ${owned ? '' : 'primary'}" data-act="iap" data-id="${p.id}" ${owned ? 'disabled' : ''}>${owned ? 'Owned' : `Buy · ${p.price}`}</button></div></div>`; }).join('') +
+      `<div class="acts" style="margin-top:8px"><button class="btn" data-act="restore">Restore purchases</button></div>`;
   },
   live(el, g) { el.querySelectorAll<HTMLButtonElement>('[data-act="buy"]').forEach(b => { b.disabled = g.s.cur < shopCost(g, b.dataset.id!); }); },
-  act: { buy: (b, g) => { const ok = buyShop(g, b.dataset.id!); if (ok) play('coin'); return ok; } },
+  act: {
+    buy: (b, g) => { const ok = buyShop(g, b.dataset.id!); if (ok) play('coin'); return ok; },
+    iap: (b, g, api) => { if (!iapOwned(g, b.dataset.id!)) api.buy?.(b.dataset.id!); return false; },
+    restore: (_b, g) => { toast(g, 'Nothing to restore in the stand-in store. The native build asks the App Store.'); return false; },
+  },
 };
 
 export const decorPanel: PanelDef = {

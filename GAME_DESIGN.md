@@ -328,8 +328,8 @@ Two kinds of request sit on the board:
 |---|---|---|---|---|---|---|
 | 1 | Mayor Bramble | The tap water has gone fizzy | 5 samples of anything | harvest, everything goes on the shelf; opens Field trips | 40 | "Fizzy. Definitely fizzy." |
 | 2 | Ida the baker | The bread is singing | 2 Fuzzwald | a specific strain; opens Quests and Shop | 70 | "It is always the fuzzy one." |
-| 3 | Pip | The cat glows at night | 1 uncommon or better | rarity, the odds bar, levelling, the Catalog; opens the Lab | 150 | Same glow as the cat. |
-| 4 | Doc Ferro | Purple spots, six patients | 2 Fuzzwald, 1 Dotto | two targets at once; opens the Apothecary | 220 | "Something is spreading." |
+| 3 | Doc Ferro | Purple spots, six patients | 2 Fuzzwald, 1 Dotto | two targets at once, still commons; opens the Lab ("take a bench") | 150 | "Something is spreading." |
+| 4 | Pip | The cat glows at night | 1 uncommon or better | rarity, the odds bar, ranking the dish, the Shelf; opens the Apothecary | 220 | Same glow as the cat. |
 | 5 | Doc Ferro | The town needs medicine | 2 Fizz-Fix (recipe: 2 Blubb) | brewing, one recipe; opens Tickets and Decor | 260 | "The pond is another matter." |
 | 6 | Gran Moss | The pond has gone black | 1 live Mirror Mike, 2 Fizz-Fix | the rare hunt is the beat: level toward the tier's reach | 520 | Something moved under the surface. |
 | 7 | Doc Ferro | Needs something that bites back | 4 Bitters, 1 live Nibbler | a dangerous strain as an ingredient and a deliverable; **gives the splicer** | 700 | "It is learning." |
@@ -432,8 +432,8 @@ tapping it says who to help. The delivery that opens something announces it.
 |---|---|---|
 | always | Upgrades, Clinic, Catalog | the loop: grow, harvest, buy, deliver |
 | 1-2 (Ida) | Quests, Shop | "half the town has heard about your dish"; a second use for spares |
-| 1-3 (Pip) | Lab (research) | Pip's request is the first that needs levelling; brewing research stays hidden until the kettle |
-| 1-4 (Doc Ferro) | Brewery (Apothecary) | Ferro's first medicine request arrives as the button opens |
+| 1-3 (Doc Ferro) | Lab (research) | Ferro hands over the bench as he takes the samples; brewing research stays hidden until the kettle |
+| 1-4 (Pip) | Brewery (Apothecary) | Pip's request is the first that needs ranking the dish, so it comes after the Lab and its Notes have had time; Ferro's first medicine request arrives as the button opens |
 | 1-5 (Ferro's kettle) | Tickets, Decor | artifacts matter once rarity matters |
 | 1-7 (Ferro's Bitters) | Splicer | the story hands it over |
 | 1-8 (Contained sample) | Scale up | the tab appears with the chapter's last request |
@@ -465,7 +465,7 @@ that are already past 1-5 load with the guide finished.
 | **Quests** (left) | odd jobs that count things you do anyway (harvest five dishes, box up two biters, level up twice): two at a time with a progress bar, Collect when full, a fresh one after. A badge counts the ones ready to collect. |
 | **Tickets** (left) | the pipette mini-game, below. The badge is today's ticket count. |
 | **Splicer** (left) | the Splice-o-matic, its own area. Badge when a hybrid is waiting in the chamber. |
-| **Shop** (right) | paid in biomass only, nothing you can't also earn, no premium currency. Five items, shown as their systems open: **Sample crate** (three spares of commons you have already found, 40 biomass, ×1.35 per purchase, resets daily; the early-game unblocker), **Heat lamp** (2× growth and income for two minutes), **Ice pack** (+2 h offline cap, once), **Extra ticket** (once Tickets is open; price climbs, resets daily), **Mystery pebble** (once Decor is open; a random common artifact). |
+| **Shop** (right) | paid in biomass, nothing you can't also earn, no premium currency; below the items a **Supporter's counter** of four real-money products (no more ads, starter kit, deep shelf, supporter's heart), stand-ins with real effects until StoreKit (ROADMAP §30). Five items, shown as their systems open: **Sample crate** (three spares of commons you have already found, 40 biomass, ×1.35 per purchase, resets daily; the early-game unblocker), **Heat lamp** (2× growth and income for two minutes), **Ice pack** (+2 h offline cap, once), **Extra ticket** (once Tickets is open; price climbs, resets daily), **Mystery pebble** (once Decor is open; a random common artifact). |
 | **Decor** (right) | place up to three artifacts in the enclosure. Only placed ones count. A badge counts unplaced artifacts. |
 | **Brewery** (right) | the Apothecary's Copper Kettle, its own area. Badge when something can be brewed. Locked until 1-4, when Doc Ferro's first medicine request explains it. |
 

@@ -18,6 +18,17 @@ export const SHOP: ShopItem[] = [
   { id: 'pebble', n: 'Mystery pebble', e: '🪨', d: 'A random common artifact for the enclosure.' },
 ];
 
+/** Real-money products (ROADMAP §30). Prices are display strings; the store sets the real ones. The purchase
+ * flow is a stand-in until the native build; effects are real so playtests can judge them. All non-consumable. */
+export interface IapProduct { id: string; n: string; price: string; e: string; d: string }
+export const IAP: IapProduct[] = [
+  { id: 'noads', n: 'No more ads', price: '$2.99', e: '🚫', d: 'Every rewarded bonus is yours without watching the video. The cooldown between them stays.' },
+  { id: 'starter', n: 'Starter kit', price: '$0.99', e: '🎁', d: '500 biomass, 20 Notes and 3 tickets, once.' },
+  { id: 'bigshelf', n: 'Deep shelf', price: '$1.99', e: '🗄️', d: 'The shelf holds 5 more of every strain, forever.' },
+  { id: 'supporter', n: "Supporter's heart", price: '$1.99', e: '❤️', d: 'A heart on the sign and our thanks. Nothing else, on purpose.' },
+];
+export const IAP_BY: Record<string, IapProduct> = Object.fromEntries(IAP.map(p => [p.id, p]));
+
 /** how many of a strain the specimen study perks give, by rarity: [kind, amount][] */
 export const STUDY_PERKS: [string, number][][] = [
   [['income', 0.03]], [['cycle', 0.03]], [['lv', 1]], [['income', 0.10], ['cycle', 0.05]], [['drop', 1]], [['lv', 2], ['income', 0.10]],

@@ -245,3 +245,5 @@ canvas.scene.map{border-bottom:3px solid var(--ink)}
 .save-notice .btn{font-size:12px; padding:8px}
 
 .it small.cnt{font-weight:700} .it small.cnt.empty{opacity:.55; font-weight:400}
+
+.sign .heart{position:absolute; right:-9px; top:-9px; font-size:15px; font-style:normal; filter:drop-shadow(0 2px 0 var(--ink))} .sign .heart[hidden]{display:none}

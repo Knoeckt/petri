@@ -135,7 +135,11 @@ export const offlineCap = (g: Ctx) => OFFLINE_CAP * (g.s.res.storage ? 2 : 1) + 
 export const offlineEff = (g: Ctx) => Math.min(1, 0.1 + 0.1 * genLv(g, 'offline'));
 export const warpLen = (g: Ctx) => WARP + 1800 * genLv(g, 'warp');
 export const guardChance = (g: Ctx) => Math.min(1, resLv(g, 'wash') * 0.05 + (perk(g, 'guard') ? 0.4 : 0) + studyFx(g, 'guard') + 0.05 * genLv(g, 'guard') + 0.04 * eqLv(g, 'clean'));
-export const shelfCap = (g: Ctx) => (SHELF + SHELF * resLv(g, 'fridge')) * (g.s.res.storage ? 2 : 1) + eqLv(g, 'clean');
+export const shelfCap = (g: Ctx) => (SHELF + SHELF * resLv(g, 'fridge')) * (g.s.res.storage ? 2 : 1) + eqLv(g, 'clean') + (iapOwned(g, 'bigshelf') ? 5 : 0);
+// ---- real-money products: owned flags the platform layer sets through iapGrant; rules only read them ----
+export const iapOwned = (g: Ctx, id: string) => !!g.s.iap[id];
+/** rewarded bonuses claim without the video */
+export const adFree = (g: Ctx) => iapOwned(g, 'noads');
 
 // ---- the ladder and what opens when ----
 export function canAscend(g: Ctx) {
