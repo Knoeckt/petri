@@ -102,7 +102,8 @@ export const eqLv = (g: Ctx, id: string) => g.s.eq[id] || 0;
 export const eqDef = (id: string) => EQ[id];
 export const eqMaxed = (g: Ctx, id: string) => eqLv(g, id) >= EQ[id].max;
 /** a rank costs Notes first and a little biomass second */
-export const eqCost = (g: Ctx, id: string) => { const e = EQ[id], r = eqLv(g, id); return { notes: Math.round(e.notes * Math.pow(e.grow, r)), bio: Math.round(e.bio * Math.pow(1.25, r) * tierMult(g)) }; };
+/** the Petri dish's first rank is free: it is the guide's demo of the bench before any Notes have come back from a trip */
+export const eqCost = (g: Ctx, id: string) => { const e = EQ[id], r = eqLv(g, id); if (id === 'dish' && r === 0) return { notes: 0, bio: 0 }; return { notes: Math.round(e.notes * Math.pow(e.grow, r)), bio: Math.round(e.bio * Math.pow(1.25, r) * tierMult(g)) }; };
 export const eqCanBuy = (g: Ctx, id: string) => !!EQ[id] && !eqMaxed(g, id) && g.s.notes >= eqCost(g, id).notes && g.s.cur >= eqCost(g, id).bio;
 export const eqAvailable = (g: Ctx) => EQUIP.some(e => eqCanBuy(g, e.id));
 /** chance a duplicate rerolls into an unfound strain of its rarity */

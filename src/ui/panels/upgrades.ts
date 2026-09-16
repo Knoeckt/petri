@@ -21,7 +21,7 @@ export const upgradesPanel: PanelDef = {
       EQUIP.map(e => {
         const lv = eqLv(g, e.id), max = eqMaxed(g, e.id), c = eqCost(g, e.id), can = eqCanBuy(g, e.id);
         if (max) return `<div class="r done"><div class="rn">${e.n} <span class="tag on">${lv}/${e.max}</span></div><div class="rd">${e.d}</div><div class="rc">✓</div></div>`;
-        return `<button class="r ${can ? '' : 'poor'}" data-act="eq" data-k="${e.id}"><div class="rn">${e.n} <span class="tag on">${lv}/${e.max}</span></div><div class="rd">${e.d}</div><div class="rc"><b>${c.notes}</b> notes<small>+ ${fmt(c.bio)} ${TEXT.cur.toLowerCase()}</small></div></button>`;
+        return `<button class="r ${can ? '' : 'poor'}" data-act="eq" data-k="${e.id}"><div class="rn">${e.n} <span class="tag on">${lv}/${e.max}</span></div><div class="rd">${e.d}</div><div class="rc">${c.notes || c.bio ? `<b>${c.notes}</b> notes<small>+ ${fmt(c.bio)} ${TEXT.cur.toLowerCase()}</small>` : `<b>Free</b><small>the first rank</small>`}</div></button>`;
       }).join('');
     // one-time upgrades
     const tiers = UPT.map((t, ti) => {

@@ -1,6 +1,6 @@
 // The first-run guide: a bobbing hand over the next thing to tap, with a spotlight that dims and blocks everything else.
 import type { Ctx } from '../sim';
-import { unlocked, clinicHas, curStep, story, eqCost, sitesOpen, unplacedCount } from '../sim';
+import { unlocked, clinicHas, curStep, story, eqCost, eqCanBuy, sitesOpen, unplacedCount } from '../sim';
 import { icon } from './icons';
 
 type Target = [sel: string, text: string, opts?: string];
@@ -16,7 +16,7 @@ export function guideTarget(g: Ctx, tab: string | null): Target | null {
     if (!seen.clinic && s.cycles >= 1) return ['.tabs button[data-tab="clinic"]', 'Someone at the Clinic needs you'];
     if (unlocked(g, 'field') && !seen.field) return ['.sbtn[data-tab="field"]', 'The Mayor gave you a map. Send a trip'];
     if (unlocked(g, 'field') && !s.trip && !(s.st.trip || 0) && sitesOpen(g).length) return ['.sbtn[data-tab="field"]', 'Send a trip to the pond for Notes'];
-    if (!seen.buy && s.notes >= eqCost(g, 'dish').notes && s.cur >= eqCost(g, 'dish').bio) return ['.tabs button[data-tab="up"]', 'You have Notes. Rank up the Petri dish'];
+    if (!seen.buy && eqCanBuy(g, 'dish')) return ['.tabs button[data-tab="up"]', eqCost(g, 'dish').notes ? 'You have Notes. Rank up the Petri dish' : 'The bench: your first Petri dish rank is free'];
     if (unlocked(g, 'quests') && !seen.quests) return ['.sbtn[data-tab="quests"]', 'Quests pay for things you already do'];
     if (unlocked(g, 'lab') && !seen.lab) return ['.tabs button[data-tab="lab"]', 'Doc Ferro gave you a bench. Research something'];
     if (unlocked(g, 'brew') && !seen.brew) return ['.sbtn[data-tab="brew"]', 'The kettle: spare samples become medicine'];
@@ -26,7 +26,8 @@ export function guideTarget(g: Ctx, tab: string | null): Target | null {
   }
   if (tab === 'clinic' && clinicHas(g)) return ['.tabbody [data-act="deliver"]', `Deliver to ${curStep(g)!.who}`];
   if (tab === 'field' && !s.trip && !(s.st.trip || 0)) return ['.tabbody [data-act="trip"]', 'Send them to the pond'];
-  if (tab === 'up' && !seen.buy) return ['.tabbody [data-act="eq"][data-k="dish"]', 'Rank up the Petri dish for rarer strains'];
+  // prompts inside a panel only point at things the player can do right now
+  if (tab === 'up' && !seen.buy && eqCanBuy(g, 'dish')) return ['.tabbody [data-act="eq"][data-k="dish"]', 'Rank up the Petri dish for rarer strains'];
   if (tab === 'lab' && !seen.res && !s.active) return ['.tabbody .r[data-act="research"]:not(.poor)', 'Start your first research'];
   if (tab === 'brew' && !s.brew && !seen.brewed) return ['.tabbody [data-act="brew"]:not([disabled])', 'Brew it'];
   return null;

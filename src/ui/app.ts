@@ -124,7 +124,7 @@ export class App {
     setText(this.signSmall, `Tier ${s.tier + 1} · ${tierDef(s.tier).n}`);
     const prog = Math.min(1, d.p / cycleTime(g));
     this.barFill.style.width = (prog * 100).toFixed(1) + '%'; this.bar.classList.toggle('ready', d.ready);
-    setDis(this.harvest, !d.ready); setText(this.harvest, d.ready ? `${TEXT.collect}!` : `${TEXT.cycling} · ${fmtDur(cycleTime(g) - d.p)}`);
+    setDis(this.harvest, !d.ready); setText(this.harvest, d.ready ? `${TEXT.collect}!` : `${TEXT.cycling} · ${fmtDur(Math.max(0, cycleTime(g) - d.p))}`);
     const fieldOpen = unlocked(g, 'field');
     setHTML(this.fieldBtn, s.trip ? `Trip out<small>back in ${fmtDur(s.trip.left)} · ${s.notes} notes</small>` : fieldOpen ? `Field<small>${s.notes} notes · send a trip</small>` : `Field trips<small>open after ${unlockLabel('field')}</small>`); setDis(this.fieldBtn, !fieldOpen);
     setHTML(this.warpBtn, adLabel(g, `Time warp +${fmtDur(warpLen(g))}`)); setDis(this.warpBtn, !adReady(g) || this.sheet.busy);

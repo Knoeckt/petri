@@ -325,8 +325,8 @@ Two kinds of request sit on the board:
 
 | # | Who | Problem | Wants | Teaches / opens | Pays | Afterwards |
 |---|---|---|---|---|---|---|
-| 1 | Mayor Bramble | The tap water has gone fizzy | 2 Blubb | harvest, spares vs the keeper copy | 40 | "Fizzy. Definitely fizzy." |
-| 2 | Ida the baker | The bread is singing | 5 samples of anything | quantity; opens Quests and Shop | 70 | "It is always the fuzzy one." |
+| 1 | Mayor Bramble | The tap water has gone fizzy | 5 samples of anything | harvest, spares vs the keeper copy; opens Field trips | 40 | "Fizzy. Definitely fizzy." |
+| 2 | Ida the baker | The bread is singing | 2 Fuzzwald | a specific strain; opens Quests and Shop | 70 | "It is always the fuzzy one." |
 | 3 | Pip | The cat glows at night | 1 uncommon or better | rarity, the odds bar, levelling, the Catalog; opens the Lab | 150 | Same glow as the cat. |
 | 4 | Doc Ferro | Purple spots, six patients | 2 Fuzzwald, 1 Dotto | two targets at once; opens the Apothecary | 220 | "Something is spreading." |
 | 5 | Doc Ferro | The town needs medicine | 2 Fizz-Fix (recipe: 2 Blubb) | brewing, one recipe; opens Tickets and Decor | 260 | "The pond is another matter." |
@@ -520,6 +520,9 @@ this is the long-term sink for the pipette, and the reason to keep playing it af
 artifact has been seen once.
 
 ## 3e. The bench and field trips (the rarity engine)
+
+The Petri dish's first rank is free so the guide can walk a new player through the bench before
+any Notes have come back; rank 2 costs 3 Notes and points them at the pond.
 
 The dish level used to be a biomass sink that shifted the rarity table, which made it the
 economy's wall and the least tangible upgrade in the game. It is replaced by two things

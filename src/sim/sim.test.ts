@@ -86,10 +86,13 @@ describe('the dish', () => {
 
 describe('the economy', () => {
   it('equipment is ranked with notes and a little biomass', () => {
-    const g = game(); expect(eqCost(g, 'dish')).toEqual({ notes: 3, bio: 10 });
+    const g = game(); expect(eqCost(g, 'dish')).toEqual({ notes: 0, bio: 0 }); // the first rank is the guide's free demo
+    expect(eqCost(g, 'scope')).toEqual({ notes: 8, bio: 20 }); expect(buyEquip(g, 'scope')).toBe(false);
+    expect(buyEquip(g, 'dish')).toBe(true); expect(eqLv(g, 'dish')).toBe(1); expect(effLv(g)).toBe(1); expect(g.s.notes).toBe(0); expect(g.s.st.lv).toBe(1);
+    expect(eqCost(g, 'dish')).toEqual({ notes: Math.round(3 * 1.15), bio: Math.round(10 * 1.25) });
     expect(buyEquip(g, 'dish')).toBe(false); g.s.notes = 100; g.s.cur = 1000;
-    expect(buyEquip(g, 'dish')).toBe(true); expect(eqLv(g, 'dish')).toBe(1); expect(effLv(g)).toBe(1); expect(g.s.notes).toBe(97); expect(g.s.cur).toBe(990); expect(g.s.st.lv).toBe(1);
-    expect(eqCost(g, 'dish').notes).toBe(Math.round(3 * 1.15));
+    expect(buyEquip(g, 'dish')).toBe(true); expect(eqLv(g, 'dish')).toBe(2); expect(g.s.notes).toBe(97); expect(g.s.cur).toBe(987);
+    expect(eqCost(g, 'dish').notes).toBe(Math.round(3 * 1.15 * 1.15));
     g.s.eq.dish = 30; expect(buyEquip(g, 'dish')).toBe(false);
     g.s.eq.incub = 5; expect(cycleTime(g)).toBeCloseTo(20 * 0.9);
     g.s.eq.pipette = 5; expect(dropsPer(g)).toBe(2); g.s.eq.pipette = 6; expect(dropsPer(g)).toBe(3);
