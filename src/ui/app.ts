@@ -2,7 +2,7 @@
 // Structure is built once; live values are patched in place.
 import { RAR, TEXT, UNLOCK } from '../data';
 import type { Ctx, AdPlacement } from '../sim';
-import { goal, genRate, cycleTime, collect, flashFinds, tierDef, fmt, fmtDur, clinicHas, unlocked, unlockLabel, upAvailable, eqAvailable, canAscend, questsReady, unplacedCount, mergeableCount, medsRelevant, batchesAffordable, adReady, boostOn, warpLen, type Offline } from '../sim';
+import { goal, genRate, cycleTime, collect, flashFinds, tierDef, fmt, fmtDur, clinicHas, unlocked, unlockLabel, upAvailable, eqAvailable, canAscend, questsReady, unplacedCount, mergeableCount, medsRelevant, batchesAffordable, adReady, boostOn, warpLen, tutSeen, type Offline } from '../sim';
 import { VesselView } from './vessel';
 import { Panels } from './panel';
 import { Sheet, runAd, showResults, adLabel } from './sheet';
@@ -64,11 +64,11 @@ export class App {
     this.vessel = new VesselView(g, { onHarvest: () => { this.bump(); play('harvest'); }, onStir: () => play('tap') });
     const stage = this.root.querySelector('.stage')!; stage.insertBefore(this.vessel.el, stage.querySelector('.sideR'));
     this.sheet = new Sheet();
-    this.panels = new Panels(g, [upgradesPanel, labPanel, clinicPanel, catalogPanel, ladderPanel, fieldPanel, questsPanel, shopPanel, decorPanel, brewPanel, splicerPanel], open => this.root.classList.toggle('covered', !!open));
+    this.panels = new Panels(g, [upgradesPanel, labPanel, clinicPanel, catalogPanel, ladderPanel, fieldPanel, questsPanel, shopPanel, decorPanel, brewPanel, splicerPanel], open => { this.root.classList.toggle('covered', !!open); if (open) tutSeen(g, open); }); // a visited panel clears its guide prompt
     this.panels.api.ad = (placement: AdPlacement, arg?: number) => this.ad(placement, arg);
     this.root.insertBefore(this.panels.el, this.root.querySelector('.tabs'));
     this.root.appendChild(this.sheet.el);
-    this.guide = new Guide(g, this.root, () => this.panels.current); this.root.appendChild(this.guide.el);
+    this.guide = new Guide(g, this.root, () => this.panels.current, () => this.sheet.isOpen); this.root.appendChild(this.guide.el);
     const q = <T extends Element>(sel: string) => this.root.querySelector<T>(sel)!;
     this.cur = q('.cur b'); this.rate = q('.cur small'); this.chEl = q('.lvl .ch'); this.wdEl = q('.lvl .wd');
     this.goalEl = q('.goal'); this.bar = q('.bar'); this.barFill = q('.bar i');

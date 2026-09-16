@@ -1,7 +1,7 @@
 // Build placeholders are filled by build/offline.ts. Never serve this template directly.
-const SHELL = [{"url":"./assets/index-BIOdh9sY.css","integrity":"sha256-KGKj0gKUEe5ksQN8YpCRxaUi2PPNOLQ5kSH53N8rHUE="},{"url":"./assets/index-CDektDru.js","integrity":"sha256-LhU0ZrJRaveEUxMmqm2n+bues5ZeGQB1KJvy8nC+Lp8="},{"url":"./icons/icon-180.png","integrity":"sha256-uUUBh/nFPXhmk+OtfaPcnOsMkQszYVmphvh6WQ/w5BE="},{"url":"./icons/icon-192.png","integrity":"sha256-vDmIAd3DTBI5ziseHtDIwRu626qb/F/gF7XzQ4gnyuI="},{"url":"./icons/icon-512.png","integrity":"sha256-DMXkeeysntiK9wNOo7j8Ny8cs6oji55jGVb20txypmo="},{"url":"./index.html","integrity":"sha256-07rJgRUxAJDFtemygGhcESbFDaMVYtpsdTv6S6XzLXg="},{"url":"./manifest.webmanifest","integrity":"sha256-7TOeACimWbjcNgx0jsaJsgVmiQt6/pG1fRsW8sHqYXY="}];
+const SHELL = [{"url":"./assets/index-28fZ8-aQ.css","integrity":"sha256-ow1e+/pDc+7JjTYrP782wSBaasUvEg608mJLuGPSkw4="},{"url":"./assets/index-BJHeCzvv.js","integrity":"sha256-7aJRHZJZZFeOUphOljsO2NwJN4sZdsYMgsD+Rmz3d2o="},{"url":"./icons/icon-180.png","integrity":"sha256-uUUBh/nFPXhmk+OtfaPcnOsMkQszYVmphvh6WQ/w5BE="},{"url":"./icons/icon-192.png","integrity":"sha256-vDmIAd3DTBI5ziseHtDIwRu626qb/F/gF7XzQ4gnyuI="},{"url":"./icons/icon-512.png","integrity":"sha256-DMXkeeysntiK9wNOo7j8Ny8cs6oji55jGVb20txypmo="},{"url":"./index.html","integrity":"sha256-lhJycfRGiT0mcoyyfQYnq4tLeGq4z1DW9hcwQyAK21g="},{"url":"./manifest.webmanifest","integrity":"sha256-7TOeACimWbjcNgx0jsaJsgVmiQt6/pG1fRsW8sHqYXY="}];
 const PREFIX = `petri-app:${encodeURIComponent(self.registration.scope)}:`;
-const CACHE = PREFIX + 'c2b7fa0cde3ce9a1';
+const CACHE = PREFIX + '1c051b3f3a7cb94e';
 const urls = new Set(SHELL.map(entry => new URL(entry.url, self.registration.scope).href));
 const index = new URL('./index.html', self.registration.scope).href;
 
@@ -16,7 +16,7 @@ self.addEventListener('install', event => {
 
 self.addEventListener('activate', event => {
   event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key =>
-    key.startsWith(PREFIX) && key !== CACHE
+    (key.startsWith(PREFIX) && key !== CACHE) || key === 'petri-app-v1' // the pre-0.11.3 worker's cache
   ).map(key => caches.delete(key)))).then(() => self.clients.claim()));
 });
 

@@ -23,6 +23,12 @@ Next manual checks: close/reopen during research and a trip; background during a
 return after the production cap; check a saved game after an update. Physical-phone
 lifecycle behavior still needs testing when a device is available.
 
+v0.11.4: the first-run guide now lets go of a prompt once its panel has been opened (the
+"Someone at the Clinic needs you" hand used to dim the whole screen forever), stands down
+while a results/ad sheet is open, only spotlights the very first harvest, and keeps its
+caption on screen at the left and right edges. The offline worker also deletes the
+pre-0.11.3 `petri-app-v1` cache on activation.
+
 ## 2. Pipette and offline app shell — implemented, ready for phone playtesting
 
 - [x] Update the pipette at animation-frame cadence and score its last displayed position.

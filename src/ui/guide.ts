@@ -11,7 +11,7 @@ export function guideTarget(g: Ctx, tab: string | null): Target | null {
   if (st.step >= 5 && seen.brew && seen.brewed) { t.done = true; return null; }
   if (!tab) {
     if (s.cycles === 0 && !dish.ready && (s.st.stir || 0) < 3) return ['.vwrap', 'Tap the dish to stir it along', 'in'];
-    if (dish.ready && !s.res.auto) return ['.harvest', 'Harvest your first colonies'];
+    if (dish.ready && !s.res.auto) { if (s.cycles === 0) return ['.harvest', 'Harvest your first colonies']; if (s.cycles < 3) return ['.harvest', 'Harvest again', 'soft']; }
     if (clinicHas(g)) return ['.tabs button[data-tab="clinic"]', `Deliver to ${curStep(g)!.who}`];
     if (!seen.clinic && s.cycles >= 1) return ['.tabs button[data-tab="clinic"]', 'Someone at the Clinic needs you'];
     if (unlocked(g, 'field') && !seen.field) return ['.sbtn[data-tab="field"]', 'The Mayor gave you a map. Send a trip'];
@@ -34,7 +34,7 @@ export function guideTarget(g: Ctx, tab: string | null): Target | null {
 
 export class Guide {
   el: HTMLDivElement; private hand: HTMLDivElement; private spot: HTMLDivElement; private blocks: HTMLDivElement[]; private key = '';
-  constructor(private g: Ctx, private root: HTMLElement, private currentTab: () => string | null) {
+  constructor(private g: Ctx, private root: HTMLElement, private currentTab: () => string | null, private covered: () => boolean = () => false) {
     this.el = document.createElement('div'); this.el.className = 'guide';
     this.el.innerHTML = `<div class="gb"></div><div class="gb"></div><div class="gb"></div><div class="gb"></div><div class="spot" hidden></div><div class="hand" hidden><span class="hp">${icon('hand')}</span><b class="hc"><span class="ht"></span><i class="hx">✕</i></b></div>`;
     this.hand = this.el.querySelector('.hand')!; this.spot = this.el.querySelector('.spot')!; this.blocks = Array.from(this.el.querySelectorAll<HTMLDivElement>('.gb'));
@@ -51,6 +51,7 @@ export class Guide {
   }
   /** cheap: runs on the live pass */
   tick() {
+    if (this.covered()) { this.hide(); return; } // a sheet (results, ad, picker) is on top; never dim it out of reach
     const tab = this.currentTab(); const t = guideTarget(this.g, tab); const el = t && this.root.querySelector<HTMLElement>(t[0]);
     if (!el) { this.hide(); return; }
     const r = el.getBoundingClientRect(); if (!r.width || !r.height) { this.hide(); return; }
@@ -64,5 +65,9 @@ export class Guide {
     const x = r.left + r.width / 2 - base.left; const y = inside ? r.top + r.height * .55 - base.top : above ? r.top - 4 - base.top : r.bottom + 4 - base.top;
     this.hand.style.left = x + 'px'; if (above) { this.hand.style.top = 'auto'; this.hand.style.bottom = (H - y) + 'px'; } else { this.hand.style.bottom = 'auto'; this.hand.style.top = y + 'px'; }
     if (this.hand.hidden) this.hand.hidden = false;
+    // the caption is centred on the target; near a screen edge it slides sideways so it stays readable
+    const cap = this.hand.querySelector<HTMLElement>('.hc')!, cw = cap.offsetWidth / 2, pad = 6;
+    const shift = Math.max(pad + cw - x, Math.min(0, base.width - pad - cw - x));
+    cap.style.transform = shift ? `translateX(${shift}px)` : '';
   }
 }

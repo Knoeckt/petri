@@ -81,9 +81,9 @@ describe('offline app shell', () => {
     expect(await b.request(scope + 'assets/game.js', 'cors')).toBe('new script');
   });
 
-  it('deletes only obsolete caches belonging to its own registration scope', async () => {
-    const other = ['petri-v20', 'petri-app-v1', 'another-game', 'petri-app:https%3A%2F%2Fexample.test%2Fother%2F:old'];
-    const b = browser(new Map([...other, prefix + 'old'].map(name => [name, new Map()])));
+  it('deletes only obsolete caches belonging to its own registration scope, plus the pre-0.11.3 cache', async () => {
+    const other = ['petri-v20', 'another-game', 'petri-app:https%3A%2F%2Fexample.test%2Fother%2F:old'];
+    const b = browser(new Map([...other, 'petri-app-v1', prefix + 'old'].map(name => [name, new Map()])));
     await b.lifecycle('install'); await b.lifecycle('activate');
     expect([...b.cacheData.keys()].sort()).toEqual([...other, prefix + 'new'].sort());
   });
