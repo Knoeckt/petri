@@ -1,42 +1,57 @@
 import './ui/theme.css';
-import { createGame, tick, checkOffline, SAVE_VERSION } from './sim';
+import { createGame } from './sim';
 import { App } from './ui/app';
+import { GameSession } from './runtime/session';
+import { SaveStore } from './runtime/storage';
+import { SaveNotice } from './ui/save-notice';
 
-const KEY = 'petri-v' + SAVE_VERSION;
-const MOCKUP_KEY = 'petri-orbit-mock-v2';
-// read the newest save this build or any earlier one wrote; failing that, the mockup's (same origin on Pages)
-let imported = false;
-const raw = (() => {
-  for (let v = SAVE_VERSION; v >= 3; v--) { try { const s = JSON.parse(localStorage.getItem('petri-v' + v) || 'null'); if (s) return s; } catch { /* unreadable */ } }
-  try { const m = JSON.parse(localStorage.getItem(MOCKUP_KEY) || 'null'); if (m && m.dishes) { imported = true; return m; } } catch { /* unreadable */ }
-  return null;
-})();
-const g = createGame({ save: raw });
+const store = new SaveStore(() => localStorage);
+const loaded = store.load();
+const g = createGame({ save: loaded.state });
 const app = new App(g);
 const mount = document.getElementById('app') || document.querySelector('.phone');
 if (mount) mount.replaceWith(app.root); else document.body.appendChild(app.root);
 if (import.meta.hot) import.meta.hot.accept(() => location.reload());
 
 let wiped = false;
-const save = () => { if (wiped) return; g.s.last = Date.now(); try { localStorage.setItem(KEY, JSON.stringify(g.s)); } catch { /* storage full or blocked */ } };
-(window as any).petri = { g, app, reset: () => { wiped = true; localStorage.removeItem(KEY); location.reload(); } };
+let saveFailed = false;
+const notice = new SaveNotice(() => {
+  const url = URL.createObjectURL(new Blob([store.recoveryExport(g.s)], { type: 'application/json' }));
+  const link = document.createElement('a'); link.href = url; link.download = 'petri-progress.json'; link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+});
+app.root.appendChild(notice.el);
+if (loaded.message) notice.show(loaded.message, true);
+const save = () => {
+  if (wiped) return;
+  const error = store.save(g.s);
+  if (error) notice.show(error, false);
+  else if (saveFailed) notice.hide();
+  saveFailed = !!error;
+};
+(window as any).petri = { g, app, reset: () => {
+  try { store.reset(); wiped = true; location.reload(); }
+  catch { notice.show('The save could not be reset. Your current game is still open.', true); }
+} };
 
-if (imported) app.toast('Brought your Petri save across from the old build.');
-const off = checkOffline(g, Date.now());
-if (off) app.offline(off);
+const session = new GameSession(g, save, off => app.offline(off));
+if (!document.hidden) session.resume();
 
-let last = performance.now(), uiAcc = 0;
+let uiAcc = 0;
 function frame(now: number) {
-  const dt = Math.min(0.25, (now - last) / 1000); last = now;
-  tick(g, dt, now);
-  app.vessel.draw(now, g.paused); app.panels.frame(now);
-  uiAcc += dt; if (uiAcc > 0.15) { uiAcc = 0; app.update(); }
+  const dt = session.frame(now);
+  if (session.running) {
+    app.vessel.draw(now, g.paused); app.panels.frame(now);
+    uiAcc += dt; if (uiAcc > 0.15) { uiAcc = 0; app.update(); }
+  }
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
-setInterval(save, 3000);
-document.addEventListener('visibilitychange', () => { if (document.hidden) save(); else { last = performance.now(); const o = checkOffline(g, Date.now()); if (o) app.offline(o); } });
-window.addEventListener('beforeunload', save);
+setInterval(() => session.save(), 3000);
+document.addEventListener('visibilitychange', () => { if (document.hidden) session.suspend(); else session.resume(); });
+window.addEventListener('pagehide', () => session.suspend());
+window.addEventListener('pageshow', () => { if (!document.hidden) session.resume(); });
+window.addEventListener('beforeunload', () => session.suspend());
 
 // iOS home-screen apps report a viewport that is the screen minus the status bar, yet anchor it at the top of the
 // screen, which leaves a strip at the bottom. When that happens, size the page to the whole screen.
@@ -49,4 +64,18 @@ function fitStandalone() {
 }
 fitStandalone(); addEventListener('resize', fitStandalone); addEventListener('orientationchange', () => setTimeout(fitStandalone, 300));
 // installable on the phone: the worker is scoped to this folder and does not touch the mockup's
-if (import.meta.env.PROD && 'serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => { /* no offline shell, the game still runs */ });
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).then(reg => {
+    const updateReady = () => app.toast('Update downloaded. Close all Petri windows and reopen to play the new version.');
+    if (reg.waiting) updateReady();
+    const watch = () => {
+      const worker = reg.installing;
+      worker?.addEventListener('statechange', () => {
+        if (worker.state === 'installed' && reg.active) updateReady();
+        if (worker.state === 'activated') app.toast('Petri is ready to play offline.');
+        if (worker.state === 'redundant') app.toast('Offline download did not finish. Reopen Petri online to retry.');
+      });
+    };
+    watch(); reg.addEventListener('updatefound', watch);
+  }).catch(() => app.toast('Offline setup is unavailable. Reopen Petri online to retry.'));
+}

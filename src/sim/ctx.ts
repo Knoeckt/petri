@@ -35,7 +35,7 @@ export interface Ctx {
   /** when true, biters neither hunt nor bite (a panel covers the vessel) */
   paused: boolean;
   /** transient pipette game, not saved */
-  mg: { t0: number; done: boolean; result?: { art: string; grade: number; pos: number } } | null;
+  mg: { t0: number; pos: number; done: boolean; result?: { art: string; grade: number; pos: number } } | null;
   today: () => string;
   emit: (e: GameEvent) => void;
   on: (fn: (e: GameEvent) => void) => () => void;
@@ -45,7 +45,7 @@ export interface CreateOpts { save?: unknown; rng?: Rng; now?: number; today?: (
 
 export function createGame(opts: CreateOpts = {}): Ctx {
   const now = opts.now ?? Date.now();
-  const s = migrate(opts.save) ?? fresh(now);
+  const s = migrate(opts.save, now) ?? fresh(now);
   const listeners = new Set<(e: GameEvent) => void>();
   return {
     s,

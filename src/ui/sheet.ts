@@ -1,7 +1,7 @@
 // The sheet: a small modal for ads, results and pickers. One at a time, dismissed by its own buttons or the scrim.
 import { RAR, TEXT, AD_LEN } from '../data';
 import type { Ctx } from '../sim';
-import { adClaim, adReady, item, fmt, fmtDur, guardChance, type AdPlacement, type Summary } from '../sim';
+import { adClaim, adReady, item, fmt, fmtDur, guardChance, unlocked, type AdPlacement, type Summary } from '../sim';
 import { icon } from './icons';
 
 export class Sheet {
@@ -22,7 +22,7 @@ export const adLabel = (g: Ctx, text: string) => `${icon('play', 14)} ${adReady(
 
 /** plays a stand-in rewarded ad (three seconds), then claims the reward through the sim */
 export function runAd(g: Ctx, sheet: Sheet, placement: AdPlacement, arg?: number, then?: (sum?: Summary) => void) {
-  if (sheet.busy || !adReady(g)) return;
+  if (sheet.busy || !adReady(g) || (placement === 'ticket' && !unlocked(g, 'tickets'))) return;
   sheet.busy = true; let left = AD_LEN;
   const render = () => sheet.open(`<div class="eyebrow">Rewarded ad · ${placement}</div><h3>Advertisement</h3><p class="sub">In the real build this is a rewarded video. Here it is three seconds.</p><div class="adbox">YOUR AD HERE<div class="big">${left > 0 ? Math.ceil(left) : '✓'}</div><div class="cd">${left > 0 ? 'reward in ' + Math.ceil(left) + 's' : 'reward ready'}</div></div><div class="acts"><button class="btn primary" data-claim ${left > 0 ? 'disabled' : ''}>Claim reward</button></div>`,
     box => { box.querySelector<HTMLButtonElement>('[data-claim]')!.onclick = () => { if (left > 0) return; sheet.close(); const r = adClaim(g, placement, arg); if (r.ok) then?.(r.sum); }; });

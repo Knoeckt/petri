@@ -168,9 +168,10 @@ describe('artifacts', () => {
     expect(artSpare(g, 'chime', 2)).toBe(1);
   });
   it('the pipette pays an artifact per ticket', () => {
-    const g = game(4); expect(mgStart(g, 0)).toBe(true); expect(g.s.tickets).toBe(2);
-    expect(mgDrop(g, 0.5)).toBe(true); expect(g.mg!.result!.grade).toBe(3); expect(Object.keys(g.s.arts).length).toBe(1);
-    expect(mgDrop(g, 0.5)).toBe(false);
+    const g = game(4); g.s.story[0] = { step: 5, brewing: null, brewed: false, log: [], done: false };
+    expect(mgStart(g, 0)).toBe(true); expect(g.s.tickets).toBe(2);
+    expect(mgDrop(g)).toBe(true); expect(g.mg!.result!.grade).toBe(3); expect(Object.keys(g.s.arts).length).toBe(1);
+    expect(mgDrop(g)).toBe(false);
   });
 });
 

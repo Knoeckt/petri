@@ -111,16 +111,45 @@ export function attackTick(g: Ctx, d: Dish, now: number, di: number) {
   }
 }
 
-/** what a biter would have eaten over a whole cycle nobody watched */
-export function dangerInstant(g: Ctx, drops: Drop[], ct: number, sum: Summary) {
-  const t = g.s.tier;
-  for (const c of drops) {
-    const dn = item(t, c.r, c.i).danger; if (!dn || c.dead || c.contained) continue;
-    if (g.rng() < guardChance(g)) { c.contained = true; continue; }
-    const window = ct * (1 - c.t0) - EAT_FIRST[dn];
-    let kills = dn === 1 ? 1 : dn === 3 ? 99 : Math.max(1, 1 + Math.floor(window / EAT_EVERY[dn]));
-    for (const v of drops) { if (kills <= 0) break; if (v === c || v.dead || item(t, v.r, v.i).danger) continue; v.dead = true; kills--; sum.eaten++; g.s.eaten++; }
+/** Offline bites use growth time, retaining each biter's elapsed timer and prior kills.
+ * Spawn protection was already rolled by rollDrops; catch-up never rolls it again.
+ * Travel/attack animations are omitted while away, but only spawned specimens can be eaten.
+ */
+export function advanceDanger(g: Ctx, d: Dish, to: number, ct: number, sum: Summary) {
+  const EPS = 1e-8, drops = d.drops;
+  let cursor = d.p;
+  const spawnAt = (c: Drop) => (c.t0 + 0.06) * ct;
+  const danger = (c: Drop) => item(g.s.tier, c.r, c.i).danger;
+  const hunters = drops.filter(c => !c.dead && !c.contained && danger(c));
+  if (!hunters.length) return;
+  const hunting = (c: Drop) => spawnAt(c) <= cursor + EPS && !(danger(c) === 1 && c.ate >= 1);
+  const need = (c: Drop) => c.ate ? EAT_EVERY[danger(c)] : EAT_FIRST[danger(c)];
+  const victim = (c: Drop) => drops.filter(v => v !== c && !v.dead && !danger(v) && spawnAt(v) <= cursor + EPS)
+    .sort((a, b) => Math.hypot(a.x - c.x, a.y - c.y) - Math.hypot(b.x - c.x, b.y - c.y))[0];
+
+  while (cursor < to - EPS) {
+    let next = to;
+    for (const c of drops) {
+      const at = spawnAt(c);
+      if (!c.dead && at > cursor + EPS) next = Math.min(next, at);
+    }
+    for (const c of hunters) if (hunting(c) && victim(c)) next = Math.min(next, cursor + Math.max(0, need(c) - c.eatT));
+    const dt = Math.max(0, next - cursor);
+    for (const c of hunters) if (hunting(c)) c.eatT += dt;
+    cursor = next;
+    for (const c of hunters) {
+      if (!hunting(c) || c.eatT + EPS < need(c)) continue;
+      const v = victim(c);
+      if (!v) { c.eatT = need(c); continue; }
+      v.dead = true; v.deadAt = 0; v.frozen = false;
+      c.ate++; c.eatT = 0; sum.eaten++; g.s.eaten++;
+    }
   }
+}
+
+/** Convenience for a complete untouched cycle. */
+export function dangerInstant(g: Ctx, drops: Drop[], ct: number, sum: Summary) {
+  advanceDanger(g, { p: 0, ready: false, drops }, ct, ct, sum);
 }
 
 /** bank a dish's colonies: new finds go in the catalog, duplicates sell and stock the shelf up to its cap */

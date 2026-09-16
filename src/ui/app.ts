@@ -145,7 +145,7 @@ export class App {
     const cnt: Record<string, [number, boolean]> = { quests: [questsReady(g), true], field: [s.tickets, s.tickets > 0], splicer: [s.spOut ? 1 : 0, true], decor: [unplacedCount(g) + mergeableCount(g), true], brew: [!s.brew && medsRelevant(g).some(m => batchesAffordable(g, m) >= 1) ? 1 : 0, true] };
     this.root.querySelectorAll<HTMLElement>('.tabs button[data-tab], .sbtn[data-tab]').forEach(b => {
       const k = b.dataset.tab!; b.classList.toggle('has', !!has[k]); b.setAttribute('aria-selected', String(this.panels.current === k));
-      const c = b.querySelector<HTMLElement>('.cnt'); if (c && cnt[k]) { const [n, ok] = cnt[k]; c.hidden = n <= 0; setText(c, k === 'splicer' || k === 'brew' ? '!' : String(n)); c.classList.toggle('ok', ok); }
+      const c = b.querySelector<HTMLElement>('.cnt'); if (c && cnt[k]) { const [n, ok] = cnt[k]; c.hidden = n <= 0 || (k === 'field' && !unlocked(g, 'tickets')); setText(c, k === 'splicer' || k === 'brew' ? '!' : String(n)); c.classList.toggle('ok', ok); }
       if (UNLOCK[k]) { const ok = unlocked(g, k); b.classList.toggle('locked', !ok); const lk = b.querySelector<HTMLElement>('.lk')!; lk.hidden = ok; setText(lk, unlockLabel(k)); }
     });
     this.panels.live();

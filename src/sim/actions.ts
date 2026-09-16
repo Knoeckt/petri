@@ -7,7 +7,7 @@ import type { Ctx } from './ctx';
 import { toast, dirty, fmt } from './ctx';
 import { newDish, type Pair } from './state';
 import {
-  upMult, upCanBuy, upBought, resCost, resTime, resDone, resVisible, resLv, resName, guardChance, shelfCap, item, stock, tierMult, bump, unlocked, unlockName,
+  upMult, upCanBuy, upBought, resCost, resTime, resDone, resVisible, resLv, resName, guardChance, shelfCap, item, stock, tierMult, bump, unlocked, unlockName, unlockLabel,
   studyCost, studyPerk, perkText, parseStudyKey, artCount, artSpare, artDesc, genLv, genCost, genPoints, canAscend, TIER_COUNT, tierDef, warpLen, cycleTime, eqLv, eqCost, eqCanBuy, siteOpen, effLv,
 } from './rules';
 import { story, curStep, stepReqs, reqOk, reqTake, med, batchesAffordable, brewTime } from './requests';
@@ -192,13 +192,22 @@ export function mergeableCount(g: Ctx) { let n = 0; for (const id in g.s.arts) f
 
 // ---- the pipette ----
 export function mgStart(g: Ctx, now: number): boolean {
+  if (!unlocked(g, 'tickets')) { toast(g, `The pipette opens after ${unlockLabel('tickets')}.`); return false; }
+  if (!Number.isFinite(now) || (g.mg && !g.mg.done)) return false;
   if (g.s.tickets <= 0) { toast(g, 'No tickets left today. Watch an ad for one, or buy one in the Shop.'); return false; }
-  g.s.tickets--; bump(g, 'ticket'); g.mg = { t0: now, done: false }; return done(g);
+  g.s.tickets--; bump(g, 'ticket'); g.mg = { t0: now, pos: 0.5, done: false }; return done(g);
 }
 export const mgPos = (g: Ctx, now: number) => g.mg ? 0.5 + 0.5 * Math.sin((now - g.mg.t0) / 1000 * 3.4) : 0.5;
-/** drop at `pos` (0..1, the target is 0.5): grades miss/close/nice/perfect and pays an artifact */
-export function mgDrop(g: Ctx, pos: number): boolean {
-  if (!g.mg || g.mg.done) return false;
+/** Present one animation frame. Input scores this position, including between frames. */
+export function mgFrame(g: Ctx, now: number): number {
+  if (g.mg && !g.mg.done && Number.isFinite(now)) g.mg.pos = mgPos(g, now);
+  return g.mg?.pos ?? 0.5;
+}
+/** Freeze the last presented position and pay exactly one artifact per round. */
+export function mgDrop(g: Ctx): boolean {
+  if (!unlocked(g, 'tickets') || !g.mg || g.mg.done) return false;
+  const pos = g.mg.pos;
+  if (!Number.isFinite(pos) || pos < 0 || pos > 1) return false;
   const d = Math.abs(pos - 0.5) / 0.5; const grade = d <= 0.08 ? 3 : d <= 0.2 ? 2 : d <= 0.36 ? 1 : 0;
   const W = PIPETTE_W[grade]; let r = g.rng() * 100, ri = 0; for (let k = 0; k < 4; k++) { r -= W[k]; if (r < 0) { ri = k; break; } }
   const art = pick(g.rng, ARTS.filter(a => a.r === ri)); addArt(g, art.id);
@@ -273,7 +282,7 @@ export function adClaim(g: Ctx, placement: AdPlacement, arg?: number): AdResult 
     case 'finish brew': if (!s.brew) return { ok: false }; finishBrew(g); break;
     case 'finish splice': if (!s.splice) return { ok: false }; finishSplice(g, 0); break;
     case 'finish trip': if (!s.trip) return { ok: false }; finishTrip(g); break;
-    case 'ticket': s.tickets++; toast(g, '+1 ticket'); break;
+    case 'ticket': if (!unlocked(g, 'tickets')) return { ok: false }; s.tickets++; toast(g, '+1 ticket'); break;
     case 'double offline': s.cur += arg ?? 0; toast(g, `+${fmt(arg ?? 0)} ${TEXT.cur} doubled`); break;
   }
   s.ads++; s.adUse[placement] = (s.adUse[placement] || 0) + 1; s.adCd = AD_CD; dirty(g);

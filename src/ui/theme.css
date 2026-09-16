@@ -156,6 +156,7 @@ button{font-family:var(--display); cursor:pointer}
 .sbtn i{font:700 10.5px var(--display); font-style:normal; text-shadow:0 1px 0 rgba(0,0,0,.55)}
 .sbtn .cnt{position:absolute; top:-5px; right:0; min-width:19px; height:19px; padding:0 4px; border-radius:10px; background:var(--danger); color:#fff; font:700 11px var(--display); border:2px solid var(--ink); display:flex; align-items:center; justify-content:center; box-shadow:0 2px 0 var(--ink)}
 .sbtn .cnt.ok{background:var(--teal); color:var(--ink)}
+.sbtn .cnt[hidden]{display:none}
 .sbtn .lk{top:auto; bottom:14px; left:50%; right:auto; transform:translateX(-50%)}
 .sbtn.locked span{filter:grayscale(1) brightness(.72); background:linear-gradient(180deg,#d8cfbd,#a89d86)} .sbtn.locked i{opacity:.7}
 .sbtn.locked span::after{content:'🔒'; position:absolute; right:-6px; bottom:-6px; width:20px; height:20px; border-radius:50%; background:var(--ink); border:2px solid var(--cream); font-size:11px; display:flex; align-items:center; justify-content:center}
@@ -188,7 +189,7 @@ button{font-family:var(--display); cursor:pointer}
 .slots{display:grid; grid-template-columns:repeat(3,1fr); gap:8px}
 .slot{border:3px dashed var(--ink); border-radius:14px; padding:8px 6px; text-align:center; min-height:96px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; background:rgba(0,0,0,.05)}
 .slot.full{border-style:solid; background:var(--cream-2)} .slot .e{font-size:26px} .slot .nm{font:700 12px var(--display)} .slot .pd{font:700 10px var(--ui); opacity:.75} .slot .btn{padding:4px 8px; font-size:11px; margin-top:4px; width:auto; flex:none}
-.mg{padding:8px 0} .mgbar{position:relative; height:26px; border-radius:13px; border:3px solid var(--ink); background:linear-gradient(90deg,var(--danger) 0 28%, var(--gold-deep) 28% 40%, var(--teal) 40% 60%, var(--gold-deep) 60% 72%, var(--danger) 72%)}
+.mg{padding:8px 0} .mgbar{position:relative; height:26px; border-radius:13px; border:3px solid var(--ink); background:linear-gradient(90deg,var(--danger) 0 32%, var(--gold-deep) 32% 40%, var(--teal) 40% 60%, var(--gold-deep) 60% 68%, var(--danger) 68%)}
 .mgbar .zone{position:absolute; left:46%; right:46%; top:-3px; bottom:-3px; border:3px solid var(--ink); border-radius:6px; background:rgba(255,255,255,.35)}
 .mgbar .mark{position:absolute; top:-8px; width:6px; height:36px; margin-left:-3px; background:var(--ink); border-radius:3px; box-shadow:0 0 0 2px var(--cream)}
 .rgroup h4{font:700 11px var(--display); letter-spacing:.06em; text-transform:uppercase; margin:12px 4px 6px; color:color-mix(in srgb, var(--ink) 65%, var(--cream))}
@@ -236,3 +237,9 @@ canvas.scene{display:block; width:100%; height:auto; touch-action:manipulation}
 .ph .back[hidden], .ph .x[hidden]{display:none}
 .ph h2{flex:1}
 canvas.scene.map{border-bottom:3px solid var(--ink)}
+
+.save-notice{position:absolute; top:calc(8px + env(safe-area-inset-top)); left:8px; right:8px; z-index:70; padding:12px; border:3px solid var(--ink); border-radius:14px; color:var(--ink); background:var(--cream); box-shadow:0 4px 0 var(--ink)}
+.save-notice[hidden], .save-notice button[hidden]{display:none}
+.save-notice p{margin:0 0 8px; font:700 13px/1.4 var(--ui)}
+.save-notice > div{display:flex; gap:8px}
+.save-notice .btn{font-size:12px; padding:8px}

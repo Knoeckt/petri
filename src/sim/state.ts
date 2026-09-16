@@ -1,5 +1,6 @@
 // The whole game is one plain object: JSON in, JSON out. Everything the UI shows is derived from it.
 import { STORY, SIDE, ART, TICKETS_PER_DAY } from '../data';
+import { validState } from './validate';
 
 export const SAVE_VERSION = 4;
 
@@ -51,6 +52,7 @@ export interface State {
   studies: Record<string, boolean>;
   gen: Genome; freeRes: boolean;
   tut: { seen: Record<string, boolean>; done: boolean };
+  /** Wall-clock time through which progress has been accounted for; storage writes do not change it. */
   last: number;
 }
 
@@ -72,17 +74,31 @@ export function fresh(now: number): State {
  * Accepts any save the mockup ever wrote (petri-orbit-mock-v2) or this build's, and returns a current State.
  * Returns null for anything that is not a save. Migrations are cumulative and idempotent.
  */
-export function migrate(raw: unknown): State | null {
-  if (!raw || typeof raw !== 'object') return null;
-  const s = raw as any;
+export function migrate(raw: unknown, now = Date.now()): State | null {
+  try {
+    return migrateSave(raw, now);
+  } catch {
+    // Invalid nested data must never crash startup. The storage layer retains the original payload.
+    return null;
+  }
+}
+
+function migrateSave(raw: unknown, now: number): State | null {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+  const s = structuredClone(raw) as any;
+  // Only known schemas may be migrated. In particular, never downgrade a future save.
+  if (s.v !== undefined && s.v !== 3 && s.v !== SAVE_VERSION) return null;
+  if (s.v === SAVE_VERSION && !validState(s)) return null;
   if (!Array.isArray(s.dishes)) return null;
-  for (const d of s.dishes) for (const g of d.drops || []) { g.atk = null; g.meet = null; g.frozen = false; }
+  for (const d of s.dishes) for (const g of d.drops || []) {
+    g.atk = null; g.meet = null; g.frozen = false; g.cd = 0; g.flee = 0; g.deadAt = 0;
+  }
   s.hyb = s.hyb || {}; s.story = s.story || {}; s.st = s.st || {}; s.studies = s.studies || {};
   s.gen = s.gen || freshGenome(); s.gen.perks = s.gen.perks || {}; s.gen.seen = s.gen.seen || {};
   s.freeRes = !!s.freeRes;
   // the repeatable dish level became Petri dish ranks on the bench (one for one); Notes and trips are new
   s.notes = s.notes || 0; s.eq = s.eq || {}; s.trip = s.trip && s.trip.site ? s.trip : null; s.lastTrip = s.lastTrip || null;
-  if (typeof s.lv === 'number') { s.eq.dish = Math.min(30, Math.max(s.eq.dish || 0, s.lv - 1)); delete s.lv; }
+  if ((!s.v || s.v === 3) && typeof s.lv === 'number') { s.eq.dish = Math.min(30, Math.max(s.eq.dish || 0, s.lv - 1)); delete s.lv; }
   s.side = (s.side || []).filter((x: any) => x && x.base !== undefined && SIDE[x.k]);
   if (s.active && s.active.id === 'study' && !s.active.key) s.active = null;
   s.ob = null;
@@ -91,6 +107,7 @@ export function migrate(raw: unknown): State | null {
   s.hasSplicer = !!s.hasSplicer;
   s.sp = s.sp || [null, null]; s.spOut = s.spOut || null;
   s.ups = s.ups || {}; s.res = s.res || {}; s.cat = s.cat || {}; s.meds = s.meds || {};
+  s.active = s.active ?? null;
   if (s.tickets === undefined) s.tickets = TICKETS_PER_DAY;
   s.tDay = s.tDay || ''; s.shopT = s.shopT || 0; s.shopC = s.shopC || 0; s.icepack = !!s.icepack;
   s.recent = s.recent || []; s.shelf = s.shelf || []; s.cycles = s.cycles || 0; s.eaten = s.eaten || 0;
@@ -104,10 +121,13 @@ export function migrate(raw: unknown): State | null {
   while (s.placed.length < 3) s.placed.push(null);
   // mockup saves only (no `v`): chapter 1 grew from 7 steps to 9, map an old position onto the new list
   if (!s.v && !s.storyV) { const st = s.story[0]; if (st) { if (st.done) st.step = STORY[0].steps.length; else if (st.step > 0) st.step = [4, 5, 5, 6, 7, 7, 8][Math.min(st.step, 6)]; } s.storyV = 2; }
-  for (const t in s.story) s.story[t].brewing = null;
+  for (const t in s.story) {
+    s.story[t].brewing = null;
+    if (s.story[t].done && STORY[+t]) s.story[t].step = STORY[+t].steps.length;
+  }
   s.tut = s.tut || { seen: {}, done: !!(s.story[0] && s.story[0].step >= 5) };
   delete s.theme; delete s.storyV;
   s.v = SAVE_VERSION;
-  s.last = typeof s.last === 'number' ? s.last : Date.now();
-  return s as State;
+  s.last = s.last === undefined ? now : s.last;
+  return validState(s) ? s : null;
 }

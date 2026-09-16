@@ -2,8 +2,8 @@
 import { TICKETS_PER_DAY, OB_TIME } from '../data';
 import type { Ctx } from './ctx';
 import { toast, dirty } from './ctx';
-import { genRate, cycleTime, boostOn, offlineCap, offlineEff, perk, item } from './rules';
-import { rollDrops, moveTick, eatTick, attackTick, dangerInstant, resolve, collect, flashFinds, blankSummary, spawned, type Summary } from './dish';
+import { genRate, cycleTime, boostOn, offlineCap, offlineEff, perk } from './rules';
+import { rollDrops, moveTick, eatTick, attackTick, advanceDanger, resolve, collect, flashFinds, blankSummary, spawned, type Summary } from './dish';
 import { completeResearch, finishBrew, finishSplice, obWin, finishTrip } from './actions';
 
 /** one live frame; dt in seconds, now a millisecond clock for animations */
@@ -46,40 +46,101 @@ function obTick(g: Ctx, dt: number, now: number) {
   else if (o.t >= (o.dur || OB_TIME)) { g.s.ob = null; toast(g, 'The bloom pulled back. It will return. Try again from the Clinic.', true); dirty(g); }
 }
 
-/** fast-forward `secs` at efficiency `eff` (offline runs slower than play; time warps run at 1) */
-export function simulate(g: Ctx, secs: number, eff = 1): Summary {
-  const s = g.s;
-  const sum = blankSummary(); sum.secs = secs;
-  const bsec0 = Math.min(s.boost, secs); s.boost -= bsec0; const bsec = bsec0 * eff, rest = (secs - bsec0) * eff;
-  s.cur += genRate(g) * bsec; sum.cur += genRate(g) * bsec;
-  s.cur += genRate(g) * rest; sum.cur += genRate(g) * rest;
-  const ct = cycleTime(g);
-  for (const d of s.dishes) {
-    if (!d.drops.length) d.drops = rollDrops(g);
-    let time = (d.ready ? ct : d.p) + bsec * 2 + rest;
-    if (d.ready) { resolve(g, d.drops, sum); d.ready = false; time -= ct; d.drops = rollDrops(g); }
-    const n = Math.min(Math.floor(time / ct), 20000);
-    for (let k = 0; k < n; k++) { dangerInstant(g, d.drops, ct, sum); resolve(g, d.drops, sum); d.drops = rollDrops(g); }
-    d.p = Math.min(time - n * ct, ct);
-    if (n >= 20000) d.p = 0;
-    const prog = d.p / ct;
-    for (const c of d.drops) { const dn = item(s.tier, c.r, c.i).danger; if (dn && !c.contained && spawned(c, prog)) c.eatT = Math.max(0, (prog - c.t0) * ct); }
+/** Fast-forward chronologically through production, timer completion, and boost expiry.
+ * Production can stop at a cap; research, trips, brewing and cooldowns still use all wall time.
+ * Offline harvesting is automatic even before auto-harvest research, as in the original design.
+ */
+export function simulate(g: Ctx, secs: number, eff = 1, productionLimit = secs): Summary {
+  if (!Number.isFinite(secs) || secs < 0 || !Number.isFinite(eff) || eff < 0 || eff > 1 ||
+    !Number.isFinite(productionLimit) || productionLimit < 0) throw new RangeError('Invalid simulation interval');
+  const s = g.s, sum = blankSummary(), EPS = 1e-8;
+  sum.secs = secs;
+  if (secs === 0) return sum;
+  let elapsed = 0;
+  const cap = Math.min(secs, productionLimit);
+  // Visual attack phases use a process-local clock. Their production timers remain on the drops.
+  for (const d of s.dishes) for (const c of d.drops) { c.atk = null; c.meet = null; c.frozen = false; }
+
+  const finishDue = () => {
+    if (s.boost <= EPS) s.boost = 0;
+    const ct = cycleTime(g);
+    if (eff > 0 && cap > 0 && elapsed <= cap + EPS) {
+      for (let i = 0; i < s.dishes.length; i++) {
+        const d = s.dishes[i];
+        if (i === 0 && s.ob) continue; // an outbreak waits for the player
+        if (!d.ready && d.p < ct - EPS) continue;
+        if (!d.drops.length) d.drops = rollDrops(g);
+        resolve(g, d.drops, sum);
+        d.p = 0; d.ready = false; d.drops = rollDrops(g);
+      }
+    }
+    const before = s.cur;
+    if (s.active && s.active.left <= EPS) completeResearch(g);
+    if (s.brew && s.brew.left <= EPS) finishBrew(g);
+    if (s.splice && s.splice.left <= EPS) finishSplice(g, 0);
+    if (s.trip && s.trip.left <= EPS) {
+      finishTrip(g);
+      const sample = s.lastTrip?.sample;
+      if (sample) {
+        sum.drops++;
+        if (sample.isNew) sum.finds.push({ t: s.tier, r: sample.r, i: sample.i });
+      }
+    }
+    sum.cur += s.cur - before; // includes a failed splice's refund
+  };
+
+  while (elapsed < secs - EPS) {
+    finishDue();
+    const producing = eff > 0 && elapsed < cap - EPS;
+    const speed = producing ? eff * (boostOn(g) ? 2 : 1) : 0;
+    const ct = cycleTime(g);
+    let dt = secs - elapsed;
+    if (producing) dt = Math.min(dt, cap - elapsed);
+    if (s.boost > EPS) dt = Math.min(dt, s.boost);
+    for (const timer of [s.active, s.brew, s.splice, s.trip]) if (timer) dt = Math.min(dt, timer.left);
+    if (producing) {
+      // Research may have shortened the cycle since finishDue inspected these dishes.
+      let ready = false;
+      for (let i = 0; i < s.dishes.length; i++) {
+        if (i === 0 && s.ob) continue;
+        const d = s.dishes[i];
+        if (d.p >= ct - EPS) { d.ready = true; ready = true; }
+        else dt = Math.min(dt, (ct - d.p) / speed);
+      }
+      if (ready) continue;
+    }
+    const income = producing ? genRate(g) * eff * dt : 0;
+    s.cur += income; sum.cur += income;
+    if (producing) for (let i = 0; i < s.dishes.length; i++) {
+      if (i === 0 && s.ob) continue;
+      const d = s.dishes[i];
+      if (!d.drops.length) d.drops = rollDrops(g);
+      const to = Math.min(ct, d.p + speed * dt);
+      advanceDanger(g, d, to, ct, sum);
+      d.p = to;
+      if (d.p >= ct - EPS) d.ready = true;
+    }
+    for (const timer of [s.active, s.brew, s.splice, s.trip]) if (timer) timer.left = Math.max(0, timer.left - dt);
+    s.boost = Math.max(0, s.boost - dt);
+    s.adCd = Math.max(0, s.adCd - dt);
+    elapsed += dt;
   }
-  if (s.active) { s.active.left -= secs; if (s.active.left <= 0) completeResearch(g); }
-  if (s.brew) { s.brew.left -= secs; if (s.brew.left <= 0) finishBrew(g); }
-  if (s.splice) { s.splice.left -= secs; if (s.splice.left <= 0) finishSplice(g, 0); }
-  if (s.trip) { s.trip.left -= secs; if (s.trip.left <= 0) finishTrip(g); }
-  s.adCd = Math.max(0, s.adCd - secs);
+  finishDue();
+  dirty(g);
   return sum;
 }
 
 export interface Offline { away: number; secs: number; capped: boolean; eff: number; sum: Summary }
 /** call when the app comes back; returns what happened while away, or null if it was only a moment */
 export function checkOffline(g: Ctx, nowMs: number): Offline | null {
+  if (!Number.isFinite(nowMs) || nowMs < 0) return null;
   const away = (nowMs - g.s.last) / 1000;
-  if (away < 20) return null;
+  // Rebase after a clock correction instead of waiting for the old future timestamp to catch up.
+  if (away <= 0) { g.s.last = nowMs; dailyReset(g); return null; }
   const cap = offlineCap(g), secs = Math.min(away, cap), eff = offlineEff(g);
-  const sum = simulate(g, secs, eff);
+  const sum = simulate(g, away, eff, secs);
   g.s.last = nowMs;
-  return { away, secs, capped: away > cap, eff, sum };
+  dailyReset(g);
+  // The threshold suppresses the welcome sheet, not the progress earned on a short interruption.
+  return away >= 20 ? { away, secs, capped: away > cap, eff, sum } : null;
 }
