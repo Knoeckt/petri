@@ -81,7 +81,7 @@ export function eatTick(g: Ctx, d: Dish, dt: number, now: number) {
     if (!dn || c.dead || c.contained || !spawned(c, prog) || c.atk) continue;
     if (dn === 1 && c.ate >= 1) continue;
     c.eatT += dt;
-    const need = c.ate === 0 ? EAT_FIRST[dn] : EAT_EVERY[dn];
+    const need = (c.ate === 0 ? EAT_FIRST[dn] : EAT_EVERY[dn]) * g.pace.bite;
     if (c.eatT < need) continue;
     let best = -1, bd = 1e9;
     d.drops.forEach((v, k) => { if (v === c || v.dead || v.frozen || item(t, v.r, v.i).danger || !spawned(v, prog)) return; const dd = (v.x - c.x) ** 2 + (v.y - c.y) ** 2; if (dd < bd) { bd = dd; best = k; } });
@@ -123,7 +123,7 @@ export function advanceDanger(g: Ctx, d: Dish, to: number, ct: number, sum: Summ
   const hunters = drops.filter(c => !c.dead && !c.contained && danger(c));
   if (!hunters.length) return;
   const hunting = (c: Drop) => spawnAt(c) <= cursor + EPS && !(danger(c) === 1 && c.ate >= 1);
-  const need = (c: Drop) => c.ate ? EAT_EVERY[danger(c)] : EAT_FIRST[danger(c)];
+  const need = (c: Drop) => (c.ate ? EAT_EVERY[danger(c)] : EAT_FIRST[danger(c)]) * g.pace.bite;
   const victim = (c: Drop) => drops.filter(v => v !== c && !v.dead && !danger(v) && spawnAt(v) <= cursor + EPS)
     .sort((a, b) => Math.hypot(a.x - c.x, a.y - c.y) - Math.hypot(b.x - c.x, b.y - c.y))[0];
 

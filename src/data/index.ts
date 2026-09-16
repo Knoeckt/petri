@@ -1,5 +1,6 @@
 export * from './types';
 export * from './content';
+export * from './pace';
 import { HYBRIDS, ARTS, UPT } from './content';
 import type { Hybrid, Artifact, Upgrade } from './types';
 
@@ -11,7 +12,7 @@ export const UPI: Record<string, Upgrade> = Object.fromEntries(UPT.flatMap(t => 
 export interface ShopItem { id: string; n: string; e: string; d: string }
 export const SHOP: ShopItem[] = [
   { id: 'crate', n: 'Sample crate', e: '📦', d: 'Three spare samples of common strains you have already found. Doc Ferro keeps a fridge. Price climbs each time today.' },
-  { id: 'boost', n: 'Heat lamp', e: '🔥', d: '2× growth and income for two minutes.' },
+  { id: 'boost', n: 'Heat lamp', e: '🔥', d: '2× growth and income for {boost}.' },
   { id: 'icepack', n: 'Ice pack', e: '🧊', d: 'The dish keeps working two hours longer while you are away. Once.' },
   { id: 'ticket', n: 'Extra ticket', e: '🎟️', d: 'One more go at the pipette today. Price climbs each time.' },
   { id: 'pebble', n: 'Mystery pebble', e: '🪨', d: 'A random common artifact for the enclosure.' },

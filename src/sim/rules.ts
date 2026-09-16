@@ -2,7 +2,7 @@
 // Pure functions of the state; nothing here mutates except bump().
 import {
   RAR, COUNTS, KEYS, BONUS, CYCLE_BASE, TIER_MULT, UP_MULT, TIER_CYCLE, ASC_LV, ASC_FOUND, RAR_CAP0, RAR_CAP_STEP, SHELF,
-  OFFLINE_CAP, WARP, TIERS, MORE, SHAPES, PALETTE, RES_DEF, RES_TEXT, UPT, UPI, ART, HYB, GEN_DEF, STUDY_COST, STUDY_PERKS, STUDY_DANGER_PERK,
+  OFFLINE_CAP, WARP, STUDY_TIME, SPLICE_TIME, BOOST_LEN, AD_LEN, AD_CD, TIERS, MORE, SHAPES, PALETTE, RES_DEF, RES_TEXT, UPT, UPI, ART, HYB, GEN_DEF, STUDY_COST, STUDY_PERKS, STUDY_DANGER_PERK,
   UNLOCK, UNLOCK_NAME, STORY, TEXT, EQ, EQUIP, SITES,
 } from '../data';
 import type { Artifact, Research, GenPerk, Strain, TierDef, Upgrade } from '../data';
@@ -63,7 +63,14 @@ export const upAvailable = (g: Ctx) => UPT.some((t, ti) => t.items.some(u => upC
 // research
 export function resLv(g: Ctx, id: string) { const v = g.s.res[id]; return typeof v === 'number' ? v : v ? 1 : 0; }
 export const resCost = (g: Ctx, r: Research) => Math.round(r.cost * Math.pow(1.3, r.max ? resLv(g, r.id) : 0));
-export const resTime = (g: Ctx, r: Research) => r.time + (r.max ? resLv(g, r.id) * 8 : 0);
+export const resTime = (g: Ctx, r: Research) => (r.time + (r.max ? resLv(g, r.id) * 8 : 0)) * g.pace.timer;
+// ---- the balance profile's other timers (ROADMAP §6): everything with a duration goes through one of these ----
+export const tripTime = (g: Ctx, site: { time: number }) => site.time * g.pace.timer;
+export const studyTime = (g: Ctx, r: number) => STUDY_TIME[r] * g.pace.timer;
+export const spliceTime = (g: Ctx) => SPLICE_TIME * g.pace.timer;
+export const boostLen = (g: Ctx) => BOOST_LEN * g.pace.boost;
+export const adLen = (g: Ctx) => AD_LEN * g.pace.ad;
+export const adCooldown = (g: Ctx) => AD_CD * g.pace.adCd;
 export const resDone = (g: Ctx, r: Research) => r.max ? resLv(g, r.id) >= r.max : !!g.s.res[r.id];
 export const resName = (id: string): [string, string] => RES_TEXT[id] || [id, ''];
 export const resVisible = (g: Ctx, r: Research) => g.s.tier >= (r.tier || 0) && (!r.gate || unlocked(g, r.gate));
@@ -107,7 +114,7 @@ export const sitesOpen = (g: Ctx) => SITES.filter(x => siteOpen(g, x.id));
 // ---- the numbers the dish runs on ----
 export const genRate = (g: Ctx) => 0.3 * upProd(g, 'gen') * tierMult(g) * catMult(g) * (boostOn(g) ? 2 : 1) * (1 + artPerk(g, 'income')) * (1 + studyFx(g, 'income')) * (1 + 0.1 * genLv(g, 'income'));
 export function cycleTime(g: Ctx) {
-  const base = CYCLE_BASE * Math.pow(TIER_CYCLE, g.s.tier) * (g.s.res.fast ? 0.75 : 1);
+  const base = CYCLE_BASE * g.pace.cycle * Math.pow(TIER_CYCLE, g.s.tier) * (g.s.res.fast ? 0.75 : 1);
   return Math.max(base * 0.25, base * upSpeed(g)) * (perk(g, 'speed') ? 0.85 : 1) * (1 - artPerk(g, 'speed')) * resProd(g, 'cycle') * Math.max(0.4, 1 - studyFx(g, 'cycle')) * (1 - 0.02 * eqLv(g, 'incub'));
 }
 export const dropsPer = (g: Ctx) => 1 + upSum(g, 'yield') + (perk(g, 'drop') ? 1 : 0) + artPerk(g, 'drop') + resSum(g, 'drop') + studyFx(g, 'drop') + Math.floor(eqLv(g, 'pipette') / 3);

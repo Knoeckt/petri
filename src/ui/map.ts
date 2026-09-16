@@ -1,7 +1,7 @@
 // The town map for field trips: Mossbrook drawn in the game's hand, marked places, fog over what the story has not opened.
 import { SITES, SITE, RAR } from '../data';
 import type { Ctx } from '../sim';
-import { siteOpen } from '../sim';
+import { siteOpen, tripTime } from '../sim';
 import { roundRectPath, lobed, INK } from './critter';
 
 type C = CanvasRenderingContext2D;
@@ -65,7 +65,7 @@ export class MapScene {
       // label
       const lbl = open ? site.n : `opens ${site.unlock[0] > s.tier ? 'at tier ' + (site.unlock[0] + 1) : 'after ' + (site.unlock[0] + 1) + '-' + site.unlock[1]}`;
       c.font = '700 14px Fredoka, sans-serif'; const w = c.measureText(lbl).width + 16; c.fillStyle = open ? '#fff6dc' : '#3a4a45'; c.strokeStyle = INK; c.lineWidth = 3; c.beginPath(); roundRectPath(c, x - w / 2, y + 40, w, 24, 8); c.fill(); c.stroke(); c.fillStyle = open ? INK : '#fff6dc'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(lbl, x, y + 52);
-      if (open) { const tag = `${Math.round(site.time / 60)}m · ${RAR[site.sampleR].n.toLowerCase()}`; c.font = '700 11px Fredoka, sans-serif'; const w2 = c.measureText(tag).width + 12; c.fillStyle = '#22d3b0'; c.beginPath(); roundRectPath(c, x - w2 / 2, y + 66, w2, 18, 7); c.fill(); c.stroke(); c.fillStyle = INK; c.fillText(tag, x, y + 75); }
+      if (open) { const tag = `${Math.round(tripTime(this.g, site) / 60)}m · ${RAR[site.sampleR].n.toLowerCase()}`; c.font = '700 11px Fredoka, sans-serif'; const w2 = c.measureText(tag).width + 12; c.fillStyle = '#22d3b0'; c.beginPath(); roundRectPath(c, x - w2 / 2, y + 66, w2, 18, 7); c.fill(); c.stroke(); c.fillStyle = INK; c.fillText(tag, x, y + 75); }
     }
   }
 }

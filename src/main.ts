@@ -1,5 +1,5 @@
 import './ui/theme.css';
-import { createGame } from './sim';
+import { createGame, isPaceId, DEFAULT_PACE, type PaceId } from './sim';
 import { App } from './ui/app';
 import { GameSession } from './runtime/session';
 import { SaveStore } from './runtime/storage';
@@ -7,7 +7,15 @@ import { SaveNotice } from './ui/save-notice';
 
 const store = new SaveStore(() => localStorage);
 const loaded = store.load();
-const g = createGame({ save: loaded.state });
+// balance profile (ROADMAP §6): ?pace=real switches a device to playtest timings and remembers it; the dev sheet toggles it too
+const PACE_KEY = 'petri-pace';
+const pace: PaceId = (() => {
+  const url = new URL(location.href), q = url.searchParams.get('pace');
+  if (q !== null) { url.searchParams.delete('pace'); history.replaceState(null, '', url); } // applies once; a reload keeps the stored choice
+  try { if (isPaceId(q)) { localStorage.setItem(PACE_KEY, q); return q; } const k = localStorage.getItem(PACE_KEY); if (isPaceId(k)) return k; } catch { /* storage blocked */ }
+  return DEFAULT_PACE;
+})();
+const g = createGame({ save: loaded.state, pace });
 const app = new App(g);
 const mount = document.getElementById('app') || document.querySelector('.phone');
 if (mount) mount.replaceWith(app.root); else document.body.appendChild(app.root);
@@ -29,7 +37,7 @@ const save = () => {
   else if (saveFailed) notice.hide();
   saveFailed = !!error;
 };
-(window as any).petri = { g, app, reset: () => {
+(window as any).petri = { g, app, setPace: (id: PaceId) => { try { localStorage.setItem(PACE_KEY, id); } catch { /* storage blocked */ } location.reload(); }, reset: () => {
   try { store.reset(); wiped = true; location.reload(); }
   catch { notice.show('The save could not be reset. Your current game is still open.', true); }
 } };

@@ -62,7 +62,7 @@ export function reqTake(g: Ctx, list: Req[]) {
 
 // ---- brewing numbers ----
 export const batchSize = (g: Ctx) => g.s.res.batch3 ? 6 : g.s.res.batch2 ? 3 : 1;
-export const brewTime = (g: Ctx, m: Medicine, n: number) => m.time * (g.s.res.fastbrew ? 0.5 : 1) * Math.sqrt(n);
+export const brewTime = (g: Ctx, m: Medicine, n: number) => m.time * g.pace.timer * (g.s.res.fastbrew ? 0.5 : 1) * Math.sqrt(n);
 export function batchesAffordable(g: Ctx, m: Medicine) { let n = Infinity; for (const [r, i, q] of m.need) n = Math.min(n, Math.floor(stock(g, r, i) / q)); return Math.min(batchSize(g), n === Infinity ? 0 : n); }
 /** the medicines worth showing on the rack: needed now or next, or already on the shelf */
 export function medsRelevant(g: Ctx): Medicine[] {

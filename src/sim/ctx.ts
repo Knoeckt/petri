@@ -3,6 +3,7 @@
 import type { State, Find } from './state';
 import { fresh, migrate } from './state';
 import { mathRng, type Rng } from './rng';
+import { PACES, DEFAULT_PACE, type Pace, type PaceId } from '../data';
 
 export type GameEvent =
   | { type: 'toast'; msg: string; bad?: boolean }
@@ -30,6 +31,8 @@ export const CIRCLE: Bounds = { type: 'circle', r: 0.42 };
 export interface Ctx {
   s: State;
   rng: Rng;
+  /** the balance profile this game runs at (time scale only; not saved) */
+  pace: Pace;
   /** critter movement bounds; the UI sets this to the current vessel's shape */
   bounds: Bounds;
   /** when true, biters neither hunt nor bite (a panel covers the vessel) */
@@ -41,7 +44,7 @@ export interface Ctx {
   on: (fn: (e: GameEvent) => void) => () => void;
 }
 
-export interface CreateOpts { save?: unknown; rng?: Rng; now?: number; today?: () => string }
+export interface CreateOpts { save?: unknown; rng?: Rng; now?: number; today?: () => string; pace?: PaceId | Pace }
 
 export function createGame(opts: CreateOpts = {}): Ctx {
   const now = opts.now ?? Date.now();
@@ -50,6 +53,7 @@ export function createGame(opts: CreateOpts = {}): Ctx {
   return {
     s,
     rng: opts.rng ?? mathRng,
+    pace: typeof opts.pace === 'object' ? opts.pace : PACES[opts.pace ?? DEFAULT_PACE],
     bounds: CIRCLE,
     paused: false,
     mg: null,

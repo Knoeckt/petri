@@ -1,14 +1,14 @@
 // Everything the player can do. Each action checks its own preconditions and returns true when it happened.
 import {
   RES_DEF, UPT, UPI, TEXT, STORY, SIDE, HYBRIDS, HYB, ARTS, ART, GEN_DEF, SHOP, PIPETTE_W, UNLOCK,
-  SPLICE_COST, SPLICE_TIME, OB_HP, OB_TIME, BOOST_LEN, AD_CD, ART_MAX, ART_MERGE, GEN_TIER, STUDY_TIME, TIER_MULT, EQ, SITE, COUNTS,
+  SPLICE_COST, OB_HP, OB_TIME, ART_MAX, ART_MERGE, GEN_TIER, TIER_MULT, EQ, SITE, COUNTS,
 } from '../data';
 import type { Ctx } from './ctx';
-import { toast, dirty, fmt } from './ctx';
+import { toast, dirty, fmt, fmtDur } from './ctx';
 import { newDish, type Pair } from './state';
 import {
   upMult, upCanBuy, upBought, resCost, resTime, resDone, resVisible, resLv, resName, guardChance, shelfCap, item, stock, tierMult, bump, unlocked, unlockName, unlockLabel,
-  studyCost, studyPerk, perkText, parseStudyKey, artCount, artSpare, artDesc, genLv, genCost, genPoints, canAscend, TIER_COUNT, tierDef, warpLen, cycleTime, eqLv, eqCost, eqCanBuy, siteOpen, effLv,
+  studyCost, studyPerk, perkText, parseStudyKey, tripTime, studyTime, spliceTime, boostLen, adCooldown, artCount, artSpare, artDesc, genLv, genCost, genPoints, canAscend, TIER_COUNT, tierDef, warpLen, cycleTime, eqLv, eqCost, eqCanBuy, siteOpen, effLv,
 } from './rules';
 import { story, curStep, stepReqs, reqOk, reqTake, med, batchesAffordable, brewTime } from './requests';
 import { rollDrops, collect, flashFinds } from './dish';
@@ -39,7 +39,8 @@ export function buyEquip(g: Ctx, id: string): boolean {
 // ---- field trips: one expedition at a time, back with Notes and sometimes a sample ----
 export function startTrip(g: Ctx, siteId: string): boolean {
   const s = g.s; const x = SITE[siteId]; if (!x || s.trip || !siteOpen(g, siteId)) return false;
-  s.trip = { site: siteId, left: x.time, total: x.time }; bump(g, 'trip'); toast(g, `Off to ${x.n.toLowerCase()}. Back in ${Math.round(x.time)}s.`); return done(g);
+  const t = tripTime(g, x);
+  s.trip = { site: siteId, left: t, total: t }; bump(g, 'trip'); toast(g, `Off to ${x.n.toLowerCase()}. Back in ${fmtDur(t)}.`); return done(g);
 }
 export function finishTrip(g: Ctx) {
   const s = g.s; if (!s.trip) return; const x = SITE[s.trip.site]; s.trip = null; if (!x) return;
@@ -66,7 +67,7 @@ export function startResearch(g: Ctx, id: string): boolean {
 export function startStudy(g: Ctx, key: string): boolean {
   const s = g.s; const [t, r, i] = parseStudyKey(key);
   if (s.active || s.studies[key] || stock(g, r, i, t) < 1 || s.cur < studyCost(g, t, r)) return false;
-  s.cur -= studyCost(g, t, r); s.cat[t][`${r}-${i}`] -= 1; const tm = STUDY_TIME[r]; s.active = { id: 'study', key, left: tm, total: tm };
+  s.cur -= studyCost(g, t, r); s.cat[t][`${r}-${i}`] -= 1; const tm = studyTime(g, r); s.active = { id: 'study', key, left: tm, total: tm };
   return done(g);
 }
 export function completeResearch(g: Ctx) {
@@ -114,7 +115,7 @@ export function pickTube(g: Ctx, slot: 0 | 1, pair: Pair | null): boolean { if (
 export function splice(g: Ctx): boolean {
   const s = g.s; if (!spReady(g)) { toast(g, spWhy(g)); return false; }
   const [a, b] = s.sp as [Pair, Pair]; s.cur -= SPLICE_COST * tierMult(g); s.cat[0][`${a[0]}-${a[1]}`] -= 1; s.cat[0][`${b[0]}-${b[1]}`] -= 1;
-  s.splice = { id: spMatch(a, b), a, b, left: SPLICE_TIME, total: SPLICE_TIME }; g.emit({ type: 'lever' }); toast(g, 'Splicing…');
+  s.splice = { id: spMatch(a, b), a, b, left: spliceTime(g), total: spliceTime(g) }; g.emit({ type: 'lever' }); toast(g, 'Splicing…');
   return done(g);
 }
 export function finishSplice(g: Ctx, now: number) {
@@ -235,7 +236,7 @@ export function buyShop(g: Ctx, id: string): boolean {
   if (id === 'ticket') { s.tickets++; s.shopT++; toast(g, '+1 ticket'); }
   else if (id === 'icepack') { s.icepack = true; toast(g, 'Ice pack fitted: +2 h offline'); }
   else if (id === 'pebble') { const a = pick(g.rng, ARTS.filter(a => a.r === 0)); addArt(g, a.id); toast(g, `Inside the pebble: ${a.n}`); }
-  else if (id === 'boost') { s.boost = BOOST_LEN; toast(g, '2× for two minutes'); }
+  else if (id === 'boost') { s.boost = boostLen(g); toast(g, `2× for ${fmtDur(boostLen(g))}`); }
   return done(g);
 }
 
@@ -278,13 +279,13 @@ export function adClaim(g: Ctx, placement: AdPlacement, arg?: number): AdResult 
     case 'finish dish': { const d = s.dishes[arg ?? 0]; if (!d) return { ok: false }; d.p = cycleTime(g); d.ready = true; if (s.res.auto) flashFinds(g, collect(g, arg ?? 0)); break; }
     case 'finish research': if (!s.active) return { ok: false }; completeResearch(g); break;
     case 'time warp': bump(g, 'warp'); sum = simulate(g, warpLen(g)); break;
-    case 'boost': if (s.boost > 0) return { ok: false }; s.boost = BOOST_LEN; toast(g, '2× for two minutes'); break;
+    case 'boost': if (s.boost > 0) return { ok: false }; s.boost = boostLen(g); toast(g, `2× for ${fmtDur(boostLen(g))}`); break;
     case 'finish brew': if (!s.brew) return { ok: false }; finishBrew(g); break;
     case 'finish splice': if (!s.splice) return { ok: false }; finishSplice(g, 0); break;
     case 'finish trip': if (!s.trip) return { ok: false }; finishTrip(g); break;
     case 'ticket': if (!unlocked(g, 'tickets')) return { ok: false }; s.tickets++; toast(g, '+1 ticket'); break;
     case 'double offline': s.cur += arg ?? 0; toast(g, `+${fmt(arg ?? 0)} ${TEXT.cur} doubled`); break;
   }
-  s.ads++; s.adUse[placement] = (s.adUse[placement] || 0) + 1; s.adCd = AD_CD; dirty(g);
+  s.ads++; s.adUse[placement] = (s.adUse[placement] || 0) + 1; s.adCd = adCooldown(g); dirty(g);
   return { ok: true, sum };
 }

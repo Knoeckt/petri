@@ -1,7 +1,7 @@
 // Quests, Shop and Decor: short list panels.
 import { SIDE, ARTS, ART, ART_MAX, ART_MERGE, TEXT } from '../../data';
 import type { Ctx } from '../../sim';
-import { sideRefill, sideProg, sideDone, doSide, tierMult, shopItems, shopCost, buyShop, artSpare, artDesc, artPerk, placeArt, unplaceArt, mergeArt, fmt } from '../../sim';
+import { sideRefill, sideProg, sideDone, doSide, tierMult, shopItems, shopCost, buyShop, artSpare, artDesc, artPerk, placeArt, unplaceArt, mergeArt, fmt, fmtDur, boostLen } from '../../sim';
 import type { PanelDef } from '../panel';
 import { icon, iconFor } from '../icons';
 import { faceCanvas, drawPortraits } from '../portraits';
@@ -25,7 +25,7 @@ export const shopPanel: PanelDef = {
   title: () => 'Shop',
   render(el, g) {
     el.innerHTML = `<p class="sub">Paid in ${TEXT.cur.toLowerCase()}. Nothing here you can't also earn; more appears as the town opens up.</p>` +
-      shopItems(g).map(it => { const c = shopCost(g, it.id); return `<div class="r" style="cursor:default"><div class="rn">${icon(iconFor(it.id), 20)} ${it.n}</div><div class="rd">${it.d}</div><div class="rc">${fmt(c)}</div><div class="acts" style="grid-column:1 / span 2; margin-top:6px"><button class="btn primary" data-act="buy" data-id="${it.id}" ${g.s.cur >= c ? '' : 'disabled'}>Buy</button></div></div>`; }).join('');
+      shopItems(g).map(it => { const c = shopCost(g, it.id); return `<div class="r" style="cursor:default"><div class="rn">${icon(iconFor(it.id), 20)} ${it.n}</div><div class="rd">${it.d.replace('{boost}', fmtDur(boostLen(g)))}</div><div class="rc">${fmt(c)}</div><div class="acts" style="grid-column:1 / span 2; margin-top:6px"><button class="btn primary" data-act="buy" data-id="${it.id}" ${g.s.cur >= c ? '' : 'disabled'}>Buy</button></div></div>`; }).join('');
   },
   live(el, g) { el.querySelectorAll<HTMLButtonElement>('[data-act="buy"]').forEach(b => { b.disabled = g.s.cur < shopCost(g, b.dataset.id!); }); },
   act: { buy: (b, g) => { const ok = buyShop(g, b.dataset.id!); if (ok) play('coin'); return ok; } },

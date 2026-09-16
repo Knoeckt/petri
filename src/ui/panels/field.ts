@@ -1,7 +1,7 @@
 // Field: the town map to pick an expedition, then the pipette for artifacts. A full screen.
 import { SITE, RAR, ART, TICKETS_PER_DAY, TEXT } from '../../data';
 import type { Ctx } from '../../sim';
-import { siteOpen, startTrip, mgStart, mgDrop, mgFrame, item, fmtDur, sitesOpen, unlocked, unlockLabel, unlockHint } from '../../sim';
+import { siteOpen, startTrip, mgStart, mgDrop, mgFrame, item, fmtDur, sitesOpen, unlocked, unlockLabel, unlockHint, tripTime } from '../../sim';
 import type { PanelDef } from '../panel';
 import { adLabel } from '../sheet';
 import { icon } from '../icons';
@@ -22,7 +22,7 @@ export const fieldPanel: PanelDef = {
     const status = tr
       ? `<div class="card"><h3>Out at ${SITE[tr.site].n.toLowerCase()}</h3><p class="sub" style="margin:0 0 6px">Back in <b data-live="tripLeft">${fmtDur(tr.left)}</b>. They keep walking while you are away.</p><div class="prog"><b data-live="tripProg" style="width:${(1 - tr.left / tr.total) * 100}%"></b></div><div class="acts" style="margin-top:8px"><button class="btn ad" data-act="ad" data-live="ad">${adLabel(g, 'Bring them home')}</button></div></div>`
       : site
-        ? `<div class="card"><h3>${site.n} <span class="tag">${fmtDur(site.time)}</span></h3><p class="sub" style="margin:0 0 6px">${site.d}</p><div class="kv"><span>Notes</span><span>${site.notes[0]}–${site.notes[1]}</span></div><div class="kv"><span>Live sample</span><span>${Math.round(site.sample * 100)}% · ${RAR[site.sampleR].n.toLowerCase()}</span></div>${s.lastTrip && !tr ? `<p class="sub" style="margin:6px 0 0">Last trip: +${s.lastTrip.notes} notes${s.lastTrip.sample ? `, a ${s.lastTrip.sample.isNew ? 'new ' : ''}${item(s.tier, s.lastTrip.sample.r, s.lastTrip.sample.i).n}` : ''}. You have ${s.notes} notes.</p>` : ''}<div class="acts" style="margin-top:8px"><button class="btn primary" data-act="trip" data-id="${site.id}">Send a trip to ${site.n.toLowerCase()}</button></div></div>`
+        ? `<div class="card"><h3>${site.n} <span class="tag">${fmtDur(tripTime(g, site))}</span></h3><p class="sub" style="margin:0 0 6px">${site.d}</p><div class="kv"><span>Notes</span><span>${site.notes[0]}–${site.notes[1]}</span></div><div class="kv"><span>Live sample</span><span>${Math.round(site.sample * 100)}% · ${RAR[site.sampleR].n.toLowerCase()}</span></div>${s.lastTrip && !tr ? `<p class="sub" style="margin:6px 0 0">Last trip: +${s.lastTrip.notes} notes${s.lastTrip.sample ? `, a ${s.lastTrip.sample.isNew ? 'new ' : ''}${item(s.tier, s.lastTrip.sample.r, s.lastTrip.sample.i).n}` : ''}. You have ${s.notes} notes.</p>` : ''}<div class="acts" style="margin-top:8px"><button class="btn primary" data-act="trip" data-id="${site.id}">Send a trip to ${site.n.toLowerCase()}</button></div></div>`
         : `<div class="card paper"><h3>The town map</h3><p class="sub" style="margin:0">Tap a place to send an expedition. It comes back with Notes for the bench, sometimes with a live sample. The fog lifts as the story opens the town.</p></div>`;
     const mg = g.mg; const res = mg?.done && mg.result ? mg.result : null; const art = res ? ART[res.art] : null;
     const ticketsOpen = unlocked(g, 'tickets');

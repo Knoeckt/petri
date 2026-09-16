@@ -62,12 +62,42 @@ Updates deliberately wait for old windows to close, following the
 
 ## 3. First chapter and progression
 
-1. Separate prototype and intended-playtest balance settings.
+1. [x] Separate prototype and intended-playtest balance settings. `src/data/pace.ts` holds two
+   profiles; the game context carries one (`g.pace`) and every duration goes through it
+   (`cycleTime`, `resTime`, `tripTime`, `brewTime`, `studyTime`, `spliceTime`, `boostLen`,
+   `adLen`, `adCooldown`, biter intervals). Costs and yields are shared. The default is still
+   `proto`; a device switches with `?pace=real` (remembered) or the dev sheet, and the corner
+   tag reads "· playtest". Add a profile by adding an entry, never by forking constants.
 2. Measure a complete first chapter without ads across random seeds and human playtests.
 3. Improve the opening discoveries and prioritize affordable early upgrades.
 4. Decide how earlier catalogs become complete and make extra dishes visible/useful.
 5. Tune ads, offline efficiency, request cadence, and the first scale-up from that evidence.
 6. Improve shared accessibility, content validation, documentation, and automated build checks.
+
+### Chapter 1 targets at playtest pace (proposed 2026-09-16, to confirm before tuning)
+
+Ranges the balance passes aim at, from GAME_DESIGN §8 ("a decision every 30 s in the first
+session", "day 1–2: rares, second dish, first scale-up") and the playtest profile (90 s
+cycles, pond ten minutes away, research 7–8 min, brewing 3–6 min). Session = 10–20 min.
+
+| Moment | Target | Why |
+|---|---|---|
+| First harvest | 1–1.5 min | one cycle, stirring shortens it |
+| First upgrade (Bigger vats, 25) | inside 5 min | first spend before the first delivery |
+| 1-1 Mayor delivered (2 Blubb) | 3–6 min | two or three cycles |
+| First trip sent / back | 5 min / 15 min | the first reason to put the phone down |
+| First equipment rank (3 notes) | 15–20 min | end of session 1 |
+| 1-2 Ida (5 of anything) | 10–15 min | never a stall |
+| 1-3 Pip (an uncommon) | 20–40 min | the first designed wait; the rank-up prompt fires here |
+| 1-4 Ferro, Lab opens | 45–75 min, session 2 | first research started within a minute of opening |
+| 1-5 Ferro, Apothecary opens | 1.5–2.5 h of play, day 1–2 | first brew waits 3–6 min |
+| First overnight return | day 1 → 2 | offline cap 4 h bites; the welcome-back is worth reading |
+| Auto-harvest researched | day 2 | the automation milestone before the midpoint |
+| 1-6 Gran Moss (a rare) | day 2–3 | the midpoint; the second stall, rank ups carry it |
+| 1-9 outbreak, chapter done | day 3–5, 5–8 sessions | Scale-up opens |
+
+Instrumentation (ROADMAP §7) measures these; then Pass A fixes anything an order of
+magnitude off.
 
 ## Later — after the early game is satisfying
 

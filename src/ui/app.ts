@@ -2,7 +2,7 @@
 // Structure is built once; live values are patched in place.
 import { RAR, TEXT, UNLOCK } from '../data';
 import type { Ctx, AdPlacement } from '../sim';
-import { goal, genRate, cycleTime, collect, flashFinds, tierDef, fmt, fmtDur, clinicHas, unlocked, unlockLabel, upAvailable, eqAvailable, canAscend, questsReady, unplacedCount, mergeableCount, medsRelevant, batchesAffordable, adReady, boostOn, warpLen, tutSeen, type Offline } from '../sim';
+import { goal, genRate, cycleTime, collect, flashFinds, tierDef, fmt, fmtDur, clinicHas, unlocked, unlockLabel, upAvailable, eqAvailable, canAscend, questsReady, unplacedCount, mergeableCount, medsRelevant, batchesAffordable, adReady, boostOn, warpLen, boostLen, tutSeen, type Offline } from '../sim';
 import { VesselView } from './vessel';
 import { Panels } from './panel';
 import { Sheet, runAd, showResults, adLabel } from './sheet';
@@ -59,7 +59,7 @@ export class App {
         </div>
       </div>
       <nav class="tabs">${TABS.map(([id, ic, n]) => `<button data-tab="${id}"><span class="i">${icon(ic, 24)}</span>${n}<i class="badge"></i><b class="lk" hidden></b></button>`).join('')}</nav>
-      <b class="ver">v${__APP_VERSION__}</b>
+      <b class="ver">v${__APP_VERSION__}${g.pace.id === 'proto' ? '' : ' · ' + g.pace.n.toLowerCase()}</b>
       <div class="toast"></div>`;
     this.vessel = new VesselView(g, { onHarvest: () => { this.bump(); play('harvest'); }, onStir: () => play('tap') });
     const stage = this.root.querySelector('.stage')!; stage.insertBefore(this.vessel.el, stage.querySelector('.sideR'));
@@ -128,7 +128,7 @@ export class App {
     const fieldOpen = unlocked(g, 'field');
     setHTML(this.fieldBtn, s.trip ? `Trip out<small>back in ${fmtDur(s.trip.left)} · ${s.notes} notes</small>` : fieldOpen ? `Field<small>${s.notes} notes · send a trip</small>` : `Field trips<small>open after ${unlockLabel('field')}</small>`); setDis(this.fieldBtn, !fieldOpen);
     setHTML(this.warpBtn, adLabel(g, `Time warp +${fmtDur(warpLen(g))}`)); setDis(this.warpBtn, !adReady(g) || this.sheet.busy);
-    setHTML(this.boostBtn, boostOn(g) ? `✦ 2× for ${fmtDur(s.boost)}` : adLabel(g, '2× for 2 min')); setDis(this.boostBtn, boostOn(g) || !adReady(g) || this.sheet.busy);
+    setHTML(this.boostBtn, boostOn(g) ? `✦ 2× for ${fmtDur(s.boost)}` : adLabel(g, `2× for ${fmtDur(boostLen(g))}`)); setDis(this.boostBtn, boostOn(g) || !adReady(g) || this.sheet.busy);
     const gl = goal(g);
     setText(this.chEl, gl.kind === 'done' ? `${s.tier + 1} ✓` : gl.kind === 'bloom' ? '!!' : gl.no); setText(this.wdEl, `World ${s.tier + 1}`);
     const html = gl.kind === 'gather'
