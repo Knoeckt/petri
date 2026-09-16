@@ -2,6 +2,7 @@
 
 A petri-dish idle game built with TypeScript, Canvas, and DOM UI.
 
+- `ROADMAP.md` is the long-term plan and where the project stands; every assistant starts there.
 - `GAME_DESIGN.md` records the design and prototype history.
 - `DEVELOPMENT.md` tracks the current work order, open decisions, and save/time behavior.
 - `docs/` holds the original reference mockup; `docs/app/` is the current playable build.

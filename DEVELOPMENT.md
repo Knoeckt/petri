@@ -1,5 +1,7 @@
 # Development priorities
 
+The near-term work order. `ROADMAP.md` holds the long-term plan and the phase this sits in.
+
 Work through these in order, with playtest/iteration loops on reliability and the first
 chapter before native beta or store preparation. The reference mockup is retained as-is.
 

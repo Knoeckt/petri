@@ -871,6 +871,8 @@ panel open, side canvases at 8.
 
 ## 10. Milestones
 
+Historical: the plan as written for the mockup. `ROADMAP.md` is the live plan.
+
 | # | Milestone | Done when |
 |---|---|---|
 | 0 | Design + mockup | This doc; `docs/index.html` with both skins, all seven ad placements, offline, three tiers, the tier 1–3 rosters drawn in code, dangerous strains with quarantine, chapter 1 of the Clinic, the five-hybrid splicer, the outbreak |
