@@ -3,7 +3,7 @@
 **Last updated:** 2026-09-16  
 **Current version:** v0.11.12  
 **Current stage:** Pre-alpha / balance & polish  
-**Immediate milestone:** Make Chapter 1 fun at real timings without ads.
+**Immediate milestone:** World 1 fun in about 1.5 h of play without ads; then the loop: Genesis reachable from world 2 (§4b).
 
 ---
 
@@ -71,6 +71,8 @@ The development priority has shifted from **feature construction** to:
 BALANCE
 ↓
 PLAYTEST
+↓
+THE LOOP (§4b: world lengths, Genesis from world 2)
 ↓
 POLISH
 ↓
@@ -177,11 +179,79 @@ When working in these areas, inspect the existing implementation first.
 
 ## Objective
 
-Create a Chapter 1 experience that is fun at real-world timings **without requiring advertisements**.
+Create a Chapter 1 experience that is fun at real-world timings **without requiring advertisements**,
+and that a player finishes in **about 1.5 hours of play** (§4b sets the shape of the whole game).
 
 This is the project's highest priority.
 
 Do not prioritize Chapters 2–3, monetization, native iOS work, or additional systems until Chapter 1 has a credible balance baseline.
+
+---
+
+# 4b. The Shape of the Game (scope change, 2026-09-16)
+
+Decided after the first bot readings (§8). Three things the rest of this roadmap now assumes.
+
+## World lengths
+
+World 1 takes about **1.5 hours of play** (hands-on time, not calendar time). Each world after
+it takes longer than the one before, by roughly ×1.6, so the ladder is a month for someone who
+plays an hour a day and nobody is expected to climb it in one run.
+
+| World | Vessel | Target play time | Cumulative | Chapter content |
+|---|---|---:|---:|---|
+| 1 | Petri dish | 1.5 h | 1.5 h | written (9 requests) |
+| 2 | Aquarium | 2.5 h | 4 h | written (7) |
+| 3 | Terrarium | 4 h | 8 h | written (7) |
+| 4 | Biome dome | 6.5 h | 14.5 h | names only (§20) |
+| 5 | Living planet | 10 h | 24.5 h | names only |
+| 6 | Seeded system | 16 h | 40 h | names only |
+| 7 | Living galaxy | 26 h | 66 h | names only |
+
+"Play time" is what the bots' `play` column measures. On the wall, world 1 is a day for an
+active player and two or three for a casual one; the world 2 gate below is where a first
+Genesis lands, about four hours in.
+
+## Genesis from world 2
+
+Genesis already exists (GAME_DESIGN §7b) but gates on finishing world 3 and pays out only at
+the reset. It becomes the loop the game is built around:
+
+- **Genome accrues while you play**, visibly, from the start of world 2: every Clinic request
+  delivered, every new catalog entry, every scale-up, and each order of magnitude of lifetime
+  biomass adds to a pending pile shown on the Scale up tab. It banks at Genesis.
+- **The gate opens near the end of world 2** (request 2-5 delivered) **or at a lifetime biomass
+  threshold**, whichever comes first, so a player who stalls in the Aquarium still reaches it.
+- **Genesis is a full restart**: back to a fresh Petri dish, world 1 replays. What survives is
+  the banked Genome and what it bought: permanent perks that never leave, plus the small
+  keepsakes the current design already keeps (hybrid, one artifact, catalog memory).
+- **Each run goes further**: perks make world 1 faster on every loop, and the Genome earned per
+  run grows with the tier it is banked from, so the second run reaches world 3–4 and later
+  runs the top.
+
+The full design, numbers and open questions are GAME_DESIGN §7b. The build order:
+
+1. **Pass B for a 1.5 h world 1** with the bots (§8): active ≤ 1.75 h of play, casual ≤ 2 h.
+   Levers, in order: rare odds between levels 15 and 30, when the woods open, request 1-6's
+   rare, brew times of the last three tonics, research prices from §4-pass-A.
+2. **Per-world pacing knobs** so world n ≈ 1.6 × world n−1: `TIER_CYCLE`, `TIER_MULT`, the
+   rarity cap step, request counts per chapter; the bot gains per-world milestones and targets
+   and runs 30 days.
+3. **Genome accrual and the gate** in the sim: `gen.pending`, a lifetime biomass counter,
+   events in deliver / resolve / ascend, `canGenesis` on 2-5 or the threshold, save v7.
+4. **The Genome shop**: banked points spend any time after the first Genesis; a new cost curve;
+   perks added for the early loop (Field trips from the start, starting biomass, quicker
+   research, a kept upgrade tier). Old runs' `gen.pts` migrate as banked.
+5. **Presentation**: the pending counter and its introduction card, the Genesis confirm sheet
+   (what you earn, keep and lose), the first-run guide's prompt at the gate, the Mayor's
+   "Have we met?" line kept.
+6. **Bot policy for the loop** (Genesis when the gate is open and pending Genome ≥ a threshold),
+   milestones "Genesis available", "First Genesis", "Second run: world 3", and the report over
+   several loops.
+7. **Docs and version**: GAME_DESIGN §7b numbers as tuned, DEVELOPMENT.md work order, README.
+
+Not in scope: chapters and rosters for worlds 4–7 (§20 still waits for the curve to prove
+players get there), monetization, native.
 
 ---
 
@@ -482,7 +552,7 @@ Chapter 1 is ready for external testing when:
 - [ ] Clinic requests provide understandable goals
 - [ ] Economy remains understandable
 - [ ] Major unlocks feel meaningful
-- [ ] Chapter length is within the intended range
+- [ ] Chapter length is about 1.5 h of play (bots: active ≤ 1.75 h, casual ≤ 2 h; §4b)
 - [ ] Fresh-save replay confirms improvements
 
 Only after this point should Chapter 2 become a serious balancing target.
@@ -607,9 +677,10 @@ Destructive actions should require deliberate confirmation.
 
 # 17. Chapter 2 Balance
 
-After Chapter 1 is stable:
+After Chapter 1 is stable and the loop (§4b) is in:
 
-Repeat the same process for Chapter 2.
+Repeat the same process for Chapter 2, at about 2.5 hours of play, with the Genesis gate at
+2-5 inside it. Chapter 2 is the first chapter most players see twice.
 
 Evaluate particularly whether Chapter 2 feels like meaningful expansion rather than simply larger numbers.
 
@@ -643,19 +714,21 @@ Specifically evaluate:
 
 # 19. Genesis / Prestige Validation
 
-Genesis exists technically.
+Genesis is designed in §4b and GAME_DESIGN §7b: reachable near the end of world 2, paid in
+Genome that accrues visibly during the run, spent on permanent perks.
 
-Now determine whether it works psychologically.
+Once built, determine whether it works psychologically.
 
 Evaluate:
 
-- When Genesis becomes available
-- Whether the player understands why they should use it
-- What is retained
-- What is lost
-- How quickly the second run progresses
-- Whether the second run feels meaningfully different
-- Whether permanent progression feels worthwhile
+- Whether the player notices Genome accruing before the gate opens
+- Whether the gate feels earned at 2-5, or like an interruption
+- Whether the player understands why they should reset now rather than push on
+- What is retained, what is lost, and whether the confirm sheet says so plainly
+- How much faster the second run's world 1 is (bots: ≥ 30% with the first perks)
+- Whether the second run feels meaningfully different, not just quicker
+- Whether Genome income per run scales so that later loops are worth it
+- Whether a player who stalls in world 2 reaches the biomass threshold before quitting
 
 The first Genesis should feel like a major achievement.
 

@@ -792,23 +792,46 @@ Scale up tab then says so and offers Genesis.
 Tiers 1–3 are hand-named in the mockup; later tiers use generated names until content is
 written.
 
+### How long a world takes (2026-09-16)
+
+In play time, hands-on: world 1 about 1.5 h, and each world after it about ×1.6 the one
+before (2.5 h, 4 h, 6.5 h, 10 h, 16 h, 26 h; 66 h for the ladder). Nobody climbs it in one
+run; Genesis (7b) is reachable in world 2 and every loop starts faster. What makes a world
+longer than the last: the ×1.5 base cycle, the rarity cap that rises 15 levels per tier so the
+rares a chapter asks for sit higher up the bench, and chapters with more requests. The bots
+(ROADMAP §8) measure each world against these numbers; ROADMAP §4b has the table.
+
 ## 7b. Genesis (the loop)
 
 The ladder is a loop. Tier 1's mythic is The First Cell and the Genesis Bloom "hums the
-tune the bread used to sing": at the top the whole thing collapses to a single cell and
-Mossbrook starts again, smaller. The Scale up tab carries a Genesis card once the gate is
-met; the button needs two taps.
+tune the bread used to sing": the whole thing collapses to a single cell and Mossbrook
+starts again, smaller. The Scale up tab carries a Genesis card once the gate is met; the
+button needs two taps.
 
-- **Gate:** the last chapter complete. Until chapters 4 to 6 are written, the Terrarium
-  chapter (`GEN_TIER = 2`), so the loop can be felt now.
-- **Earns Genome:** 1 per tier reached, 1 per 10 catalog entries found across all tiers,
-  1 per chapter finished. A first run through three tiers is about 9.
-- **Keeps:** the seeded hybrid, the artifact in Decor slot 1, today's tickets, and the
-  catalog as memory: entries seen in an earlier life show their name in the Catalog and
-  pay ten times their value the first time they are found again.
-- **Resets:** tier, level, biomass, upgrades, research, studies, catalog, stock, medicines,
-  story, side quests, the splicer. Chapter 1 replays, and the Mayor's opening line changes
-  ("Have we met? You look smaller.") so the loop is acknowledged.
+Redesigned 2026-09-16 (ROADMAP §4b): the loop starts in world 2, not at the top, and the
+currency is earned while playing rather than counted at the reset. The build is not done yet;
+numbers marked *first guess* are the bots' to tune.
+
+- **Genome accrues during the run.** From the start of world 2 a pending pile is shown on the
+  Scale up tab (and the counter's tooltip): +1 × (tier + 1) per Clinic request delivered,
+  +1 per new catalog entry, +5 × tier per scale-up, +1 per order of magnitude of lifetime
+  biomass past 10k (*first guess*: a first run to 2-5 banks about 40). Pending Genome does
+  nothing until Genesis banks it, which is the reason to reset.
+- **Gate:** request 2-5 delivered, **or** lifetime biomass of 500k (*first guess*), whichever
+  first, and never before world 2. Until then the card says what will open it. `GEN_TIER`
+  retires.
+- **Genesis** banks the pending Genome and resets tier, level, biomass, Notes, bench,
+  upgrades, research, studies, catalog, stock, medicines, story, side quests and the splicer.
+  Chapter 1 replays and the Mayor's opening line changes ("Have we met? You look smaller.").
+- **Keeps:** banked Genome and everything it bought; the seeded hybrid, the artifact in Decor
+  slot 1, today's tickets, and the catalog as memory (entries seen in an earlier life show
+  their name and pay ten times their value the first time they are found again).
+- **The Genome shop** is open any time after the first Genesis, on the Scale up tab, spending
+  banked points; a run's pending pile is never spendable. Costs rise per rank (*first guess*:
+  3 × 1.6^rank, rounded), so the first Genesis buys two or three ranks and later ones buy
+  more because a run banked from world 3 or 4 earns several times what world 2 does.
+- **Second and later runs** should be visibly faster through world 1 (bots: ≥ 30% with the
+  first perks) and reach a world further each time.
 
 ### Genome perks
 
@@ -823,9 +846,15 @@ Permanent, bought on the Scale up tab, cost rises by one point per rank.
 | Warm bench | 1 | the first research of every tier finishes instantly |
 | Culture library | 1 | each run starts with two spares of every common seen before |
 | Night shift | 9 | offline production runs at 10% + 10% per rank, up to full speed |
+| Mayor's map (new) | 1 | Field trips open from the start of every run |
+| Deep pockets (new) | 5 | each run starts with 100 biomass per rank, ×tier at scale-up |
+| Quick study (new) | 5 | research and studies finish 10% sooner per rank |
+| Second wind (new) | 1 | scale-up keeps the Basics upgrade tier |
 
 Resetting research at Genesis is the point: the Lab is replayable because the loop replays
 it, and the tier branches become milestones on each run rather than a one-time checklist.
+The four new perks are for the early loop: they make world 1 shorter on every run without
+touching its shape, so a player who resets from world 2 feels the difference in minutes.
 
 ### Each tier is a different vessel
 
@@ -857,12 +886,17 @@ corpse flower; the pebble that fell from the sky, Ceres, a blue marble.
   Time warps from ads run at full speed. Cap 4 h, 8 h with storage, more with the tier
   branches. Welcome-back sheet lists time away, the speed it ran at, currency, cycles, and
   finds by name, with Double it.
-- **First session:** level 1 → 10 in ten minutes; the first uncommon around level 6; the
-  first research started. A decision every 30 s.
-- **Day 1–2:** rares appear, luck unlocked, second dish, first scale-up.
-- **Week 1:** tier 3, three dishes, cycles measured in hours, ads clearly worth it.
-- The ladder is meant to take a month. If the first scale-up isn't satisfying, the rest
-  won't fix it.
+- **First session:** the first uncommon inside the first half hour of play; the first
+  research started. A decision every 30 s.
+- **World 1 is about 1.5 h of play** (DEVELOPMENT §3 has the moments): the first rare near
+  the hour, the chapter done in 5–8 sessions, a day on the wall for an active player.
+- **World 2 is 2.5 h more**, and Genesis opens at 2-5, about four hours in. Rares, luck,
+  the second dish and the first scale-up all belong to the first day or two.
+- **Week 1:** a first Genesis, a second run that is quicker through world 1 and reaches
+  world 3; cycles measured in hours by the Terrarium; ads clearly worth it.
+- The ladder is meant to take a month and several loops (7). If the first scale-up isn't
+  satisfying, the rest won't fix it; if the first Genesis feels like a loss, nothing after
+  it gets played.
 
 ---
 
@@ -923,6 +957,14 @@ Historical: the plan as written for the mockup. `ROADMAP.md` is the live plan.
   biomass cost would make Antibiotic wash more valuable but risks feeling like a fine.
 - **Code-drawn critters vs. art.** The part-list renderer is good enough to ship a
   prototype and generates later tiers for free. The MSM look eventually wants hand art.
+- **Genome's name.** It predates the loop redesign (7b). It reads right for "permanent
+  upgrades that never leave", but if the pending pile needs a friendlier word on the counter
+  ("Spores"?), decide before the counter ships, not after.
+- **Spending Genome mid-run.** The shop is open any time after the first Genesis so a
+  player can bank, buy, and see the effect immediately; a stricter version (only between
+  runs) is a one-line change if it turns out spending mid-run makes resets feel pointless.
+- **The biomass gate.** 500k lifetime is a guess for a player stuck in world 2. Watch the
+  bots' idle profile: it should reach the gate in a week, not a month.
 - **Story pacing.** Seven requests per chapter, climbing the rarity ladder, means the
   chapter's length is set by how fast the dish reaches rares. If request 5 stalls for a day
   that is either the hook or the wall; watch it.
