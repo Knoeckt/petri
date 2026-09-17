@@ -73,9 +73,18 @@ Updates deliberately wait for old windows to close, following the
      playtest pace across seeds, sessions on the live tick and the gaps through offline
      catch-up, and report every milestone against the target table below (ROADMAP §7–8).
      First reading, 2026-09-16, active profile: the first session lands on target through
-     1-3 (harvest 1.5 min, Mayor 6 min, Lab 19.5 min); 1-4 takes 3.5 h on the wall but only
-     31 min of play, and the chapter finishes on day 2 rather than day 3–5, because auto-harvest
-     and the second dish arrive in the first two hours. Not measured: ads, Shop, studies.
+     1-3 (harvest 1.5 min, Mayor 6 min, Lab 19.5 min); 1-4 took 3.5 h on the wall (31 min of
+     play) because the uncommon was 0% until level 1 and only 6% at level 15; the chapter then
+     finished in one day with every upgrade bought and 96k biomass idle. Not measured: ads,
+     Shop, studies.
+   - [x] Pass A (same day): uncommon odds ramp in from level 1 (6% by level 6, 10% by 15);
+     rares stay under 1% until level 30; bench growth ×1.25–1.3; research auto 3,000/40 min,
+     luck 250, storage 1,500, second dish 2,500, fast 6,000, third dish 20,000; upgrade
+     tiers 2–4 ×1.5, ×4, ×8. After: active reaches 1-4 in 31 min of play (2 h on the wall,
+     the gap to its second session), 1-6 on day 1.3, chapter done day 2.0 after 3 h of play;
+     casual 1-6 day 3.5, done day 5.2; optimizer done day 1.1; idle stalls at 1-6. Auto-harvest
+     lands at 10 h (target day 1–2). "Days" are calendar days from the first session, not play
+     time; the active profile plays about 95 minutes a day.
    - [ ] The dogfood run (ROADMAP §10), with the in-game milestone log the bot shares.
 3. Improve the opening discoveries and prioritize affordable early upgrades.
 4. Decide how earlier catalogs become complete and make extra dishes visible/useful.

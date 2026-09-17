@@ -2,7 +2,7 @@
 // Each is a predicate; the first time it holds, the run records when. Order here is the order they are reported in.
 import { STORY, UNLOCK } from '../data';
 import type { Ctx } from '../sim';
-import { unlockName, found } from '../sim';
+import { unlockName, found, effLv, genRate, cycleTime, dropsPer, weights, rarLv } from '../sim';
 
 export interface MilestoneDef { key: string; label: string; test: (g: Ctx) => boolean; /** when it lands, if not at the moment the test first holds */ at?: (g: Ctx, wall: number, play: number) => [wall: number, play: number] }
 /** chapter 1's story state, whatever tier the run has reached since */
@@ -40,13 +40,16 @@ export const MILESTONES: MilestoneDef[] = [
   { key: 'ascend', label: 'Scaled up to the Aquarium', test: g => g.s.tier >= 1 },
 ];
 
-export interface Hit { key: string; label: string; wall: number; play: number }
+/** the economy at the moment a milestone lands (ROADMAP §9): what the player had, and what the dish was giving */
+export interface Snap { cur: number; notes: number; lv: number; rate: number; cycle: number; drops: number; unc: number; rare: number; ups: number; res: number; found: number }
+export const snapshot = (g: Ctx): Snap => { const w = weights(rarLv(g)); return { cur: Math.round(g.s.cur), notes: g.s.notes, lv: effLv(g), rate: +genRate(g).toFixed(2), cycle: +cycleTime(g).toFixed(1), drops: dropsPer(g), unc: +w[1].toFixed(1), rare: +(w[2] + w[3] + w[4] + w[5]).toFixed(1), ups: Object.keys(g.s.ups).length, res: Object.keys(g.s.res).length, found: found(g, 0) }; };
+export interface Hit { key: string; label: string; wall: number; play: number; snap: Snap }
 
 /** watches a run and records the first time each milestone holds */
 export class Tracker {
   hits: Hit[] = []; private seen = new Set<string>();
   check(g: Ctx, wall: number, play: number) {
-    for (const m of MILESTONES) { if (this.seen.has(m.key)) continue; if (m.test(g)) { this.seen.add(m.key); const [w, p] = m.at ? m.at(g, wall, play) : [wall, play]; this.hits.push({ key: m.key, label: m.label, wall: w, play: p }); } }
+    for (const m of MILESTONES) { if (this.seen.has(m.key)) continue; if (m.test(g)) { this.seen.add(m.key); const [w, p] = m.at ? m.at(g, wall, play) : [wall, play]; this.hits.push({ key: m.key, label: m.label, wall: w, play: p, snap: snapshot(g) }); } }
   }
   get(key: string) { return this.hits.find(h => h.key === key) || null; }
 }

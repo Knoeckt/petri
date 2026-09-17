@@ -42,11 +42,11 @@ export const EMOTES = ['♥', '♪', '!', '?', '☺'];
 /** Lab equipment: ranked with Notes (and a little biomass). Persists across scale-ups; Genesis resets it. */
 export interface Equipment { id: string; n: string; d: string; max: number; notes: number; grow: number; bio: number }
 export const EQUIP: Equipment[] = [
-  { id: 'dish',    n: 'Petri dish',  d: '+1 effective level per rank',                              max: 30, notes: 3,  grow: 1.15, bio: 10 },
-  { id: 'scope',   n: 'Microscope',  d: '+2% chance a duplicate turns out to be a strain you have not found', max: 15, notes: 8,  grow: 1.2,  bio: 20 },
-  { id: 'incub',   n: 'Incubator',   d: '−2% cycle time per rank',                                  max: 15, notes: 8,  grow: 1.2,  bio: 20 },
-  { id: 'pipette', n: 'Pipette',     d: '+1 colony per cycle every three ranks',                    max: 12, notes: 12, grow: 1.22, bio: 30 },
-  { id: 'clean',   n: 'Clean room',  d: '+4% quarantine on arrival and +1 spare on the shelf, per rank', max: 10, notes: 10, grow: 1.22, bio: 25 },
+  { id: 'dish',    n: 'Petri dish',  d: '+1 effective level per rank',                              max: 30, notes: 3,  grow: 1.25, bio: 10 },
+  { id: 'scope',   n: 'Microscope',  d: '+2% chance a duplicate turns out to be a strain you have not found', max: 15, notes: 8,  grow: 1.28,  bio: 20 },
+  { id: 'incub',   n: 'Incubator',   d: '−2% cycle time per rank',                                  max: 15, notes: 8,  grow: 1.28,  bio: 20 },
+  { id: 'pipette', n: 'Pipette',     d: '+1 colony per cycle every three ranks',                    max: 12, notes: 12, grow: 1.3, bio: 30 },
+  { id: 'clean',   n: 'Clean room',  d: '+4% quarantine on arrival and +1 spare on the shelf, per rank', max: 10, notes: 10, grow: 1.3, bio: 25 },
 ];
 export const EQ: Record<string, Equipment> = Object.fromEntries(EQUIP.map(e => [e.id, e]));
 

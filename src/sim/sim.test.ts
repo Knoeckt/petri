@@ -89,10 +89,10 @@ describe('the economy', () => {
     const g = game(); expect(eqCost(g, 'dish')).toEqual({ notes: 0, bio: 0 }); // the first rank is the guide's free demo
     expect(eqCost(g, 'scope')).toEqual({ notes: 8, bio: 20 }); expect(buyEquip(g, 'scope')).toBe(false);
     expect(buyEquip(g, 'dish')).toBe(true); expect(eqLv(g, 'dish')).toBe(1); expect(effLv(g)).toBe(1); expect(g.s.notes).toBe(0); expect(g.s.st.lv).toBe(1);
-    expect(eqCost(g, 'dish')).toEqual({ notes: Math.round(3 * 1.15), bio: Math.round(10 * 1.25) });
+    expect(eqCost(g, 'dish')).toEqual({ notes: Math.round(3 * 1.25), bio: Math.round(10 * 1.25) });
     expect(buyEquip(g, 'dish')).toBe(false); g.s.notes = 100; g.s.cur = 1000;
-    expect(buyEquip(g, 'dish')).toBe(true); expect(eqLv(g, 'dish')).toBe(2); expect(g.s.notes).toBe(97); expect(g.s.cur).toBe(987);
-    expect(eqCost(g, 'dish').notes).toBe(Math.round(3 * 1.15 * 1.15));
+    expect(buyEquip(g, 'dish')).toBe(true); expect(eqLv(g, 'dish')).toBe(2); expect(g.s.notes).toBe(96); expect(g.s.cur).toBe(987);
+    expect(eqCost(g, 'dish').notes).toBe(Math.round(3 * 1.25 * 1.25));
     g.s.eq.dish = 30; expect(buyEquip(g, 'dish')).toBe(false);
     g.s.eq.incub = 5; expect(cycleTime(g)).toBeCloseTo(20 * 0.9);
     g.s.eq.pipette = 5; expect(dropsPer(g)).toBe(2); g.s.eq.pipette = 6; expect(dropsPer(g)).toBe(3);
@@ -116,7 +116,7 @@ describe('the economy', () => {
   });
   it('caps the rarity table by tier', () => {
     const g = game(); g.s.eq.dish = 30; g.s.ups = { l_lv: true, p_lv: true, i_lv: true, b_lv: true }; g.s.res = { tides: true, growlamp: true }; expect(effLv(g)).toBe(46); expect(rarLv(g)).toBe(40);
-    expect(weights(rarLv(g)).map(x => +x.toFixed(2))).toEqual([74, 18, 5.75, 1.75, 0.5, 0]);
+    expect(weights(rarLv(g)).map(x => +x.toFixed(2))).toEqual([77.15, 18, 3.35, 1.25, 0.25, 0]); // the cap at tier 0 sits between the 30 and 50 keys
     g.s.tier = 2; expect(rarCap(g)).toBe(70);
   });
   it('research and studies change the numbers', () => {

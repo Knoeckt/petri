@@ -53,6 +53,7 @@ export function compareTable(byPolicy: Record<string, RunResult[]>): string {
 /** one run, as a timeline: what the roadmap asks the instrumentation to answer */
 export function timeline(r: RunResult): string {
   const out = [`${r.policy} · seed ${r.seed} · pace ${r.pace}`];
-  for (const h of r.hits) out.push(`${pad(dur(h.wall), 9, true)}  ${pad(dur(h.play), 8, true)} play  ${h.label}`);
+  out.push(pad('', 28) + pad('milestone', 44) + 'biomass  notes  lv  rate/s  cycle  drops  unc%  rare%  ups  res  found');
+  for (const h of r.hits) { const s = h.snap; out.push(`${pad(dur(h.wall), 9, true)}  ${pad(dur(h.play), 8, true)} play  ${pad(h.label, 44)}${pad(String(s.cur), 9, true)}${pad(String(s.notes), 7, true)}${pad(String(s.lv), 4, true)}${pad(String(s.rate), 8, true)}${pad(String(s.cycle), 7, true)}${pad(String(s.drops), 7, true)}${pad(String(s.unc), 6, true)}${pad(String(s.rare), 7, true)}${pad(String(s.ups), 5, true)}${pad(String(s.res), 5, true)}${pad(String(s.found), 7, true)}`); }
   return out.join('\n');
 }

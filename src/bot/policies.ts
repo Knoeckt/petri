@@ -84,7 +84,6 @@ export function act(g: Ctx, p: Policy, nowMs: number, rng: Rng) {
     for (const id of RESEARCH_ORDER) {
       const r = RES_DEF.find(x => x.id === id); if (!r || !resVisible(g, r) || resDone(g, r) || (r.req && !s.res[r.req])) continue;
       if (resCost(g, r) <= budget()) { startResearch(g, id); break; }
-      break; // the next one on the list is what we are saving for
     }
   }
   // the bench: the dish while it can be ranked, then the cheapest other rank

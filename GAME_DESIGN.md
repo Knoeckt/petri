@@ -119,6 +119,14 @@ rare, and the top of the table is a late-ladder thing.
 | Exotic | 1 | 3,000 | +50% |
 | Mythic | 1 | 20,000 | +100% |
 
+The odds by effective level (`KEYS` in `src/data/content.ts`), common / uncommon / rare / very rare / exotic / mythic:
+level 1 → 100 / 0; level 6 → 94 / 6; level 15 → 90 / 10; level 30 → 85.3 / 14 / 0.7;
+level 50 → 69 / 22 / 6 / 2.5 / 0.5; level 75 → 50 / 25 / 13 / 7 / 4 / 1; level 100 → 34 / 26 / 18 / 11 / 7 / 4,
+interpolated between keys and capped at level 40 in the Petri dish (+15 per tier). The uncommon
+ramps in from level 1 so Pip's request (1-4) lands inside the first hour of play; rares stay
+under 1% until level 30 so Gran Moss (1-6) and the medicine requests are what the dish rank
+is for on days 2–4 (set by the 2026-09-16 bot pass).
+
 Thirteen entries per tier. Catalog bonuses are permanent across scale-ups, so the catalog is
 the prestige currency in disguise: you never lose what you found. Mythics are one per tier
 (Genesis Bloom, Leviathan fry, Root Mother) and carry an orbiting sparkle wherever they are
@@ -540,11 +548,15 @@ and reset at Genesis (Head start seeds the dish on the next run).
 
 | Equipment | Ranks | Per rank | Notes (rank 1, growth) | Biomass (×tier) |
 |---|---:|---|---|---|
-| Petri dish | 30 | +1 effective level | 3, ×1.15 | 10 ×1.25 |
-| Microscope | 15 | +2% chance a duplicate turns out to be a strain you had not found | 8, ×1.2 | 20 |
-| Incubator | 15 | −2% cycle time | 8, ×1.2 | 20 |
-| Pipette | 12 | +1 colony per cycle every three ranks | 12, ×1.22 | 30 |
-| Clean room | 10 | +4% quarantine on arrival, +1 spare on the shelf | 10, ×1.22 | 25 |
+| Petri dish | 30 | +1 effective level | 3, ×1.25 | 10 ×1.25 |
+| Microscope | 15 | +2% chance a duplicate turns out to be a strain you had not found | 8, ×1.28 | 20 |
+| Incubator | 15 | −2% cycle time | 8, ×1.28 | 20 |
+| Pipette | 12 | +1 colony per cycle every three ranks | 12, ×1.3 | 30 |
+| Clean room | 10 | +4% quarantine on arrival, +1 spare on the shelf | 10, ×1.3 | 25 |
+
+Growth was ×1.15–1.22 until the 2026-09-16 bot pass (ROADMAP §8): at that rate the bench
+maxed on day 1 and Notes had nothing left to buy; the steeper curve makes the dish rank the
+thing the back half of chapter 1 waits on.
 
 A full Petri dish is about 1,300 Notes; rank 10, where the first uncommons show with the
 early upgrades on top, is about 60. The tier reach cap (section 3) is unchanged: equipment
@@ -643,9 +655,12 @@ affordable, and its top section is the bench (equipment).
 | Tier | Opens after | Yield | Speed | Income | Rarity | Value |
 |---|---|---|---|---|---|---|
 | 1 Basics | start | Richer agar +1 colony (30) | Warm incubator −12% (40) | Bigger vats ×1.5 (25) | Sharp eyes +1 lv (50) | Sales pitch +20% (45) |
-| 2 Instruments | 3 of tier 1 | Double agar +2 (200) | Hot incubator −15% (240) | Vat farm ×2 (180) | Selective medium +2 lv (300, needs the luck research) | Auctioneer +30% (260) |
-| 3 Precision | 4 of tier 2 | Triple agar +2 (1,200) | Cryo-timer −18% (1,500) | Industrial vats ×2.5 (1,000) | Rare lens +3 lv (1,800) | Collector's market +40% (1,400) |
-| 4 Legendary gear | all of tier 3 | Endless agar +2 (8,000) | Time dilation −20% (10,000) | Vat empire ×3 (7,000) | Golden lens +5 lv (12,000) | Museum deal +60% (9,000) |
+| 2 Instruments | 3 of tier 1 | Double agar +2 (300) | Hot incubator −15% (360) | Vat farm ×2 (270) | Selective medium +2 lv (450, needs the luck research) | Auctioneer +30% (390) |
+| 3 Precision | 4 of tier 2 | Triple agar +2 (4,800) | Cryo-timer −18% (6,000) | Industrial vats ×2.5 (4,000) | Rare lens +3 lv (7,200) | Collector's market +40% (5,600) |
+| 4 Legendary gear | all of tier 3 | Endless agar +2 (64,000) | Time dilation −20% (80,000) | Vat empire ×3 (56,000) | Golden lens +5 lv (96,000) | Museum deal +60% (72,000) |
+
+Tiers 2–4 cost ×1.5, ×4 and ×8 what they did before the 2026-09-16 bot pass, which found
+every upgrade bought inside day 1 with 96k biomass idle by the first overnight return.
 
 Costs are tier-1 mockup numbers and scale **×8 per dish tier** while income scales ×5, so
 each tier's set takes 1.6× longer than the last and the Cosmos set about ten times as long
@@ -697,16 +712,16 @@ scale-ups and reset at Genesis (section 7b), which is what makes the Lab replaya
 
 ### The core list (Petri dish)
 
-| Research | Time (real) | Unlocks |
+| Research | Cost, time (playtest pace) | Unlocks |
 |---|---:|---|
-| Selective medium / Spectral filter | 10 min | the luck upgrade |
-| Auto-harvest / Auto-catalog | 20 min | cycles collect themselves online |
+| Selective medium / Spectral filter | 250, 10 min | the luck upgrade |
+| Auto-harvest / Auto-catalog | 3,000, 40 min | cycles collect themselves online; a day-2 purchase by design (DEVELOPMENT §3) |
 | Antibiotic wash / Debris shield (repeatable, 20 ranks) | 10 min, +3 min per rank | each rank adds a 5% chance a biter is quarantined on arrival, online and offline; cost ×1.3 per rank |
 | Sample fridge (repeatable, 10 ranks) | 12 min, +3 min per rank | the shelf holds 5 more spares of each strain per rank |
-| Second dish / Second field | 45 min | a second dish |
-| Cold storage / Deep storage | 1 h | offline cap 4 h → 8 h, shelf ×2 |
-| Fast incubator / Fast scanner | 2 h | −25% base cycle time |
-| Third dish / Third field | 4 h | a third dish |
+| Second dish / Second field | 2,500, 50 min | a second dish |
+| Cold storage / Deep storage | 1,500, 33 min | offline cap 4 h → 8 h, shelf ×2 |
+| Fast incubator / Fast scanner | 6,000, 67 min | −25% base cycle time |
+| Third dish / Third field | 20,000, 100 min | a third dish |
 | Bigger cauldron | 15 min | brew 3 medicines at once (needs the Apothecary) |
 | Hot cauldron | 30 min | medicines brew in half the time |
 | Vat cauldron | 1 h | brew 6 medicines at once |
