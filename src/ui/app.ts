@@ -1,6 +1,6 @@
-// The main screen: sign, counter, vessel with its side buttons, board, tab bar, panels and the sheet.
+// The main screen: sign, counter, vessel with its side buttons and the decor shelf under it, board, tab bar, panels and the sheet.
 // Structure is built once; live values are patched in place.
-import { RAR, TEXT, UNLOCK } from '../data';
+import { RAR, TEXT, UNLOCK, ART } from '../data';
 import type { Ctx, AdPlacement } from '../sim';
 import { goal, genRate, cycleTime, collect, flashFinds, tierDef, fmt, fmtDur, clinicHas, unlocked, unlockLabel, upAvailable, eqAvailable, canAscend, questsReady, unplacedCount, mergeableCount, medsRelevant, batchesAffordable, adReady, boostOn, warpLen, boostLen, tutSeen, iapOwned, type Offline } from '../sim';
 import { VesselView } from './vessel';
@@ -11,6 +11,7 @@ import { upgradesPanel } from './panels/upgrades';
 import { labPanel } from './panels/lab';
 import { fieldPanel } from './panels/field';
 import { questsPanel, shopPanel, decorPanel } from './panels/misc';
+import { pipettePanel } from './panels/pipette';
 import { catalogPanel } from './panels/catalog';
 import { ladderPanel } from './panels/ladder';
 import { brewPanel, splicerPanel } from './panels/stations';
@@ -26,14 +27,14 @@ const setDis = (el: HTMLButtonElement | null, d: boolean) => { if (el && el.disa
 
 const TABS: [string, string, string][] = [['up', 'flask', 'Upgrades'], ['lab', 'microscope', 'Lab'], ['clinic', 'pill', 'Clinic'], ['cat', 'book', 'Shelf'], ['asc', 'rocket', TEXT.ascend]];
 const SIDE_L: [string, string, string][] = [['quests', 'scroll', 'Quests'], ['field', 'map', 'Field'], ['splicer', 'dna', 'Splicer']];
-const SIDE_R: [string, string, string][] = [['shop', 'cart', 'Shop'], ['decor', 'vase', 'Decor'], ['brew', 'kettle', 'Brewery']];
+const SIDE_R: [string, string, string][] = [['shop', 'cart', 'Shop'], ['pipette', 'drop', 'Pipette'], ['brew', 'kettle', 'Brewery']];
 
 export class App {
   root: HTMLDivElement; vessel: VesselView; panels: Panels; sheet: Sheet; guide: Guide;
   private cur: HTMLElement; private rate: HTMLElement; private goalEl: HTMLElement; private bar: HTMLElement; private barFill: HTMLElement;
   private harvest: HTMLButtonElement; private fieldBtn: HTMLButtonElement; private warpBtn: HTMLButtonElement; private boostBtn: HTMLButtonElement;
   private signSmall: HTMLElement; private toastEl: HTMLElement; private tabs: HTMLElement; private chEl: HTMLElement; private wdEl: HTMLElement;
-  private toastT = 0; private signTaps = 0; private signT = 0;
+  private toastT = 0; private signTaps = 0; private signT = 0; private shelf: HTMLElement;
 
   constructor(private g: Ctx) {
     this.root = document.createElement('div'); this.root.className = 'phone';
@@ -45,7 +46,7 @@ export class App {
         <div class="cur"><b>0</b><small>+0.0/s</small></div>
       </header>
       <button class="mute" aria-label="Sound">${icon(isMuted() ? 'mute' : 'speaker', 20)}</button>
-      <div class="stage"><div class="sideL">${SIDE_L.map(sbtn).join('')}</div><div class="sideR">${SIDE_R.map(sbtn).join('')}</div></div>
+      <div class="stage"><div class="sideL">${SIDE_L.map(sbtn).join('')}</div><button class="decorbar" data-tab="decor" aria-label="Decor"><i>Decor</i><span class="dslots"></span><b class="cnt" hidden></b><b class="lk" hidden></b></button><div class="sideR">${SIDE_R.map(sbtn).join('')}</div></div>
       <div class="board">
         <div class="goal"></div>
         <div class="bar"><i></i></div>
@@ -62,9 +63,9 @@ export class App {
       <b class="ver">v${__APP_VERSION__}${g.pace.id === 'proto' ? '' : ' · ' + g.pace.n.toLowerCase()}</b>
       <div class="toast"></div>`;
     this.vessel = new VesselView(g, { onHarvest: () => { this.bump(); play('harvest'); }, onStir: () => play('tap') });
-    const stage = this.root.querySelector('.stage')!; stage.insertBefore(this.vessel.el, stage.querySelector('.sideR'));
+    const stage = this.root.querySelector('.stage')!; stage.insertBefore(this.vessel.el, stage.querySelector('.decorbar'));
     this.sheet = new Sheet();
-    this.panels = new Panels(g, [upgradesPanel, labPanel, clinicPanel, catalogPanel, ladderPanel, fieldPanel, questsPanel, shopPanel, decorPanel, brewPanel, splicerPanel], open => { this.root.classList.toggle('covered', !!open); if (open) tutSeen(g, open); }); // a visited panel clears its guide prompt
+    this.panels = new Panels(g, [upgradesPanel, labPanel, clinicPanel, catalogPanel, ladderPanel, fieldPanel, pipettePanel, questsPanel, shopPanel, decorPanel, brewPanel, splicerPanel], open => { this.root.classList.toggle('covered', !!open); if (open) tutSeen(g, open); }); // a visited panel clears its guide prompt
     this.panels.api.ad = (placement: AdPlacement, arg?: number) => this.ad(placement, arg);
     this.panels.api.buy = (id: string) => runPurchase(this.g, this.sheet, id, () => { this.bump(); this.panels.rerender(); });
     this.root.insertBefore(this.panels.el, this.root.querySelector('.tabs'));
@@ -74,12 +75,12 @@ export class App {
     this.cur = q('.cur b'); this.rate = q('.cur small'); this.chEl = q('.lvl .ch'); this.wdEl = q('.lvl .wd');
     this.goalEl = q('.goal'); this.bar = q('.bar'); this.barFill = q('.bar i');
     this.harvest = q('.harvest'); this.fieldBtn = q('.field'); this.warpBtn = q('.warp'); this.boostBtn = q('.boost');
-    this.signSmall = q('.sign small'); this.toastEl = q('.toast'); this.tabs = q('.tabs');
+    this.signSmall = q('.sign small'); this.toastEl = q('.toast'); this.tabs = q('.tabs'); this.shelf = q('.decorbar .dslots');
     this.harvest.onclick = () => { const sum = collect(g, 0); if (sum) { flashFinds(g, sum); this.bump(); play('harvest'); } };
     this.fieldBtn.onclick = () => this.panels.open('field');
     this.warpBtn.onclick = () => this.ad('time warp');
     this.boostBtn.onclick = () => this.ad('boost');
-    this.root.addEventListener('click', e => { const b = (e.target as HTMLElement).closest<HTMLElement>('.tabs button[data-tab], .sbtn[data-tab]'); if (b) this.panels.toggle(b.dataset.tab!); });
+    this.root.addEventListener('click', e => { const b = (e.target as HTMLElement).closest<HTMLElement>('.tabs button[data-tab], .sbtn[data-tab], .decorbar[data-tab]'); if (b) this.panels.toggle(b.dataset.tab!); });
     q('.sign').addEventListener('click', () => { const now = performance.now(); if (now - this.signT > 1500) this.signTaps = 0; this.signT = now; if (++this.signTaps >= 5) { this.signTaps = 0; openDev(g, this.sheet, this); } });
     q('.ver').addEventListener('click', () => this.readout());
     const mute = q<HTMLButtonElement>('.mute'); mute.onclick = () => { setMuted(!isMuted()); mute.innerHTML = icon(isMuted() ? 'mute' : 'speaker', 20); if (!isMuted()) play('tap'); };
@@ -141,12 +142,14 @@ export class App {
       : gl.kind === 'done' ? `<span class="no">${gl.no}</span><span>Chapter done · ${TEXT.ascend} is open</span>`
       : `<span class="no">${gl.no}</span><span>No chapter here yet</span>`;
     setHTML(this.goalEl, html);
+    // the decor shelf under the dish: three slots, placed artifacts as icons
+    setHTML(this.shelf, s.placed.map((p, k) => { const a = p && ART[p.id]; return a ? `<span class="ds full" title="${a.n}">${icon(a.id, 22)}${p.lv > 1 ? `<b>${p.lv}</b>` : ''}</span>` : `<span class="ds"><small>${k + 1}</small></span>`; }).join(''));
     // badges, counts and locks
     const has: Record<string, boolean> = { up: upAvailable(g) || eqAvailable(g), clinic: clinicHas(g), asc: canAscend(g) };
-    const cnt: Record<string, [number, boolean]> = { quests: [questsReady(g), true], field: [s.tickets, s.tickets > 0], splicer: [s.spOut ? 1 : 0, true], decor: [unplacedCount(g) + mergeableCount(g), true], brew: [!s.brew && medsRelevant(g).some(m => batchesAffordable(g, m) >= 1) ? 1 : 0, true] };
-    this.root.querySelectorAll<HTMLElement>('.tabs button[data-tab], .sbtn[data-tab]').forEach(b => {
+    const cnt: Record<string, [number, boolean]> = { quests: [questsReady(g), true], pipette: [s.tickets, s.tickets > 0], splicer: [s.spOut ? 1 : 0, true], decor: [unplacedCount(g) + mergeableCount(g), true], brew: [!s.brew && medsRelevant(g).some(m => batchesAffordable(g, m) >= 1) ? 1 : 0, true] };
+    this.root.querySelectorAll<HTMLElement>('.tabs button[data-tab], .sbtn[data-tab], .decorbar[data-tab]').forEach(b => {
       const k = b.dataset.tab!; b.classList.toggle('has', !!has[k]); b.setAttribute('aria-selected', String(this.panels.current === k));
-      const c = b.querySelector<HTMLElement>('.cnt'); if (c && cnt[k]) { const [n, ok] = cnt[k]; c.hidden = n <= 0 || (k === 'field' && !unlocked(g, 'tickets')); setText(c, k === 'splicer' || k === 'brew' ? '!' : String(n)); c.classList.toggle('ok', ok); }
+      const c = b.querySelector<HTMLElement>('.cnt'); if (c && cnt[k]) { const [n, ok] = cnt[k]; c.hidden = n <= 0 || (k === 'pipette' && !unlocked(g, 'pipette')); setText(c, k === 'splicer' || k === 'brew' ? '!' : String(n)); c.classList.toggle('ok', ok); }
       if (UNLOCK[k]) { const ok = unlocked(g, k); b.classList.toggle('locked', !ok); const lk = b.querySelector<HTMLElement>('.lk')!; lk.hidden = ok; setText(lk, unlockLabel(k)); }
     });
     const heart = this.root.querySelector<HTMLElement>('.sign .heart'); if (heart && heart.hidden === iapOwned(g, 'supporter')) heart.hidden = !iapOwned(g, 'supporter');

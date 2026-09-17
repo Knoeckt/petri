@@ -10,6 +10,7 @@ export function rleg(w: number[]) { return `<div class="rleg">${w.map((v, r) => 
 export const upgradesPanel: PanelDef = {
   id: 'up',
   title: () => 'Upgrades',
+  keepScroll: true,
   render(el, g) {
     const s = g.s;
     const now = `<p class="sub">Now: ${Math.floor(dropsPer(g))} ${TEXT.drops}/cycle · ${cycleTime(g).toFixed(1)}s · ${genRate(g).toFixed(1)}/s · value ×${valMult(g).toFixed(2)}. Duplicates sell for ${VAL.slice(0, 5).map(v => fmt(v * tierMult(g) * valMult(g))).join(' / ')}.</p>`;

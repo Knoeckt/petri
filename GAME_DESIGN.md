@@ -40,8 +40,8 @@ place.
 
 **Genre:** classic idle. Portrait, one thumb, one screen.
 **The screen:** the vessel is the whole screen, flanked by six brass side buttons (Quests,
-Tickets and Splicer on the left; Shop, Decor and Brewery on the right), with its buttons and
-the ad row on a wooden board under it and a specimen shelf below that. Upgrades, Lab
+Field and Splicer on the left; Shop, Pipette and Brewery on the right), with the decor shelf
+directly under it, then its buttons and the ad row on a wooden board. Upgrades, Lab
 (research), Clinic, Catalog and Scale up are the bottom tabs; tabs and side buttons alike
 open panels that slide up with overshoot and cover about 65% of the screen, rows staggering
 in behind. Tapping the dimmed vessel, the close button, or the same tab again closes the
@@ -419,7 +419,9 @@ Odd jobs moved to the Quests button beside the vessel.
 
 ## 3b½. The side buttons
 
-Six brass medallions flank the vessel, three a side. They open panels like the tabs do.
+Six brass medallions flank the vessel, three a side. They open panels like the tabs do. The
+decor shelf under the vessel is a seventh button in the same sense: it shows the three slots
+and opens Decor.
 
 ### What opens when
 
@@ -463,11 +465,11 @@ that are already past 1-5 load with the guide finished.
 | Button | What it is |
 |---|---|
 | **Quests** (left) | odd jobs that count things you do anyway (harvest five dishes, box up two biters, level up twice): two at a time with a progress bar, Collect when full, a fresh one after. A badge counts the ones ready to collect. |
-| **Tickets** (left) | the pipette mini-game, below. The badge is today's ticket count. |
 | **Splicer** (left) | the Splice-o-matic, its own area. Badge when a hybrid is waiting in the chamber. |
 | **Shop** (right) | paid in biomass, nothing you can't also earn, no premium currency; below the items a **Supporter's counter** of four real-money products (no more ads, starter kit, deep shelf, supporter's heart), stand-ins with real effects until StoreKit (ROADMAP §30). Five items, shown as their systems open: **Sample crate** (three spares of commons you have already found, 40 biomass, ×1.35 per purchase, resets daily; the early-game unblocker), **Heat lamp** (2× growth and income for two minutes), **Ice pack** (+2 h offline cap, once), **Extra ticket** (once Tickets is open; price climbs, resets daily), **Mystery pebble** (once Decor is open; a random common artifact). |
-| **Decor** (right) | place up to three artifacts in the enclosure. Only placed ones count. A badge counts unplaced artifacts. |
+| **Pipette** (right) | the pipette mini-game, below. The badge is today's ticket count. Locked until 1-5 with Tickets. |
 | **Brewery** (right) | the Apothecary's Copper Kettle, its own area. Badge when something can be brewed. Locked until 1-4, when Doc Ferro's first medicine request explains it. |
+| **Decor** (the shelf under the dish) | a wooden strip showing the three artifact slots; tapping it opens Decor, where up to three artifacts are placed. Only placed ones count. A badge counts unplaced and mergeable artifacts. |
 
 ### Tickets and the pipette
 
@@ -962,7 +964,7 @@ gradients, 24-unit grid, readable at 18 px. Emoji are gone everywhere.
 | Group | Icons |
 |---|---|
 | Tabs (5) | flask (Upgrades), microscope (Lab), pill bottle (Clinic), open book (Catalog), rocket (Scale up) |
-| Side buttons (6) | scroll (Quests), ticket (Tickets), DNA helix (Splicer), cart (Shop), vase (Decor), kettle (Brewery) |
+| Side buttons (6) | scroll (Quests), map (Field), DNA helix (Splicer), cart (Shop), drop (Pipette), kettle (Brewery) |
 | Currency and state (6) | biomass drop, genome helix, lock, padlock-open, red dot, tick |
 | Actions (6) | harvest hand, stir swirl, play triangle, ad film, warp clock, boost flame |
 | Artifacts (8) | pebble, lamp, salt shaker, prism, wind chime, moon shard, old key, golden bell |
