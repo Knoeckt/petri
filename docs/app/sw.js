@@ -1,7 +1,7 @@
 // Build placeholders are filled by build/offline.ts. Never serve this template directly.
-const SHELL = [{"url":"./assets/index-1xv-5H_6.js","integrity":"sha256-PR1VncHnQxWe0RsznuLDXfTU9bt+N1oPvxb+L88bu+Y="},{"url":"./assets/index-ogRVID25.css","integrity":"sha256-qXe7prSYTBYgVnuAud/DUWR7QNRfv4NZSB+s9RgZhxo="},{"url":"./icons/icon-180.png","integrity":"sha256-uUUBh/nFPXhmk+OtfaPcnOsMkQszYVmphvh6WQ/w5BE="},{"url":"./icons/icon-192.png","integrity":"sha256-vDmIAd3DTBI5ziseHtDIwRu626qb/F/gF7XzQ4gnyuI="},{"url":"./icons/icon-512.png","integrity":"sha256-DMXkeeysntiK9wNOo7j8Ny8cs6oji55jGVb20txypmo="},{"url":"./index.html","integrity":"sha256-xAmIOMYuznmq9iNT3M7PYcrkCSuSAQ15PJsBpddN9ac="},{"url":"./manifest.webmanifest","integrity":"sha256-gVej2Zda6Z2Cg1vPqqqbN0LDE8X6OIa+abEs6LqnnmI="}];
+const SHELL = [{"url":"./assets/index-Cuxh9RbB.js","integrity":"sha256-H1Z1UT2sHlMgJD2RPZzWW2EQMl4byBo8Qe2PGjwIg4w="},{"url":"./assets/index-ogRVID25.css","integrity":"sha256-qXe7prSYTBYgVnuAud/DUWR7QNRfv4NZSB+s9RgZhxo="},{"url":"./icons/icon-180.png","integrity":"sha256-uUUBh/nFPXhmk+OtfaPcnOsMkQszYVmphvh6WQ/w5BE="},{"url":"./icons/icon-192.png","integrity":"sha256-vDmIAd3DTBI5ziseHtDIwRu626qb/F/gF7XzQ4gnyuI="},{"url":"./icons/icon-512.png","integrity":"sha256-DMXkeeysntiK9wNOo7j8Ny8cs6oji55jGVb20txypmo="},{"url":"./index.html","integrity":"sha256-jOkOMbp2DUkEuT9BlonilV8r2RidxmdNofqFyrujhtA="},{"url":"./manifest.webmanifest","integrity":"sha256-gVej2Zda6Z2Cg1vPqqqbN0LDE8X6OIa+abEs6LqnnmI="}];
 const PREFIX = `petri-app:${encodeURIComponent(self.registration.scope)}:`;
-const CACHE = PREFIX + '534b4690a33f9730';
+const CACHE = PREFIX + '3a7f56aeacc9b064';
 const urls = new Set(SHELL.map(entry => new URL(entry.url, self.registration.scope).href));
 const index = new URL('./index.html', self.registration.scope).href;
 

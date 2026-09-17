@@ -1,7 +1,7 @@
 # Petri — Long-Term Roadmap
 
 **Last updated:** 2026-09-16  
-**Current version:** v0.11.10  
+**Current version:** v0.11.11  
 **Current stage:** Pre-alpha / balance & polish  
 **Immediate milestone:** Make Chapter 1 fun at real timings without ads.
 

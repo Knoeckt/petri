@@ -45,10 +45,11 @@ export class Guide {
   }
   private hide() { if (!this.hand.hidden) this.hand.hidden = true; if (!this.spot.hidden) this.spot.hidden = true; for (const b of this.blocks) if (!b.hidden) b.hidden = true; this.key = ''; }
   private dim(el: HTMLElement, r: DOMRect) {
-    const base = this.root.getBoundingClientRect(); const W = base.width, H = base.height, pad = 4;
-    // the ring hugs the tapped thing: a side button's medallion, the dish's circle, otherwise the element's own corners
+    const base = this.root.getBoundingClientRect(); const W = base.width, H = base.height, pad = 0;
+    // the ring sits exactly on the tapped thing's own border, same box and same corners: a side button's medallion,
+    // the dish's circle, otherwise the element's rounded corners (12px for things like tab buttons that have none)
     const box = el.classList.contains('sbtn') ? el.querySelector<HTMLElement>('span')! : el; if (box !== el) r = box.getBoundingClientRect();
-    const rad = box.classList.contains('vwrap') ? '50%' : `${(parseFloat(getComputedStyle(box).borderTopLeftRadius) || 8) + pad}px`;
+    const rad = box.classList.contains('vwrap') ? '50%' : `${parseFloat(getComputedStyle(box).borderTopLeftRadius) || 12}px`;
     const x0 = Math.max(0, r.left - base.left - pad), y0 = Math.max(0, r.top - base.top - pad), x1 = Math.min(W, r.right - base.left + pad), y1 = Math.min(H, r.bottom - base.top + pad);
     const set = (b: HTMLElement, l: number, t: number, w: number, h: number) => { b.style.left = l + 'px'; b.style.top = t + 'px'; b.style.width = Math.max(0, w) + 'px'; b.style.height = Math.max(0, h) + 'px'; if (b.hidden) b.hidden = false; };
     set(this.blocks[0], 0, 0, W, y0); set(this.blocks[1], 0, y1, W, H - y1); set(this.blocks[2], 0, y0, x0, y1 - y0); set(this.blocks[3], x1, y0, W - x1, y1 - y0);
