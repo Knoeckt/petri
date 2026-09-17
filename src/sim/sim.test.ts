@@ -47,7 +47,7 @@ describe('chapter 1', () => {
     expect(g.s.cat[0]).toEqual({ '0-0': 0, '1-0': 0, '0-1': 0, '0-2': 0, '1-2': 0, '2-0': 0 }); // every delivery emptied its shelf, the strains stay found
     expect(Object.values(g.s.meds[0])).toEqual([0, 0, 0, 0]);
     expect(g.s.hasSplicer).toBe(true);
-    expect(opened).toEqual([['field'], ['quests', 'shop'], ['lab'], ['brew'], ['tickets', 'decor'], ['splicer'], ['asc']]);
+    expect(opened).toEqual([['field'], ['quests', 'shop'], ['lab'], ['brew'], ['tickets', 'pipette', 'decor'], ['splicer'], ['asc']]);
     expect(curStep(g)!.outbreak).toBe(true);
   });
   it('1-6 wants a live Mirror Mike and 1-8 wants three medicines', () => {
