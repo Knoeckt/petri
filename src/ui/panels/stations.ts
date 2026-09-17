@@ -14,6 +14,7 @@ export const spliceScene = (g: Ctx) => spl || (spl = new SpliceScene(g));
 export const brewPanel: PanelDef = {
   id: 'brew',
   title: () => 'Apothecary',
+  intro: ['The Apothecary', `Doc Ferro's copper kettle turns samples from the Shelf into medicine. Pick a bottle on the rack, brew a batch, wait, then deliver it at the Clinic. Tap the fire to hurry it along.`],
   full: true,
   render(el, g) {
     const s = g.s, b = s.brew, sc = brewScene(g); const list = medsRelevant(g);
@@ -45,6 +46,7 @@ export const brewPanel: PanelDef = {
 export const splicerPanel: PanelDef = {
   id: 'splicer',
   title: () => 'Splice-o-matic',
+  intro: ['The Splice-o-matic', `Two specimens go in the tubes; pull the lever. Pairs that fit make a hybrid you can seed in the ${TEXT.dish.toLowerCase()} for a standing bonus. Pairs that do not come back out, minus a little ${TEXT.cur.toLowerCase()}.`],
   full: true,
   render(el, g) {
     const s = g.s, sp = s.splice, sc = spliceScene(g);

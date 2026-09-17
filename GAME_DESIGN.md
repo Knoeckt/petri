@@ -434,7 +434,7 @@ tapping it says who to help. The delivery that opens something announces it.
 |---|---|---|
 | always | Upgrades, Clinic, Catalog | the loop: grow, harvest, buy, deliver |
 | 1-2 (Ida) | Quests, Shop | "half the town has heard about your dish"; a second use for spares |
-| 1-3 (Doc Ferro) | Lab (research) | Ferro hands over the bench as he takes the samples; brewing research stays hidden until the kettle |
+| 1-3 (Doc Ferro) | Research, the Lab's second tab | the Lab tab is open from the start for the bench (equipment ranked with Notes); Ferro's research bench joins it here; brewing research stays hidden until the kettle |
 | 1-4 (Pip) | Brewery (Apothecary) | Pip's request is the first that needs ranking the dish, so it comes after the Lab and its Notes have had time; Ferro's first medicine request arrives as the button opens |
 | 1-5 (Ferro's kettle) | Tickets, Decor | artifacts matter once rarity matters |
 | 1-7 (Ferro's Bitters) | Splicer | the story hands it over |

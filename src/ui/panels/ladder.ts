@@ -9,6 +9,7 @@ let armed = false, armT = 0;
 export const ladderPanel: PanelDef = {
   id: 'asc',
   title: () => TEXT.ascend,
+  intro: ['Scaling up', `When the chapter is done, the ${TEXT.dish.toLowerCase()} is replaced by something bigger: everything pays more and a new catalog opens. Upgrades and ${TEXT.cur.toLowerCase()} reset; the bench, research and studies stay.`],
   render(el, g) {
     const s = g.s, last = s.tier >= TIER_COUNT - 1, next = last ? null : tierDef(s.tier + 1), ok = !last && canAscend(g);
     const ladder = Array.from({ length: TIER_COUNT }, (_, i) => `<div class="${i === s.tier ? 'cur' : i < s.tier ? 'done' : ''}">${i + 1}. ${tierDef(i).n}${i < s.tier ? ' · ' + found(g, i) + '/' + PER : ''}</div>`).join('');

@@ -9,6 +9,7 @@ import { play } from '../sound';
 export const pipettePanel: PanelDef = {
   id: 'pipette',
   title: () => 'Pipette',
+  intro: ['The pipette', `A ticket buys one drop: stop the marker over the green and win an artifact for the shelf under the ${TEXT.dish.toLowerCase()}. The nearer the centre, the rarer. Three tickets a day, more from the Shop or an ad.`],
   render(el, g) {
     const s = g.s, mg = g.mg; const res = mg?.done && mg.result ? mg.result : null; const art = res ? ART[res.art] : null;
     const meter = `<div class="mg" aria-hidden="true"><div class="mgbar"><i class="zone"></i><b class="mark" data-live="mark" style="left:${(mg?.pos ?? 0.5) * 100}%"></b></div></div>`;

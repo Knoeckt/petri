@@ -16,6 +16,7 @@ export function reqChips(g: Ctx, list: Req[]) {
 export const clinicPanel: PanelDef = {
   id: 'clinic',
   title: () => 'Clinic',
+  intro: ['The Clinic', `Mossbrook brings its problems here. Each request says what to grow; deliver it and the story moves on, paying ${TEXT.cur.toLowerCase()} and opening new parts of town. The board under the ${TEXT.dish.toLowerCase()} always shows the current request.`],
   render(el, g) {
     const s = g.s, ch = STORY[s.tier];
     if (!ch) { el.innerHTML = `<div class="card"><p class="sub" style="margin:0">No chapter has been written for the ${tierDef(s.tier).n} yet. Side quests keep paying.</p></div>`; return; }

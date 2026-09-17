@@ -10,6 +10,7 @@ import { play } from '../sound';
 export const questsPanel: PanelDef = {
   id: 'quests',
   title: () => 'Side quests',
+  intro: ['Side quests', `Odd jobs that count what you already do: harvesting, stirring, ranking the bench, boxing up biters. Two at a time; collect when the bar fills and a fresh one turns up.`],
   render(el, g) {
     sideRefill(g);
     const rows = g.s.side.map((x, idx) => { const q = SIDE[x.k], have = sideProg(g, x), ok = have >= q.n; return `<div class="card req small"><div class="who">${faceCanvas(q.who, 'face small')}<div><b>${q.who}</b><div class="sub" style="margin:0">${q.verb} ${q.n} ${q.unit} · pays ${fmt(q.reward * tierMult(g))}</div></div></div><p class="say">“${q.say}”</p><div class="qprog"><div class="bar"><i style="width:${have / q.n * 100}%"></i></div><b>${have}/${q.n}</b></div><div class="acts" style="margin-top:8px"><button class="btn primary" data-act="side" data-i="${idx}" ${ok ? '' : 'disabled'}>${ok ? 'Collect ' + fmt(q.reward * tierMult(g)) : 'In progress'}</button></div></div>`; }).join('');
@@ -23,6 +24,7 @@ export const questsPanel: PanelDef = {
 export const shopPanel: PanelDef = {
   id: 'shop',
   title: () => 'Shop',
+  intro: ['The Shop', `Paid in ${TEXT.cur.toLowerCase()} and never required. A crate of spares when you are stuck, a lamp for a burst of speed, an extra ticket. The Supporter's counter at the bottom is real money and purely optional.`],
   render(el, g) {
     el.innerHTML = `<p class="sub">Paid in ${TEXT.cur.toLowerCase()}. Nothing here you can't also earn; more appears as the town opens up.</p>` +
       shopItems(g).map(it => { const c = shopCost(g, it.id); return `<div class="r" style="cursor:default"><div class="rn">${icon(iconFor(it.id), 20)} ${it.n}</div><div class="rd">${it.d.replace('{boost}', fmtDur(boostLen(g)))}</div><div class="rc">${fmt(c)}</div><div class="acts" style="grid-column:1 / span 2; margin-top:6px"><button class="btn primary" data-act="buy" data-id="${it.id}" ${g.s.cur >= c ? '' : 'disabled'}>Buy</button></div></div>`; }).join('') +
@@ -41,6 +43,7 @@ export const shopPanel: PanelDef = {
 export const decorPanel: PanelDef = {
   id: 'decor',
   title: () => 'Decor',
+  intro: ['Decor', `Artifacts from the pipette sit on the shelf under the ${TEXT.dish.toLowerCase()}. Three slots, and only what is placed counts. Three spare copies of one level merge into a stronger one.`],
   render(el, g) {
     const s = g.s;
     const slots = s.placed.map((p, k) => { const a = p && ART[p.id]; return a ? `<div class="slot full"><div class="e">${icon(a.id, 30)}</div><div class="nm">${a.n} <b class="alv">Lv ${p.lv}</b></div><div class="pd">${artDesc(a, p.lv)}</div><button class="btn" data-act="unplace" data-i="${k}">Remove</button></div>` : `<div class="slot"><div class="e" style="opacity:.35">＋</div><div class="pd">Slot ${k + 1}</div><div class="pd">empty</div></div>`; }).join('');

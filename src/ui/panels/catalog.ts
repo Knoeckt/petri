@@ -8,6 +8,7 @@ import { drawCritter } from '../critter';
 export const catalogPanel: PanelDef = {
   id: 'cat',
   title: () => 'Shelf',
+  intro: ['The Shelf', `Every strain you have found, and how many are in stock. Requests, medicines and studies draw from here. The shelf only holds so many of each; the rest sells itself for ${TEXT.cur.toLowerCase()}.`],
   render(el, g) {
     const s = g.s, t = s.tier, def = tierDef(t), c = s.cat[t] || {};
     const groups = RAR.map((R, r) => `<div class="rgroup"><h4>${R.n} · ${def.items[r].filter((_, i) => `${r}-${i}` in c).length}/${COUNTS[r]} · +${BONUS[r] * 100}% each</h4><div class="items">${def.items[r].map((it, i) => `${r}-${i}` in c // found, even with none on the shelf

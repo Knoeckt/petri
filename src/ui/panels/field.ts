@@ -13,6 +13,7 @@ const mapScene = (g: Ctx) => map || (map = new MapScene(g));
 export const fieldPanel: PanelDef = {
   id: 'field',
   title: () => 'Field',
+  intro: ['Field trips', `Tap a place on the map and send an expedition. They walk while you are away and come back with Notes for the bench, sometimes with a live sample. Longer trips bring more.`],
   full: true,
   render(el, g) {
     const s = g.s, tr = s.trip, sc = mapScene(g);

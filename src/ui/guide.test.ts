@@ -22,7 +22,7 @@ describe('first-run guide', () => {
 
   it('still shows the next prompt while a ready dish waits', () => {
     const g = game(); firstHarvest(g); g.s.cycles = 3; g.s.dishes[0].ready = true;
-    for (const k of ['clinic', 'field', 'quests', 'lab', 'buy']) tutSeen(g, k);
+    for (const k of ['clinic', 'field', 'quests', 'research', 'buy']) tutSeen(g, k);
     g.s.st.trip = 1; g.s.cat[0] = {}; story(g).step = 4; // the kettle has just opened
     expect(guideTarget(g, null)?.[0]).toBe('.sbtn[data-tab="brew"]');
   });
@@ -33,7 +33,7 @@ describe('first-run guide', () => {
     const t = guideTarget(g, null);
     expect(t?.[0]).toBe('.tabs button[data-tab="clinic"]'); expect(t?.[1]).toMatch(/Clinic needs you/);
     tutSeen(g, 'clinic'); // what Panels.open does through App
-    expect(guideTarget(g, null)?.[0]).toBe('.tabs button[data-tab="up"]'); // on to the free bench demo; the Clinic waits until the Mayor can be paid
+    expect(guideTarget(g, null)?.[0]).toBe('.tabs button[data-tab="lab"]'); // on to the free bench demo; the Clinic waits until the Mayor can be paid
   });
 
   it('keeps pointing at the Clinic while a delivery is possible', () => {
@@ -47,12 +47,12 @@ describe('first-run guide', () => {
     const g = game(); firstHarvest(g); for (const k of ['clinic', 'field']) tutSeen(g, k); g.s.st.trip = 1; g.s.cat[0] = {};
     expect(eqCost(g, 'dish')).toEqual({ notes: 0, bio: 0 });
     expect(guideTarget(g, null)?.[1]).toMatch(/first Petri dish rank is free/);
-    expect(guideTarget(g, 'up')?.[0]).toBe('.tabbody [data-act="eq"][data-k="dish"]');
+    expect(guideTarget(g, 'lab')?.[0]).toContain('.tabbody [data-act="eq"][data-k="dish"]');
     expect(buyEquip(g, 'dish')).toBe(true); expect(g.s.notes).toBe(0);
     expect(eqCost(g, 'dish').notes).toBeGreaterThan(0); // the second rank costs Notes
     g.s.tut.seen.buy = false; // pretend the demo has not happened: nothing affordable means no hand
-    expect(guideTarget(g, null)?.[0]).not.toBe('.tabs button[data-tab="up"]');
-    expect(guideTarget(g, 'up')).toBeNull();
+    expect(guideTarget(g, null)?.[0]).not.toBe('.tabs button[data-tab="lab"]');
+    expect(guideTarget(g, 'lab')).toBeNull();
   });
 
   it('shows nothing inside a panel that has no next step', () => {

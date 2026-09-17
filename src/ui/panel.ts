@@ -1,6 +1,6 @@
 // Panels slide up over the vessel. One is open at a time; structure is rebuilt on 'dirty', live values patched in place.
 import type { Ctx, AdPlacement } from '../sim';
-import { unlocked, unlockName, unlockLabel, unlockHint, toast } from '../sim';
+import { unlocked, unlockName, unlockLabel, unlockHint, toast, tutSeen } from '../sim';
 
 export interface PanelApi { open: (id: string) => void; close: () => void; rerender: () => void; ad?: (placement: AdPlacement, arg?: number) => void; buy?: (id: string) => void }
 export interface PanelDef {
@@ -10,6 +10,10 @@ export interface PanelDef {
   full?: boolean;
   /** keep the scroll position across closes and rerenders (long lists); it resets on Scale-up, Genesis and launch */
   keepScroll?: boolean;
+  /** the unlock key that gates opening; defaults to the id, null means always open */
+  gate?: string | null;
+  /** a first-visit introduction: a card at the top of the panel until the player taps Got it */
+  intro?: [title: string, text: string];
   render: (el: HTMLElement, g: Ctx, api: PanelApi) => void;
   /** cheap per-150 ms patching of live values */
   live?: (el: HTMLElement, g: Ctx) => void;
@@ -44,6 +48,7 @@ export class Panels {
     this.body.addEventListener('click', e => {
       const b = (e.target as HTMLElement).closest<HTMLElement>('[data-act]'); if (!b || !this.current) return;
       const act = b.dataset.act!; if (act === 'open') { this.open(b.dataset.tab!); return; }
+      if (act === 'gotit') { tutSeen(this.g, 'intro:' + this.current); this.rerender(); return; }
       const fn = this.defs[this.current].act?.[act]; if (fn && fn(b, this.g, this.api) !== false) this.rerender();
     });
     g.on(e => { if (e.type === 'dirty' && this.current) this.rerender(); else if (e.type === 'ascend' || e.type === 'genesis') this.scroll = {}; });
@@ -51,7 +56,8 @@ export class Panels {
 
   open(id: string) {
     if (!this.defs[id]) return;
-    if (!unlocked(this.g, id)) { toast(this.g, `🔒 ${unlockName(id)} opens after ${unlockLabel(id)}. ${unlockHint(id)}`); return; }
+    const gate = this.gateOf(id);
+    if (gate && !unlocked(this.g, gate)) { toast(this.g, `🔒 ${unlockName(gate)} opens after ${unlockLabel(gate)}. ${unlockHint(gate)}`); return; }
     if (this.current) this.remember();
     this.current = id; this.openedAt = performance.now(); this.g.paused = true;
     const full = !!this.defs[id].full; (this.el.querySelector('.back') as HTMLElement).hidden = !full; (this.el.querySelector('.x') as HTMLElement).hidden = full;
@@ -64,6 +70,8 @@ export class Panels {
     this.onChange(id);
   }
   toggle(id: string) { if (this.current === id) this.close(); else this.open(id); }
+  /** the unlock key a panel waits on, or null when it is always open */
+  gateOf(id: string): string | null { const d = this.defs[id]; return !d ? id : d.gate === undefined ? id : d.gate; }
   close() { if (!this.current) return; this.remember(); this.current = null; this.g.paused = false; this.panel.classList.remove('open', 'anim'); this.scrim.classList.remove('on'); this.onChange(null); }
   private remember() { if (this.current && this.defs[this.current].keepScroll) this.scroll[this.current] = this.body.scrollTop; }
 
@@ -71,6 +79,7 @@ export class Panels {
     if (!this.current) return; const d = this.defs[this.current];
     this.title.textContent = d.title(this.g);
     const top = this.body.scrollTop; d.render(this.body, this.g, this.api); if (this.body.scrollTop !== top) this.body.scrollTop = top;
+    if (d.intro && !this.g.s.tut.seen['intro:' + d.id]) this.body.insertAdjacentHTML('afterbegin', `<div class="card intro"><div class="eyebrow">How this works</div><h3>${d.intro[0]}</h3><p class="sub">${d.intro[1]}</p><div class="acts"><button class="btn primary" data-act="gotit">Got it</button></div></div>`);
     // content pops in, staggered, only when the panel has just opened
     if (performance.now() - this.openedAt < 200) this.body.querySelectorAll<HTMLElement>(':scope > .card, :scope > .r, :scope > .sub').forEach((c, k) => { c.classList.add('pop'); c.style.animationDelay = `${180 + k * 40}ms`; });
   }

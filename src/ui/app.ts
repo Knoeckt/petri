@@ -145,12 +145,12 @@ export class App {
     // the decor shelf under the dish: three slots, placed artifacts as icons
     setHTML(this.shelf, s.placed.map((p, k) => { const a = p && ART[p.id]; return a ? `<span class="ds full" title="${a.n}">${icon(a.id, 22)}${p.lv > 1 ? `<b>${p.lv}</b>` : ''}</span>` : `<span class="ds"><small>${k + 1}</small></span>`; }).join(''));
     // badges, counts and locks
-    const has: Record<string, boolean> = { up: upAvailable(g) || eqAvailable(g), clinic: clinicHas(g), asc: canAscend(g) };
+    const has: Record<string, boolean> = { up: upAvailable(g), lab: eqAvailable(g), clinic: clinicHas(g), asc: canAscend(g) };
     const cnt: Record<string, [number, boolean]> = { quests: [questsReady(g), true], pipette: [s.tickets, s.tickets > 0], splicer: [s.spOut ? 1 : 0, true], decor: [unplacedCount(g) + mergeableCount(g), true], brew: [!s.brew && medsRelevant(g).some(m => batchesAffordable(g, m) >= 1) ? 1 : 0, true] };
     this.root.querySelectorAll<HTMLElement>('.tabs button[data-tab], .sbtn[data-tab], .decorbar[data-tab]').forEach(b => {
       const k = b.dataset.tab!; b.classList.toggle('has', !!has[k]); b.setAttribute('aria-selected', String(this.panels.current === k));
       const c = b.querySelector<HTMLElement>('.cnt'); if (c && cnt[k]) { const [n, ok] = cnt[k]; c.hidden = n <= 0 || (k === 'pipette' && !unlocked(g, 'pipette')); setText(c, k === 'splicer' || k === 'brew' ? '!' : String(n)); c.classList.toggle('ok', ok); }
-      if (UNLOCK[k]) { const ok = unlocked(g, k); b.classList.toggle('locked', !ok); const lk = b.querySelector<HTMLElement>('.lk')!; lk.hidden = ok; setText(lk, unlockLabel(k)); }
+      const gk = this.panels.gateOf(k); if (gk && UNLOCK[gk]) { const ok = unlocked(g, gk); b.classList.toggle('locked', !ok); const lk = b.querySelector<HTMLElement>('.lk')!; lk.hidden = ok; setText(lk, unlockLabel(gk)); } else b.classList.remove('locked');
     });
     const heart = this.root.querySelector<HTMLElement>('.sign .heart'); if (heart && heart.hidden === iapOwned(g, 'supporter')) heart.hidden = !iapOwned(g, 'supporter');
     this.panels.live();
