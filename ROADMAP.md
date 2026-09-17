@@ -48,7 +48,7 @@ Phase by phase, against the original generic idle-game roadmap:
 | 2 Clinic & story | **Done.** Three chapters authored (9, 7 and 7 requests), each request gates an unlock; side quests; the first-run guide |
 | 3 Save system | **Done.** Save v5, migration from every mockup save, validation, backup snapshot, recovery archive, progress download. No player-facing reset yet (dev cheats only) |
 | 4 Offline progression | **Done.** Chronological catch-up, production cap from Storage research, Night shift efficiency, welcome-back sheet, double-it ad |
-| 5 Balance foundation | **Partial.** All values live in `src/data/content.ts`; dev cheats exist. No prototype-vs-playtest balance split, no measured time-to-unlock. This is the current work |
+| 5 Balance foundation | **Partial.** All values live in `src/data/content.ts`; dev cheats exist. Balance profiles (`src/data/pace.ts`) and the bot harness (`npm run bot`, §7–8) exist; no human-measured time-to-unlock yet. This is the current work |
 | 6 UI/UX polish | **Partial.** Palette tokens, icon set, portraits, station scenes, sound. No consistency pass, empty/error states or unlock animations |
 | 7 Mobile-first pass | **Mostly done.** Fixed portrait frame, safe areas, iOS home-screen quirks solved, offline shell with integrity checks. Physical-phone lifecycle checks still manual |
 | 8–11 Secondary systems, brewing, automation, long-term progression | **Done as systems.** Apothecary (brewing), Lab (research incl. auto-harvest), Splicer, field trips, tickets/pipette/artifacts, outbreaks, Scale-up ladder, Genesis (the prestige loop). None tuned against real play |
@@ -243,6 +243,8 @@ Only relevant tuning constants should differ.
 
 # 7. Add Progression Instrumentation
 
+> Implemented for scripted runs: `src/bot/milestones.ts` is the milestone list and `npm run bot --verbose` prints the timeline below. The in-game log for a human run is still to do.
+
 Before attempting serious balancing, make progression measurable.
 
 Create development instrumentation capable of reporting major milestones.
@@ -281,6 +283,8 @@ without estimating from memory.
 ---
 
 # 8. Build Balance Simulation Tools
+
+> Implemented: `npm run bot` (`src/bot/`), four profiles below, seeds, days, pace, JSON output; verdicts against `DEVELOPMENT.md` §3. See README.
 
 Petri already has a pure simulation layer.
 

@@ -69,6 +69,14 @@ Updates deliberately wait for old windows to close, following the
    `proto`; a device switches with `?pace=real` (remembered) or the dev sheet, and the corner
    tag reads "· playtest". Add a profile by adding an entry, never by forking constants.
 2. Measure a complete first chapter without ads across random seeds and human playtests.
+   - [x] Scripted players (`npm run bot`, `src/bot/`): four habit profiles play fresh saves at
+     playtest pace across seeds, sessions on the live tick and the gaps through offline
+     catch-up, and report every milestone against the target table below (ROADMAP §7–8).
+     First reading, 2026-09-16, active profile: the first session lands on target through
+     1-3 (harvest 1.5 min, Mayor 6 min, Lab 19.5 min); 1-4 takes 3.5 h on the wall but only
+     31 min of play, and the chapter finishes on day 2 rather than day 3–5, because auto-harvest
+     and the second dish arrive in the first two hours. Not measured: ads, Shop, studies.
+   - [ ] The dogfood run (ROADMAP §10), with the in-game milestone log the bot shares.
 3. Improve the opening discoveries and prioritize affordable early upgrades.
 4. Decide how earlier catalogs become complete and make extra dishes visible/useful.
 5. Tune ads, offline efficiency, request cadence, and the first scale-up from that evidence.

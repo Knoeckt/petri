@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
+    "bot": "node scripts/bot.mjs",
     "typecheck": "tsc --noEmit",
     "build:pages": "tsc --noEmit && vite build --outDir docs/app --base ./ --emptyOutDir"
   },
